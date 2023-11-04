@@ -61,6 +61,7 @@ function App() {
       return errors;
     },
   });
+
   const [artboards, setArtboards] = useLocalStorage<Artboard[]>({
     key: "artboards",
     defaultValue: [],
@@ -79,6 +80,12 @@ function App() {
       backgroundColor: "#e9ecef",
     });
 
+    return () => {
+      canvasRef.current?.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
     // Create a new artboard in the center of the canvas when selected artboard changes
     if (selectedArtboard) {
       const artboard = new fabric.Rect({
@@ -92,11 +99,14 @@ function App() {
       });
       canvasRef.current?.add(artboard);
       artboardRef.current = artboard;
-    }
 
-    return () => {
-      canvasRef.current?.dispose();
-    };
+      // Load state if it exists
+      if (selectedArtboard.state) {
+        canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
+          canvasRef.current?.renderAll();
+        });
+      }
+    }
   }, [selectedArtboard]);
 
   // Update canvas size when viewport size changes
@@ -174,15 +184,22 @@ function App() {
     if (!selectedArtboard) {
       return;
     }
-    
-    // We only need to export the artboard, not the entire canvas
-    const dataURL = canvasRef.current?.toDataURL({
+
+    // 1. Load the artboard state into a new offscreen canvas (use fabric.Canvas)
+    const newCanvas = document.createElement("canvas");
+    newCanvas.width = selectedArtboard.width;
+    newCanvas.height = selectedArtboard.height;
+    const newFabricCanvas = new fabric.Canvas(newCanvas);
+
+    // 2. Add the artboard state to the new canvas
+    newFabricCanvas.loadFromJSON(selectedArtboard.state, () => {
+      newFabricCanvas.renderAll();
+    });
+
+    // 3. Export the new canvas as a PNG
+    const dataURL = newFabricCanvas.toDataURL({
       format: "png",
       multiplier: 1,
-      left: artboardRef.current?.left,
-      top: artboardRef.current?.top,
-      width: artboardRef.current?.width,
-      height: artboardRef.current?.height,
     });
 
     const link = document.createElement("a");
@@ -250,6 +267,30 @@ function App() {
     });
     setArtboards(updatedArtboards);
   };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const handleZoom = (opt: any) => {
+      const delta = opt.e.deltaY;
+      let zoom = canvas.getZoom();
+      zoom *= 0.99 ** delta;
+      if (zoom > 10) zoom = 10;
+      if (zoom < 0.1) zoom = 0.1;
+      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      opt.e.preventDefault();
+      opt.e.stopPropagation();
+    };
+
+    canvas.on("mouse:wheel", handleZoom);
+
+    return () => {
+      canvas.off("mouse:wheel", handleZoom);
+    };
+  }, []);
 
   return (
     <Box className={classes.root}>
