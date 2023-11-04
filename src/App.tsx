@@ -44,8 +44,8 @@ function App() {
   const newArtboardForm = useForm<Omit<Artboard, "id">>({
     initialValues: {
       name: "",
-      width: 1000,
-      height: 1000,
+      width: 500,
+      height: 500,
     },
     validate: (values) => {
       const errors: Record<string, string> = {};
@@ -69,26 +69,49 @@ function App() {
     null
   );
   const canvasRef = useRef<fabric.Canvas | null>(null);
+  const artboardRef = useRef<fabric.Rect | null>(null);
 
   useEffect(() => {
-    if (!selectedArtboard) {
-      return;
-    }
-
-    canvasRef.current = new fabric.Canvas(selectedArtboard.id, {
-      width: selectedArtboard.width,
-      height: selectedArtboard.height,
-      backgroundColor: "#fff",
+    canvasRef.current = new fabric.Canvas("canvas", {
+      // create a canvas with clientWidth and clientHeight
+      width: window.innerWidth - 600,
+      height: window.innerHeight - 65,
+      backgroundColor: "#e9ecef",
     });
-    // Load state from selectedArtboard
-    if (selectedArtboard.state) {
-      canvasRef.current.loadFromJSON(selectedArtboard.state, () => {
-        canvasRef.current?.renderAll();
+
+    // Create a new artboard in the center of the canvas when selected artboard changes
+    if (selectedArtboard) {
+      const artboard = new fabric.Rect({
+        left: (window.innerWidth - 600) / 2 - selectedArtboard.width / 2,
+        top: (window.innerHeight - 65) / 2 - selectedArtboard.height / 2,
+        width: selectedArtboard.width,
+        height: selectedArtboard.height,
+        fill: "#fff",
+        strokeWidth: 1,
+        selectable: false,
       });
+      canvasRef.current?.add(artboard);
+      artboardRef.current = artboard;
     }
 
     return () => {
       canvasRef.current?.dispose();
+    };
+  }, [selectedArtboard]);
+
+  // Update canvas size when viewport size changes
+  useEffect(() => {
+    const handleResize = () => {
+      canvasRef.current?.setDimensions({
+        width: window.innerWidth - 600,
+        height: window.innerHeight - 65,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
     };
   }, [selectedArtboard]);
 
@@ -102,9 +125,30 @@ function App() {
   };
 
   const addText = () => {
+    if (!selectedArtboard) {
+      return;
+    }
+
+    if (!artboardRef.current) {
+      return;
+    }
+
+    const left = artboardRef.current.left;
+    const top = artboardRef.current.top;
+    const width = artboardRef.current.width;
+    const height = artboardRef.current.height;
+
+    if (!left || !top || !width || !height) {
+      return;
+    }
+
+    // calculate the center of the artboard
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+
     const text = new fabric.IText("Edit me", {
-      left: 50,
-      top: 50,
+      left: centerX,
+      top: centerY,
       fontFamily: "Inter",
       fontSize: 20,
     });
@@ -126,15 +170,21 @@ function App() {
     setSelectedArtboard(artboard);
   };
 
-  const exportCurrentCanvas = () => {
+  const exportCurrentArtboard = () => {
     if (!selectedArtboard) {
       return;
     }
-
+    
+    // We only need to export the artboard, not the entire canvas
     const dataURL = canvasRef.current?.toDataURL({
       format: "png",
-      quality: 4,
+      multiplier: 1,
+      left: artboardRef.current?.left,
+      top: artboardRef.current?.top,
+      width: artboardRef.current?.width,
+      height: artboardRef.current?.height,
     });
+
     const link = document.createElement("a");
     if (dataURL) {
       link.href = dataURL;
@@ -147,19 +197,23 @@ function App() {
 
   const export4K = () => {
     const multiplier = getMultiplierFor4K(
-      canvasRef.current?.getWidth(),
-      canvasRef.current?.getHeight()
+      selectedArtboard?.width,
+      selectedArtboard?.height
     );
 
     const dataURL = canvasRef.current?.toDataURL({
       format: "png",
       multiplier: multiplier,
+      left: artboardRef.current?.left,
+      top: artboardRef.current?.top,
+      width: artboardRef.current?.width,
+      height: artboardRef.current?.height,
     });
 
     const link = document.createElement("a");
     if (dataURL) {
       link.href = dataURL;
-      link.download = "canvas.png";
+      link.download = "canvas_4k.png";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -232,7 +286,7 @@ function App() {
           </Stack>
         </Box>
         <Center className={classes.center}>
-          <canvas id={selectedArtboard?.id} />
+          <canvas id="canvas" />
         </Center>
         <Box className={classes.right}>
           <Stack spacing={16}>
@@ -256,7 +310,7 @@ function App() {
                 size="xs"
                 leftIcon={<IconFileExport size={14} />}
                 variant="light"
-                onClick={exportCurrentCanvas}
+                onClick={exportCurrentArtboard}
               >
                 Export as PNG
               </Button>
@@ -295,14 +349,14 @@ function App() {
           <Group grow>
             <NumberInput
               label="Width"
-              placeholder="1000"
+              placeholder="500"
               required
               classNames={{ label: modalClasses.label }}
               {...newArtboardForm.getInputProps("width")}
             />
             <NumberInput
               label="Height"
-              placeholder="1000"
+              placeholder="500"
               required
               classNames={{ label: modalClasses.label }}
               {...newArtboardForm.getInputProps("height")}
