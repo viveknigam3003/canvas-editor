@@ -68,7 +68,6 @@ function App() {
   const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
     null
   );
-  const stageRef = useRef<fabric.Canvas | null>(null);
   const canvasRef = useRef<fabric.Canvas | null>(null);
 
   useEffect(() => {
@@ -92,33 +91,6 @@ function App() {
       canvasRef.current?.dispose();
     };
   }, [selectedArtboard]);
-
-  // Create stage canvas and add all artboards to it
-  useEffect(() => {
-    stageRef.current = new fabric.Canvas("stage", {
-      width: window.innerWidth - 600,
-      height: window.innerHeight - 4,
-      backgroundColor: "#fff",
-    });
-
-    artboards.forEach((artboard) => {
-      const canvas = new fabric.Canvas(artboard.id, {
-        width: artboard.width,
-        height: artboard.height,
-      });
-      if (artboard.state) {
-        canvas.loadFromJSON(artboard.state, () => {
-          canvas.renderAll();
-        });
-      }
-
-      stageRef.current?.add(canvas);
-    });
-
-    return () => {
-      stageRef.current?.dispose();
-    };
-  }, [artboards]);
 
   const addNewArtboard = (artboard: Omit<Artboard, "id">) => {
     const id = generateId();
@@ -260,9 +232,7 @@ function App() {
           </Stack>
         </Box>
         <Center className={classes.center}>
-          <canvas id="stage">
-            <canvas id={selectedArtboard?.id} />
-          </canvas>
+          <canvas id={selectedArtboard?.id} />
         </Center>
         <Box className={classes.right}>
           <Stack spacing={16}>
