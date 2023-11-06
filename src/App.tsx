@@ -69,6 +69,8 @@ function App() {
   const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
     null
   );
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<fabric.Canvas | null>(null);
   const artboardRef = useRef<fabric.Rect | null>(null);
 
@@ -170,6 +172,8 @@ function App() {
   };
 
   const updateSelectedArtboard = (artboard: Artboard) => {
+    // clear the canvas of selected artboard
+    canvasRef.current?.clear();
     const updatedArtboards = artboards.map((item) => {
       if (item.id === artboard.id) {
         return artboard;
@@ -291,6 +295,53 @@ function App() {
       canvas.off("mouse:wheel", handleZoom);
     };
   }, []);
+
+  // Handle dragging of canvas with mouse down and alt key pressed
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const handleDrag = (opt: any) => {
+      const e = opt.e;
+      if (e.altKey === true) {
+        setIsDragging(true);
+        canvas.selection = false;
+        setLastPos({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    const handleDragEnd = () => {
+      setIsDragging(false);
+      canvas.selection = true;
+    };
+
+    const handleDragMove = (opt: any) => {
+      if (isDragging) {
+        const e = opt.e;
+        const vpt = canvas.viewportTransform;
+        if (!vpt) {
+          return;
+        }
+
+        vpt[4] += e.clientX - lastPos.x;
+        vpt[5] += e.clientY - lastPos.y;
+        canvas.requestRenderAll();
+        setLastPos({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    canvas.on("mouse:down", handleDrag);
+    canvas.on("mouse:up", handleDragEnd);
+    canvas.on("mouse:move", handleDragMove);
+
+    return () => {
+      canvas.off("mouse:down", handleDrag);
+      canvas.off("mouse:up", handleDragEnd);
+      canvas.off("mouse:move", handleDragMove);
+    };
+  }, [lastPos.x, lastPos.y, isDragging]);
 
   return (
     <Box className={classes.root}>
