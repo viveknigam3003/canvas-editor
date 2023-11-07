@@ -16,9 +16,13 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import {
-  IconBadge4k,
+  IconBug,
   IconDeviceFloppy,
-  IconFileExport,
+  IconDownload,
+  IconEye,
+  IconEyeOff,
+  IconHeading,
+  IconPhoto,
   IconPlus,
 } from "@tabler/icons-react";
 import { fabric } from "fabric";
@@ -39,6 +43,7 @@ const generateId = () => {
 
 function App() {
   const { classes } = useStyles();
+  const [showSidebar, setShowSidebar] = useState(true);
   const { classes: modalClasses } = useModalStyles();
   const [opened, { open, close }] = useDisclosure();
   const newArtboardForm = useForm<Omit<Artboard, "id">>({
@@ -61,6 +66,20 @@ function App() {
       return errors;
     },
   });
+  const imageForm = useForm<{ url: string }>({
+    initialValues: {
+      url: "",
+    },
+    validate: (values) => {
+      const errors: Record<string, string> = {};
+      if (values.url.trim().length === 0) {
+        errors.url = "Image url cannot be empty";
+      }
+      return errors;
+    },
+  });
+  const [imageModalOpened, { open: openImageModal, close: closeImageModal }] =
+    useDisclosure();
 
   const [artboards, setArtboards] = useLocalStorage<Artboard[]>({
     key: "artboards",
@@ -78,8 +97,9 @@ function App() {
     canvasRef.current = new fabric.Canvas("canvas", {
       // create a canvas with clientWidth and clientHeight
       width: window.innerWidth - 600,
-      height: window.innerHeight - 65,
+      height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
+      imageSmoothingEnabled: false,
     });
 
     return () => {
@@ -88,24 +108,18 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Create a new artboard in the center of the canvas when selected artboard changes
     if (selectedArtboard) {
-      const artboard = new fabric.Rect({
-        left: (window.innerWidth - 600) / 2 - selectedArtboard.width / 2,
-        top: (window.innerHeight - 65) / 2 - selectedArtboard.height / 2,
-        width: selectedArtboard.width,
-        height: selectedArtboard.height,
-        fill: "#fff",
-        strokeWidth: 1,
-        selectable: false,
-      });
-      canvasRef.current?.add(artboard);
-      artboardRef.current = artboard;
-
       // Load state if it exists
       if (selectedArtboard.state) {
         canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
           canvasRef.current?.renderAll();
+          // change artboard ref
+          const artboard = canvasRef.current
+            ?.getObjects()
+            .find((item) => item.data.type === "artboard");
+          if (artboard) {
+            artboardRef.current = artboard as fabric.Rect;
+          }
         });
       }
     }
@@ -115,8 +129,8 @@ function App() {
   useEffect(() => {
     const handleResize = () => {
       canvasRef.current?.setDimensions({
-        width: window.innerWidth - 600,
-        height: window.innerHeight - 65,
+        width: window.innerWidth,
+        height: window.innerHeight - 60,
       });
     };
 
@@ -125,13 +139,45 @@ function App() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [selectedArtboard]);
+  }, []);
 
   const addNewArtboard = (artboard: Omit<Artboard, "id">) => {
+    const validationResult = newArtboardForm.validate();
+    if (validationResult.hasErrors) {
+      console.log("Errors in new artboard form", validationResult.errors);
+      return;
+    }
     const id = generateId();
     const newArtboard: Artboard = { ...artboard, id };
-    setArtboards((current) => [...current, newArtboard]);
     setSelectedArtboard(newArtboard);
+
+    canvasRef.current?.clear();
+    const artboardRect = new fabric.Rect({
+      left: (window.innerWidth - 600) / 2 - artboard.width / 2,
+      top: (window.innerHeight - 60) / 2 - artboard.height / 2,
+      width: artboard.width,
+      height: artboard.height,
+      fill: "#fff",
+      selectable: false,
+      data: {
+        type: "artboard",
+        id,
+      },
+    });
+
+    canvasRef.current?.add(artboardRect);
+    artboardRef.current = artboardRect;
+    // Save the state of the canvas
+    const json = canvasRef.current?.toJSON(["data"]);
+    console.log("Saving new artboard state", json);
+    const updatedArtboards = [
+      ...artboards,
+      {
+        ...newArtboard,
+        state: json,
+      },
+    ];
+    setArtboards(updatedArtboards);
     newArtboardForm.reset();
     close();
   };
@@ -184,61 +230,64 @@ function App() {
     setSelectedArtboard(artboard);
   };
 
-  const exportCurrentArtboard = () => {
-    if (!selectedArtboard) {
+  const exportArtboard = () => {
+    const artboardLeftAdjustment = canvasRef.current
+      ?.getObjects()
+      .find((item) => item.data.type === "artboard")?.left;
+    const artboardTopAdjustment = canvasRef.current
+      ?.getObjects()
+      .find((item) => item.data.type === "artboard")?.top;
+
+    if (!artboardLeftAdjustment || !artboardTopAdjustment) {
       return;
     }
 
-    // 1. Load the artboard state into a new offscreen canvas (use fabric.Canvas)
-    const newCanvas = document.createElement("canvas");
-    newCanvas.width = selectedArtboard.width;
-    newCanvas.height = selectedArtboard.height;
-    const newFabricCanvas = new fabric.Canvas(newCanvas);
-
-    // 2. Add the artboard state to the new canvas
-    newFabricCanvas.loadFromJSON(selectedArtboard.state, () => {
-      newFabricCanvas.renderAll();
-    });
-
-    // 3. Export the new canvas as a PNG
-    const dataURL = newFabricCanvas.toDataURL({
-      format: "png",
-      multiplier: 1,
-    });
-
-    const link = document.createElement("a");
-    if (dataURL) {
-      link.href = dataURL;
-      link.download = "canvas.png";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const export4K = () => {
-    const multiplier = getMultiplierFor4K(
-      selectedArtboard?.width,
-      selectedArtboard?.height
-    );
-
-    const dataURL = canvasRef.current?.toDataURL({
-      format: "png",
-      multiplier: multiplier,
-      left: artboardRef.current?.left,
-      top: artboardRef.current?.top,
+    // Now we need to create a new canvas and add the artboard to it
+    const offscreenCanvas = new fabric.Canvas("print", {
       width: artboardRef.current?.width,
       height: artboardRef.current?.height,
     });
 
-    const link = document.createElement("a");
-    if (dataURL) {
-      link.href = dataURL;
-      link.download = "canvas_4k.png";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    const stateJSON = canvasRef.current?.toJSON(["data"]);
+
+    const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
+      return {
+        ...item,
+        left: item.left - artboardLeftAdjustment,
+        top: item.top - artboardTopAdjustment,
+      };
+    });
+    const adjustedStateJSON = {
+      ...stateJSON,
+      objects: adjustedStateJSONObjects,
+    };
+
+    offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+      offscreenCanvas.renderAll();
+      console.log("Offscreen canvas = ", offscreenCanvas.toJSON(["data"]));
+
+      const multiplier = getMultiplierFor4K(
+        artboardRef.current?.width,
+        artboardRef.current?.height
+      );
+
+      const config = {
+        format: "png",
+        multiplier,
+      };
+
+      // render the offscreen canvas to a dataURL
+      const dataURL = offscreenCanvas.toDataURL(config);
+
+      const link = document.createElement("a");
+      if (dataURL) {
+        link.href = dataURL;
+        link.download = "canvas_4k.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    });
   };
 
   const getMultiplierFor4K = (width?: number, height?: number): number => {
@@ -258,7 +307,7 @@ function App() {
       return;
     }
 
-    const json = canvasRef.current?.toJSON();
+    const json = canvasRef.current?.toJSON(["data"]);
     console.log("Saving artboard changes", json);
     const updatedArtboards = artboards.map((item) => {
       if (item.id === selectedArtboard.id) {
@@ -272,6 +321,86 @@ function App() {
     setArtboards(updatedArtboards);
   };
 
+  const getImageScale = (image: fabric.Image): number => {
+    // Calculate the scale needed to fit the image inside the artboard with 20% padding
+    const artboardWidth = artboardRef.current?.width;
+    const artboardHeight = artboardRef.current?.height;
+
+    console.log("Artboard = ", artboardWidth, artboardHeight);
+
+    if (!artboardWidth || !artboardHeight) {
+      return 1;
+    }
+
+    const imageWidth = image.width;
+    const imageHeight = image.height;
+
+    console.log("Image = ", imageWidth, imageHeight);
+
+    if (!imageWidth || !imageHeight) {
+      return 1;
+    }
+
+    const widthScale = (artboardWidth * 0.8) / imageWidth;
+    const heightScale = (artboardHeight * 0.8) / imageHeight;
+
+    console.log("Width scale = ", widthScale, "Height scale = ", heightScale);
+
+    return Math.min(widthScale, heightScale);
+  };
+
+  const addImageFromUrl = (url: string) => {
+    const validationResult = imageForm.validate();
+    if (validationResult.hasErrors) {
+      console.log("Errors in image form= ", validationResult.errors);
+      return;
+    }
+    fabric.Image.fromURL(
+      url,
+      (img) => {
+        if (!selectedArtboard) {
+          return;
+        }
+
+        if (!artboardRef.current) {
+          return;
+        }
+
+        const left = artboardRef.current.left;
+        const top = artboardRef.current.top;
+        const width = artboardRef.current.width;
+        const height = artboardRef.current.height;
+
+        if (!left || !top || !width || !height) {
+          return;
+        }
+
+        // calculate the center of the artboard
+        const centerX = left + width / 2;
+        const centerY = top + height / 2;
+
+        const scale = getImageScale(img);
+
+        console.log("Scale = ", scale);
+
+        img.set({
+          left: centerX,
+          top: centerY,
+          scaleX: scale,
+          scaleY: scale,
+        });
+
+        canvasRef.current?.add(img);
+        canvasRef.current?.setActiveObject(img);
+        imageForm.reset();
+        closeImageModal();
+      },
+      {
+        crossOrigin: "anonymous",
+      }
+    );
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
@@ -282,7 +411,7 @@ function App() {
       const delta = opt.e.deltaY;
       let zoom = canvas.getZoom();
       zoom *= 0.99 ** delta;
-      if (zoom > 10) zoom = 10;
+      if (zoom > 100) zoom = 100;
       if (zoom < 0.1) zoom = 0.1;
       canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
       opt.e.preventDefault();
@@ -343,11 +472,24 @@ function App() {
     };
   }, [lastPos.x, lastPos.y, isDragging]);
 
+  const debug = () => {
+    console.log(canvasRef.current?.toJSON(["data"]));
+  };
+
   return (
     <Box className={classes.root}>
       <Box className={classes.header}>
         <Text className={classes.logo}>Phoenix Editor</Text>
         <Group>
+          <ActionIcon
+            color="violet"
+            variant="subtle"
+            onClick={() => {
+              setShowSidebar(!showSidebar);
+            }}
+          >
+            {showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
+          </ActionIcon>
           <ActionIcon
             color="violet"
             variant="subtle"
@@ -361,62 +503,83 @@ function App() {
         </Group>
       </Box>
       <Flex className={classes.shell}>
-        <Box className={classes.left}>
-          <Stack spacing={0}>
-            {artboards.map((artboard) => (
-              <Group
-                key={artboard.id}
-                className={classes.artboardButton}
-                onClick={() => updateSelectedArtboard(artboard)}
-              >
-                <Text size={14}>{artboard.name}</Text>
-                <Text size={12} color="gray">
-                  {artboard.width}x{artboard.height}
-                </Text>
-              </Group>
-            ))}
-          </Stack>
-        </Box>
+        {showSidebar ? (
+          <Box className={classes.left}>
+            <Stack spacing={0}>
+              {artboards.map((artboard) => (
+                <Group
+                  key={artboard.id}
+                  className={classes.artboardButton}
+                  onClick={() => updateSelectedArtboard(artboard)}
+                >
+                  <Text size={14}>{artboard.name}</Text>
+                  <Text size={12} color="gray">
+                    {artboard.width}x{artboard.height}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          </Box>
+        ) : null}
         <Center className={classes.center}>
           <canvas id="canvas" />
         </Center>
-        <Box className={classes.right}>
-          <Stack spacing={16}>
-            <Stack spacing={8}>
-              <Text size={"sm"} weight={600} color="gray">
-                Text
-              </Text>
-              <Button
-                size="xs"
-                leftIcon={<IconPlus size={12} />}
-                onClick={addText}
-              >
-                Add text
-              </Button>
+        {showSidebar ? (
+          <Box className={classes.right}>
+            <Stack spacing={16}>
+              <Stack spacing={8}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Debug
+                </Text>
+                <Button
+                  size="xs"
+                  leftIcon={<IconBug size={16} />}
+                  onClick={debug}
+                  variant="outline"
+                >
+                  Log state
+                </Button>
+              </Stack>
+              <Stack spacing={8}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Text
+                </Text>
+                <Button
+                  size="xs"
+                  leftIcon={<IconHeading size={12} />}
+                  onClick={addText}
+                >
+                  Add text
+                </Button>
+              </Stack>
+              <Stack spacing={8}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Image
+                </Text>
+                <Button
+                  size="xs"
+                  leftIcon={<IconPhoto size={12} />}
+                  onClick={openImageModal}
+                >
+                  Add image from url
+                </Button>
+              </Stack>
+              <Stack spacing={4}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Export
+                </Text>
+                <Button
+                  size="xs"
+                  leftIcon={<IconDownload size={14} />}
+                  variant="light"
+                  onClick={exportArtboard}
+                >
+                  Export artboard
+                </Button>
+              </Stack>
             </Stack>
-            <Stack spacing={4}>
-              <Text size={"sm"} weight={600} color="gray">
-                Export
-              </Text>
-              <Button
-                size="xs"
-                leftIcon={<IconFileExport size={14} />}
-                variant="light"
-                onClick={exportCurrentArtboard}
-              >
-                Export as PNG
-              </Button>
-              <Button
-                size="xs"
-                leftIcon={<IconBadge4k size={14} />}
-                variant="light"
-                onClick={export4K}
-              >
-                Export in 4k
-              </Button>
-            </Stack>
-          </Stack>
-        </Box>
+          </Box>
+        ) : null}
       </Flex>
       <Modal
         opened={opened}
@@ -462,6 +625,37 @@ function App() {
             onClick={() => addNewArtboard(newArtboardForm.values)}
           >
             Create
+          </Button>
+        </Stack>
+      </Modal>
+      <Modal
+        opened={imageModalOpened}
+        onClose={() => {
+          imageForm.reset();
+          closeImageModal();
+        }}
+        title={`Add image to ${selectedArtboard?.name}`}
+        classNames={{
+          content: modalClasses.content,
+          title: modalClasses.title,
+        }}
+      >
+        <Stack spacing={"lg"}>
+          <TextInput
+            label="Image URL"
+            placeholder="Enter valid url"
+            required
+            classNames={{ label: modalClasses.label }}
+            {...imageForm.getInputProps("url")}
+          />
+          <Button
+            variant="light"
+            size="sm"
+            fullWidth
+            mt={"md"}
+            onClick={() => addImageFromUrl(imageForm.values.url)}
+          >
+            Add image
           </Button>
         </Stack>
       </Modal>
@@ -519,6 +713,7 @@ const useStyles = createStyles((theme) => ({
     borderLeft: `1px solid ${theme.colors.gray[3]}`,
     borderRight: `1px solid ${theme.colors.gray[3]}`,
     flexGrow: 1,
+    flexShrink: 1,
     zIndex: 0,
   },
   artboardButton: {
