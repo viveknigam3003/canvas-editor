@@ -204,11 +204,12 @@ function App() {
     const centerX = left + width / 2;
     const centerY = top + height / 2;
 
-    const text = new fabric.IText("Edit me", {
+    const text = new fabric.Textbox("Edit this text", {
       left: centerX,
       top: centerY,
       fontFamily: "Inter",
       fontSize: 20,
+      width: width / 10,
     });
 
     canvasRef.current?.add(text);
