@@ -489,6 +489,10 @@ function App() {
             variant="subtle"
             onClick={() => {
               setShowSidebar(!showSidebar);
+              canvasRef.current?.setDimensions({
+                width: window.innerWidth,
+                height: window.innerHeight - 60,
+              });
             }}
           >
             {showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
