@@ -168,7 +168,7 @@ function App() {
     canvasRef.current?.add(artboardRect);
     artboardRef.current = artboardRect;
     // Save the state of the canvas
-    const json = canvasRef.current?.toJSON(["data"]);
+    const json = canvasRef.current?.toJSON(["data", "selectable"]);
     console.log("Saving new artboard state", json);
     const updatedArtboards = [
       ...artboards,
@@ -249,7 +249,7 @@ function App() {
       height: artboardRef.current?.height,
     });
 
-    const stateJSON = canvasRef.current?.toJSON(["data"]);
+    const stateJSON = canvasRef.current?.toJSON(["data", "selectable"]);
 
     const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
       return {
@@ -265,7 +265,7 @@ function App() {
 
     offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
       offscreenCanvas.renderAll();
-      console.log("Offscreen canvas = ", offscreenCanvas.toJSON(["data"]));
+      console.log("Offscreen canvas = ", offscreenCanvas.toJSON(["data", "selectable"]));
 
       const multiplier = getMultiplierFor4K(
         artboardRef.current?.width,
@@ -308,7 +308,7 @@ function App() {
       return;
     }
 
-    const json = canvasRef.current?.toJSON(["data"]);
+    const json = canvasRef.current?.toJSON(["data", "selectable"]);
     console.log("Saving artboard changes", json);
     const updatedArtboards = artboards.map((item) => {
       if (item.id === selectedArtboard.id) {
@@ -409,14 +409,16 @@ function App() {
     }
 
     const handleZoom = (opt: any) => {
-      const delta = opt.e.deltaY;
-      let zoom = canvas.getZoom();
-      zoom *= 0.99 ** delta;
-      if (zoom > 100) zoom = 100;
-      if (zoom < 0.1) zoom = 0.1;
-      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
       opt.e.preventDefault();
       opt.e.stopPropagation();
+      if (opt.e.metaKey === true) {
+        const delta = opt.e.deltaY;
+        let zoom = canvas.getZoom();
+        zoom *= 0.99 ** delta;
+        if (zoom > 100) zoom = 100;
+        if (zoom < 0.1) zoom = 0.1;
+        canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      }
     };
 
     canvas.on("mouse:wheel", handleZoom);
@@ -474,7 +476,7 @@ function App() {
   }, [lastPos.x, lastPos.y, isDragging]);
 
   const debug = () => {
-    console.log(canvasRef.current?.toJSON(["data"]));
+    console.log(canvasRef.current?.toJSON(["data", "selectable"]));
   };
 
   return (
