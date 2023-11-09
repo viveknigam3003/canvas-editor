@@ -21,6 +21,7 @@ import {
   IconDownload,
   IconEye,
   IconEyeOff,
+  IconFileDownload,
   IconHeading,
   IconPhoto,
   IconPlus,
@@ -231,6 +232,84 @@ function App() {
     setSelectedArtboard(artboard);
   };
 
+  // const downloadDataUrl = (dataURL: string, fileName: string) => {
+  //   const link = document.createElement("a");
+  //   link.href = dataURL;
+  //   link.download = fileName;
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
+
+  const exportArtboardById = (artboard: Artboard) => {
+    const artboardLeftAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.left;
+    const artboardTopAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.top;
+
+    if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+      throw new Error("Artboard left or top adjustment is undefined");
+    }
+
+    // Now we need to create a new canvas and add the artboard to it
+    const offscreenCanvas = new fabric.Canvas(`print_${artboard.id}`, {
+      width: artboardRef.current?.width,
+      height: artboardRef.current?.height,
+    });
+
+    const adjustedStateJSONObjects = artboard.state?.objects?.map((item: any) => {
+      return {
+        ...item,
+        left: item.left - artboardLeftAdjustment,
+        top: item.top - artboardTopAdjustment,
+      };
+    });
+
+    if (!adjustedStateJSONObjects) {
+      throw new Error("Adjusted state json objects is undefined");
+    }
+
+    const adjustedStateJSON = {
+      ...artboard.state,
+      objects: adjustedStateJSONObjects,
+    };
+
+    console.log("Adjusted state json = ", adjustedStateJSON);
+
+    offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+      offscreenCanvas.renderAll();
+
+      const multiplier = getMultiplierFor4K(
+        artboardRef.current?.width,
+        artboardRef.current?.height
+      );
+
+      const config = {
+        format: "png",
+        multiplier,
+      };
+
+      // render the offscreen canvas to a dataURL
+      const dataURL = offscreenCanvas.toDataURL(config);
+
+      const link = document.createElement("a");
+      if (dataURL) {
+        link.href = dataURL;
+        link.download = `${artboard.name}@4x.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        // clear canvas
+        offscreenCanvas.clear();
+      }
+    });
+  };
+
+  const exportAllArtboards = () => {
+    artboards.forEach((artboard) => {
+      console.log('Printing artboard = ', artboard);
+      exportArtboardById(artboard);
+    });
+  }
+
   const exportArtboard = () => {
     const artboardLeftAdjustment = canvasRef.current
       ?.getObjects()
@@ -411,14 +490,12 @@ function App() {
     const handleZoom = (opt: any) => {
       opt.e.preventDefault();
       opt.e.stopPropagation();
-      if (opt.e.metaKey === true) {
-        const delta = opt.e.deltaY;
-        let zoom = canvas.getZoom();
-        zoom *= 0.99 ** delta;
-        if (zoom > 100) zoom = 100;
-        if (zoom < 0.1) zoom = 0.1;
-        canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-      }
+      const delta = opt.e.deltaY;
+      let zoom = canvas.getZoom();
+      zoom *= 0.99 ** delta;
+      if (zoom > 500) zoom = 500;
+      if (zoom < 0.1) zoom = 0.1;
+      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
     };
 
     canvas.on("mouse:wheel", handleZoom);
@@ -578,6 +655,14 @@ function App() {
                   onClick={exportArtboard}
                 >
                   Export artboard
+                </Button>
+                <Button
+                  size="xs"
+                  leftIcon={<IconFileDownload size={14} />}
+                  variant="light"
+                  onClick={exportAllArtboards}
+                >
+                  Export all
                 </Button>
               </Stack>
             </Stack>
