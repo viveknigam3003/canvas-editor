@@ -26,6 +26,7 @@ import {
   IconPhoto,
   IconPlus,
 } from "@tabler/icons-react";
+import axios from "axios";
 import { fabric } from "fabric";
 import { useEffect, useRef, useState } from "react";
 
@@ -91,6 +92,7 @@ function App() {
   );
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const [isDownloading, setIsDownloading] = useState(false);
   const canvasRef = useRef<fabric.Canvas | null>(null);
   const artboardRef = useRef<fabric.Rect | null>(null);
 
@@ -232,83 +234,98 @@ function App() {
     setSelectedArtboard(artboard);
   };
 
-  // const downloadDataUrl = (dataURL: string, fileName: string) => {
-  //   const link = document.createElement("a");
-  //   link.href = dataURL;
-  //   link.download = fileName;
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
+  // const exportArtboardById = (artboard: Artboard) => {
+  //   const artboardLeftAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.left;
+  //   const artboardTopAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.top;
+
+  //   if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+  //     throw new Error("Artboard left or top adjustment is undefined");
+  //   }
+
+  //   // Now we need to create a new canvas and add the artboard to it
+  //   const offscreenCanvas = new fabric.Canvas(`print_${artboard.id}`, {
+  //     width: artboardRef.current?.width,
+  //     height: artboardRef.current?.height,
+  //   });
+
+  //   const adjustedStateJSONObjects = artboard.state?.objects?.map((item: any) => {
+  //     return {
+  //       ...item,
+  //       left: item.left - artboardLeftAdjustment,
+  //       top: item.top - artboardTopAdjustment,
+  //     };
+  //   });
+
+  //   if (!adjustedStateJSONObjects) {
+  //     throw new Error("Adjusted state json objects is undefined");
+  //   }
+
+  //   const adjustedStateJSON = {
+  //     ...artboard.state,
+  //     objects: adjustedStateJSONObjects,
+  //   };
+
+  //   console.log("Adjusted state json = ", adjustedStateJSON);
+
+  //   offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+  //     offscreenCanvas.renderAll();
+
+  //     const multiplier = getMultiplierFor4K(
+  //       artboardRef.current?.width,
+  //       artboardRef.current?.height
+  //     );
+
+  //     const config = {
+  //       format: "png",
+  //       multiplier,
+  //     };
+
+  //     // render the offscreen canvas to a dataURL
+  //     const dataURL = offscreenCanvas.toDataURL(config);
+
+  //     const link = document.createElement("a");
+  //     if (dataURL) {
+  //       link.href = dataURL;
+  //       link.download = `${artboard.name}@4x.png`;
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
+  //       // clear canvas
+  //       offscreenCanvas.clear();
+  //     }
+  //   });
   // };
 
-  const exportArtboardById = (artboard: Artboard) => {
-    const artboardLeftAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.left;
-    const artboardTopAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.top;
+  const exportAllArtboards = async () => {
+    try {
+      // Download all artboards as zip from backend
+      setIsDownloading(true);
+     const res = await axios.post(
+       "http://localhost:5000/api/download",
+       { artboards, origin: window.location.origin },
+       {
+         responseType: "blob",
+       }
+     );
 
-    if (!artboardLeftAdjustment || !artboardTopAdjustment) {
-      throw new Error("Artboard left or top adjustment is undefined");
-    }
+      if (!res.data) {
+        throw new Error("Response data is undefined");
+     }
 
-    // Now we need to create a new canvas and add the artboard to it
-    const offscreenCanvas = new fabric.Canvas(`print_${artboard.id}`, {
-      width: artboardRef.current?.width,
-      height: artboardRef.current?.height,
-    });
-
-    const adjustedStateJSONObjects = artboard.state?.objects?.map((item: any) => {
-      return {
-        ...item,
-        left: item.left - artboardLeftAdjustment,
-        top: item.top - artboardTopAdjustment,
-      };
-    });
-
-    if (!adjustedStateJSONObjects) {
-      throw new Error("Adjusted state json objects is undefined");
-    }
-
-    const adjustedStateJSON = {
-      ...artboard.state,
-      objects: adjustedStateJSONObjects,
-    };
-
-    console.log("Adjusted state json = ", adjustedStateJSON);
-
-    offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
-      offscreenCanvas.renderAll();
-
-      const multiplier = getMultiplierFor4K(
-        artboardRef.current?.width,
-        artboardRef.current?.height
-      );
-
-      const config = {
-        format: "png",
-        multiplier,
-      };
-
-      // render the offscreen canvas to a dataURL
-      const dataURL = offscreenCanvas.toDataURL(config);
-
+      const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
-      if (dataURL) {
-        link.href = dataURL;
-        link.download = `${artboard.name}@4x.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        // clear canvas
-        offscreenCanvas.clear();
-      }
-    });
+      link.href = url;
+      link.setAttribute("download", "artboards.zip");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      console.log(res.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
-
-  const exportAllArtboards = () => {
-    artboards.forEach((artboard) => {
-      console.log('Printing artboard = ', artboard);
-      exportArtboardById(artboard);
-    });
-  }
 
   const exportArtboard = () => {
     const artboardLeftAdjustment = canvasRef.current
@@ -661,6 +678,8 @@ function App() {
                   leftIcon={<IconFileDownload size={14} />}
                   variant="light"
                   onClick={exportAllArtboards}
+                  loading={isDownloading}
+                  disabled={window.location.hostname.includes('vercel')}
                 >
                   Export all
                 </Button>
