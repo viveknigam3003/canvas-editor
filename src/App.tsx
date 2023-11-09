@@ -90,11 +90,10 @@ function App() {
   const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
     null
   );
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
   const [isDownloading, setIsDownloading] = useState(false);
   const canvasRef = useRef<fabric.Canvas | null>(null);
   const artboardRef = useRef<fabric.Rect | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     canvasRef.current = new fabric.Canvas("canvas", {
@@ -234,83 +233,21 @@ function App() {
     setSelectedArtboard(artboard);
   };
 
-  // const exportArtboardById = (artboard: Artboard) => {
-  //   const artboardLeftAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.left;
-  //   const artboardTopAdjustment = artboard?.state?.objects.find((item: any) => item.data.id === artboard.id)?.top;
-
-  //   if (!artboardLeftAdjustment || !artboardTopAdjustment) {
-  //     throw new Error("Artboard left or top adjustment is undefined");
-  //   }
-
-  //   // Now we need to create a new canvas and add the artboard to it
-  //   const offscreenCanvas = new fabric.Canvas(`print_${artboard.id}`, {
-  //     width: artboardRef.current?.width,
-  //     height: artboardRef.current?.height,
-  //   });
-
-  //   const adjustedStateJSONObjects = artboard.state?.objects?.map((item: any) => {
-  //     return {
-  //       ...item,
-  //       left: item.left - artboardLeftAdjustment,
-  //       top: item.top - artboardTopAdjustment,
-  //     };
-  //   });
-
-  //   if (!adjustedStateJSONObjects) {
-  //     throw new Error("Adjusted state json objects is undefined");
-  //   }
-
-  //   const adjustedStateJSON = {
-  //     ...artboard.state,
-  //     objects: adjustedStateJSONObjects,
-  //   };
-
-  //   console.log("Adjusted state json = ", adjustedStateJSON);
-
-  //   offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
-  //     offscreenCanvas.renderAll();
-
-  //     const multiplier = getMultiplierFor4K(
-  //       artboardRef.current?.width,
-  //       artboardRef.current?.height
-  //     );
-
-  //     const config = {
-  //       format: "png",
-  //       multiplier,
-  //     };
-
-  //     // render the offscreen canvas to a dataURL
-  //     const dataURL = offscreenCanvas.toDataURL(config);
-
-  //     const link = document.createElement("a");
-  //     if (dataURL) {
-  //       link.href = dataURL;
-  //       link.download = `${artboard.name}@4x.png`;
-  //       document.body.appendChild(link);
-  //       link.click();
-  //       document.body.removeChild(link);
-  //       // clear canvas
-  //       offscreenCanvas.clear();
-  //     }
-  //   });
-  // };
-
   const exportAllArtboards = async () => {
     try {
       // Download all artboards as zip from backend
       setIsDownloading(true);
-     const res = await axios.post(
-       "http://localhost:5000/api/download",
-       { artboards, origin: window.location.origin },
-       {
-         responseType: "blob",
-       }
-     );
+      const res = await axios.post(
+        "http://localhost:5000/api/download",
+        { artboards, origin: window.location.origin },
+        {
+          responseType: "blob",
+        }
+      );
 
       if (!res.data) {
         throw new Error("Response data is undefined");
-     }
+      }
 
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
@@ -361,7 +298,10 @@ function App() {
 
     offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
       offscreenCanvas.renderAll();
-      console.log("Offscreen canvas = ", offscreenCanvas.toJSON(["data", "selectable"]));
+      console.log(
+        "Offscreen canvas = ",
+        offscreenCanvas.toJSON(["data", "selectable"])
+      );
 
       const multiplier = getMultiplierFor4K(
         artboardRef.current?.width,
@@ -498,30 +438,6 @@ function App() {
     );
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    const handleZoom = (opt: any) => {
-      opt.e.preventDefault();
-      opt.e.stopPropagation();
-      const delta = opt.e.deltaY;
-      let zoom = canvas.getZoom();
-      zoom *= 0.99 ** delta;
-      if (zoom > 500) zoom = 500;
-      if (zoom < 0.1) zoom = 0.1;
-      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-    };
-
-    canvas.on("mouse:wheel", handleZoom);
-
-    return () => {
-      canvas.off("mouse:wheel", handleZoom);
-    };
-  }, []);
-
   // Handle dragging of canvas with mouse down and alt key pressed
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -529,45 +445,35 @@ function App() {
       return;
     }
 
-    const handleDrag = (opt: any) => {
+    const handlePan = (opt: any) => {
+      // Handle panning based on deltaX and deltaY but prevent zooming
       const e = opt.e;
-      if (e.altKey === true) {
-        setIsDragging(true);
-        canvas.selection = false;
-        setLastPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleDragEnd = () => {
-      setIsDragging(false);
-      canvas.selection = true;
-    };
-
-    const handleDragMove = (opt: any) => {
-      if (isDragging) {
-        const e = opt.e;
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) {
+        const delta = opt.e.deltaY;
+        let zoom = canvas.getZoom();
+        zoom *= 0.99 ** delta;
+        if (zoom > 500) zoom = 500;
+        if (zoom < 0.1) zoom = 0.1;
+        canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      } else {
         const vpt = canvas.viewportTransform;
         if (!vpt) {
           return;
         }
 
-        vpt[4] += e.clientX - lastPos.x;
-        vpt[5] += e.clientY - lastPos.y;
+        vpt[4] -= e.deltaX;
+        vpt[5] -= e.deltaY;
         canvas.requestRenderAll();
-        setLastPos({ x: e.clientX, y: e.clientY });
       }
-    };
+    }
 
-    canvas.on("mouse:down", handleDrag);
-    canvas.on("mouse:up", handleDragEnd);
-    canvas.on("mouse:move", handleDragMove);
+    canvas.on("mouse:wheel", handlePan);
 
     return () => {
-      canvas.off("mouse:down", handleDrag);
-      canvas.off("mouse:up", handleDragEnd);
-      canvas.off("mouse:move", handleDragMove);
+      canvas.off("mouse:wheel", handlePan);
     };
-  }, [lastPos.x, lastPos.y, isDragging]);
+  }, []);
 
   const debug = () => {
     console.log(canvasRef.current?.toJSON(["data", "selectable"]));
@@ -618,7 +524,7 @@ function App() {
             </Stack>
           </Box>
         ) : null}
-        <Center className={classes.center}>
+        <Center className={classes.center} ref={canvasContainerRef}>
           <canvas id="canvas" />
         </Center>
         {showSidebar ? (
@@ -679,7 +585,7 @@ function App() {
                   variant="light"
                   onClick={exportAllArtboards}
                   loading={isDownloading}
-                  disabled={window.location.hostname.includes('vercel')}
+                  disabled={window.location.hostname.includes("vercel")}
                 >
                   Export all
                 </Button>
