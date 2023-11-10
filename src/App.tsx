@@ -16,6 +16,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import {
+  IconBoxModel2,
   IconBug,
   IconDeviceFloppy,
   IconDownload,
@@ -28,7 +29,7 @@ import {
 } from "@tabler/icons-react";
 import axios from "axios";
 import { fabric } from "fabric";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface Artboard {
   id: string;
@@ -142,6 +143,54 @@ function App() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  const fitBoardToCanvas = (artboard: Artboard) => {
+    // Find canvas zoom level to fit the artboard
+    const zoom = canvasRef.current?.getZoom();
+    const artboardWidth = artboard.width;
+    const artboardHeight = artboard.height;
+    const canvasWidth = canvasRef.current?.width;
+    const canvasHeight = canvasRef.current?.height;
+
+    const widthZoom = (canvasWidth || 1) / (artboardWidth || 1);
+    const heightZoom = (canvasHeight || 1) / (artboardHeight || 1);
+    const newZoom = Math.min(widthZoom, heightZoom);
+
+    if (zoom && newZoom) {
+      canvasRef.current?.setZoom(newZoom);
+      centerBoardToCanvas(artboardRef as any);
+    }
+  };
+
+  const centerBoardToCanvas = (
+    artboardRef: React.MutableRefObject<fabric.Rect | null>
+  ) => {
+    const artboardLeft = artboardRef.current?.left;
+    const artboardTop = artboardRef.current?.top;
+    const artboardWidth = artboardRef.current?.width;
+    const artboardHeight = artboardRef.current?.height;
+    const canvasWidth = canvasRef.current?.width;
+    const canvasHeight = canvasRef.current?.height;
+
+    if (
+      !artboardLeft ||
+      !artboardTop ||
+      !artboardWidth ||
+      !artboardHeight ||
+      !canvasWidth ||
+      !canvasHeight
+    ) {
+      return;
+    }
+
+    const left = (canvasWidth - artboardWidth) / 2 - artboardLeft;
+    const top = (canvasHeight - artboardHeight) / 2 - artboardTop;
+
+    canvasRef.current?.absolutePan({
+      x: left,
+      y: top,
+    });
+  };
 
   const addNewArtboard = (artboard: Omit<Artboard, "id">) => {
     const validationResult = newArtboardForm.validate();
@@ -438,6 +487,39 @@ function App() {
     );
   };
 
+  const getMaxMinZoomLevel = (dimensions: {
+    width: number;
+    height: number;
+  }) => {
+    const { width, height } = dimensions;
+
+    if (width >= 10000 || height >= 10000) {
+      return {
+        minZoom: 0.01,
+        maxZoom: 5,
+      };
+    }
+
+    if (width >= 5000 || height >= 5000) {
+      return {
+        minZoom: 0.025,
+        maxZoom: 10,
+      };
+    }
+
+    if (width >= 2000 || height >= 2000) {
+      return {
+        minZoom: 0.1,
+        maxZoom: 20,
+      };
+    }
+
+    return {
+      minZoom: 0.1,
+      maxZoom: 10,
+    };
+  };
+
   // Handle dragging of canvas with mouse down and alt key pressed
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -453,8 +535,18 @@ function App() {
         const delta = opt.e.deltaY;
         let zoom = canvas.getZoom();
         zoom *= 0.99 ** delta;
-        if (zoom > 500) zoom = 500;
-        if (zoom < 0.1) zoom = 0.1;
+
+        const { minZoom, maxZoom } = getMaxMinZoomLevel({
+          width: selectedArtboard?.width || 1,
+          height: selectedArtboard?.height || 1,
+        });
+
+        console.log("Min zoom = ", minZoom, "Max zoom = ", maxZoom);
+        if (zoom > maxZoom) zoom = maxZoom;
+        if (zoom < minZoom) zoom = minZoom;
+        if (!zoom || isNaN(zoom)) {
+          zoom = minZoom;
+        }
         canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
       } else {
         const vpt = canvas.viewportTransform;
@@ -466,14 +558,14 @@ function App() {
         vpt[5] -= e.deltaY;
         canvas.requestRenderAll();
       }
-    }
+    };
 
     canvas.on("mouse:wheel", handlePan);
 
     return () => {
       canvas.off("mouse:wheel", handlePan);
     };
-  }, []);
+  }, [selectedArtboard?.height, selectedArtboard?.width]);
 
   const debug = () => {
     console.log(canvasRef.current?.toJSON(["data", "selectable"]));
@@ -592,6 +684,22 @@ function App() {
                   disabled={window.location.hostname.includes("vercel")}
                 >
                   Export all
+                </Button>
+              </Stack>
+              <Stack spacing={4}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Zoom
+                </Text>
+                <Button
+                  size="xs"
+                  leftIcon={<IconBoxModel2 size={14} />}
+                  variant="light"
+                  onClick={() => {
+                    fitBoardToCanvas(selectedArtboard as Artboard);
+                    
+                  }}
+                >
+                  Fit board to canvas
                 </Button>
               </Stack>
             </Stack>
