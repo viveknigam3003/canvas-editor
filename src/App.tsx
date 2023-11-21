@@ -14,7 +14,7 @@ import {
   createStyles,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useDisclosure, useLocalStorage } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import {
   IconArtboard,
   IconBoxModel2,
@@ -31,8 +31,12 @@ import {
 import axios from "axios";
 import { fabric } from "fabric";
 import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { appStart, setArtboards } from "./modules/app/actions";
+import store from "./store";
+import { RootState } from "./store/rootReducer";
 
-interface Artboard {
+export interface Artboard {
   id: string;
   name: string;
   width: number;
@@ -47,7 +51,12 @@ const generateId = () => {
 
 const RENDER_N = 2500;
 
+store.dispatch(appStart());
+
 function App() {
+  const dispatch = useDispatch();
+  const artboards = useSelector((state: RootState) => state.app.artboards);
+
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
   const { classes: modalClasses } = useModalStyles();
@@ -90,11 +99,6 @@ function App() {
   });
   const [imageModalOpened, { open: openImageModal, close: closeImageModal }] =
     useDisclosure();
-
-  const [artboards, setArtboards] = useLocalStorage<Artboard[]>({
-    key: "artboards",
-    defaultValue: [],
-  });
   const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
     null
   );
@@ -258,7 +262,6 @@ function App() {
     artboardRef.current = artboardRect;
     // Save the state of the canvas
     const json = canvasRef.current?.toJSON(["data", "selectable"]);
-    console.log("Saving new artboard state", json);
     const updatedArtboards = [
       ...artboards,
       {
@@ -266,7 +269,7 @@ function App() {
         state: json,
       },
     ];
-    setArtboards(updatedArtboards);
+    dispatch(setArtboards(updatedArtboards));
     newArtboardForm.reset();
     close();
   };
@@ -285,7 +288,7 @@ function App() {
 
     // Update the artboards state
     const updatedArtboards = [...artboards, ...allArtboards];
-    setArtboards(updatedArtboards);
+    dispatch(setArtboards(updatedArtboards));
     newArtboardForm.reset();
     setSelectedArtboard(allArtboards[0]);
     setIsCreatingArtboards(false);
@@ -329,15 +332,12 @@ function App() {
   };
 
   const updateSelectedArtboard = (artboard: Artboard) => {
+    if (selectedArtboard?.id === artboard.id) {
+      return;
+    }
+
     // clear the canvas of selected artboard
     canvasRef.current?.clear();
-    const updatedArtboards = artboards.map((item) => {
-      if (item.id === artboard.id) {
-        return artboard;
-      }
-      return item;
-    });
-    setArtboards(updatedArtboards);
     setSelectedArtboard(artboard);
   };
 
@@ -453,7 +453,6 @@ function App() {
     }
 
     const json = canvasRef.current?.toJSON(["data", "selectable"]);
-    console.log("Saving artboard changes", json);
     const updatedArtboards = artboards.map((item) => {
       if (item.id === selectedArtboard.id) {
         return {
@@ -463,7 +462,7 @@ function App() {
       }
       return item;
     });
-    setArtboards(updatedArtboards);
+    dispatch(setArtboards(updatedArtboards));
   };
 
   const getImageScale = (image: fabric.Image): number => {
@@ -600,7 +599,6 @@ function App() {
           height: selectedArtboard?.height || 1,
         });
 
-        console.log("Min zoom = ", minZoom, "Max zoom = ", maxZoom);
         if (zoom > maxZoom) zoom = maxZoom;
         if (zoom < minZoom) zoom = minZoom;
         if (!zoom || isNaN(zoom)) {
@@ -864,9 +862,9 @@ function App() {
                   Simulate bulk artboards
                 </Button>
                 <Center py={4}>
-                <Text size={"xs"} color="gray">
-                  👆 This will render {RENDER_N * artboards.length} artboards
-                </Text>
+                  <Text size={"xs"} color="gray">
+                    👆 This will render {RENDER_N * artboards.length} artboards
+                  </Text>
                 </Center>
               </Stack>
             </Stack>
