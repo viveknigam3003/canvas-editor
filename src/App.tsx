@@ -106,7 +106,7 @@ function App() {
     return () => {
       canvasRef.current?.dispose();
     };
-  }, [colorSpace]);
+  }, []);
 
   useEffect(() => {
     if (selectedArtboard) {
