@@ -16,6 +16,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import {
+  IconArtboard,
   IconBoxModel2,
   IconBug,
   IconDeviceFloppy,
@@ -44,16 +45,19 @@ const generateId = () => {
   return Math.random().toString(36).substr(2, 9);
 };
 
+const RENDER_N = 2500;
+
 function App() {
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
   const { classes: modalClasses } = useModalStyles();
   const [opened, { open, close }] = useDisclosure();
-  const newArtboardForm = useForm<Omit<Artboard, "id">>({
+  const newArtboardForm = useForm<Omit<Artboard, "id"> & { number: number }>({
     initialValues: {
       name: "",
       width: 500,
       height: 500,
+      number: 1,
     },
     validate: (values) => {
       const errors: Record<string, string> = {};
@@ -65,6 +69,9 @@ function App() {
       }
       if (values.height < 1) {
         errors.height = "Artboard height cannot be less than 1px";
+      }
+      if (values.number < 1) {
+        errors.number = "Number of artboards cannot be less than 1";
       }
       return errors;
     },
@@ -95,6 +102,9 @@ function App() {
   const canvasRef = useRef<fabric.Canvas | null>(null);
   const artboardRef = useRef<fabric.Rect | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
+  const [isRendering, setRendering] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     canvasRef.current = new fabric.Canvas("canvas", {
@@ -144,22 +154,10 @@ function App() {
     };
   }, []);
 
-  const fitBoardToCanvas = (artboard: Artboard) => {
-    // Find canvas zoom level to fit the artboard
-    const zoom = canvasRef.current?.getZoom();
-    const artboardWidth = artboard.width;
-    const artboardHeight = artboard.height;
-    const canvasWidth = canvasRef.current?.width;
-    const canvasHeight = canvasRef.current?.height;
-
-    const widthZoom = (canvasWidth || 1) / (artboardWidth || 1);
-    const heightZoom = (canvasHeight || 1) / (artboardHeight || 1);
-    const newZoom = Math.min(widthZoom, heightZoom);
-
-    if (zoom && newZoom) {
-      canvasRef.current?.setZoom(newZoom);
-      centerBoardToCanvas(artboardRef as any);
-    }
+  const resetZoom = () => {
+    canvasRef.current?.setZoom(1);
+    // Place the canvas in the center of the screen
+    centerBoardToCanvas(artboardRef);
   };
 
   const centerBoardToCanvas = (
@@ -190,6 +188,46 @@ function App() {
       x: left,
       y: top,
     });
+  };
+
+  const createSingleArtboard = (
+    artboard: Omit<Artboard, "id">,
+    index: number
+  ) => {
+    const id = generateId();
+    const newArtboard: Artboard = {
+      ...artboard,
+      name: `${artboard.name} ${index + 1}`,
+      id,
+    };
+
+    const artboardRect = new fabric.Rect({
+      left: (window.innerWidth - 600) / 2 - artboard.width / 2,
+      top: (window.innerHeight - 60) / 2 - artboard.height / 2,
+      width: artboard.width,
+      height: artboard.height,
+      fill: "#fff",
+      selectable: false,
+      data: {
+        type: "artboard",
+        id,
+      },
+    });
+
+    const offScreenCanvas = new fabric.Canvas("offscreen", {
+      width: window.innerWidth - 600,
+      height: window.innerHeight - 60,
+      backgroundColor: "#e9ecef",
+      imageSmoothingEnabled: false,
+    });
+
+    offScreenCanvas.add(artboardRect);
+    const json = offScreenCanvas.toJSON(["data", "selectable"]);
+    offScreenCanvas.dispose();
+    return {
+      ...newArtboard,
+      state: json,
+    };
   };
 
   const addNewArtboard = (artboard: Omit<Artboard, "id">) => {
@@ -230,6 +268,27 @@ function App() {
     ];
     setArtboards(updatedArtboards);
     newArtboardForm.reset();
+    close();
+  };
+
+  const createMultipleArtboards = (
+    artboard: Omit<Artboard, "id">,
+    n: number
+  ) => {
+    setIsCreatingArtboards(true);
+    // Use the addNewArtboard function to create multiple artboards
+    const allArtboards = [];
+    for (let i = 0; i < n; i++) {
+      const newArtboard = createSingleArtboard(artboard, i);
+      allArtboards.push(newArtboard);
+    }
+
+    // Update the artboards state
+    const updatedArtboards = [...artboards, ...allArtboards];
+    setArtboards(updatedArtboards);
+    newArtboardForm.reset();
+    setSelectedArtboard(allArtboards[0]);
+    setIsCreatingArtboards(false);
     close();
   };
 
@@ -571,6 +630,79 @@ function App() {
     console.log(canvasRef.current?.toJSON(["data", "selectable"]));
   };
 
+  const renderMultipleArtboards = (artboards: Artboard[]) => {
+    // Render all artboards on the canvas
+    canvasRef.current?.clear();
+    let topCursor = 0;
+    let leftCursor = 0;
+    const MARGIN = 50;
+
+    const canvasState = [];
+
+    for (let i = 0; i < artboards.length; i++) {
+      const artboard = artboards[i];
+      const width = artboard.width;
+      const height = artboard.height;
+
+      if (!width || !height) {
+        continue;
+      }
+
+      // Just render the artboard on the canvas four on each row
+      if (i % 10 === 0) {
+        // Move the cursor to the next row
+        topCursor += height + MARGIN;
+        leftCursor = 0;
+      } else {
+        leftCursor += width + MARGIN;
+      }
+
+      const adjustedArtboard = {
+        ...artboard,
+        state: {
+          ...artboard.state,
+          objects: artboard.state?.objects.map((item: any) => {
+            return {
+              ...item,
+              left: item.left + leftCursor,
+              top: item.top + topCursor,
+            };
+          }),
+        },
+      };
+
+      canvasState.push(...adjustedArtboard.state.objects);
+    }
+
+    const json = {
+      objects: canvasState,
+    };
+
+    canvasRef.current?.loadFromJSON(json, () => {
+      canvasRef.current?.renderAll();
+      console.log("Performance", window.performance);
+      setRendering(false);
+    });
+  };
+
+  const createBulkData = () => {
+    // With the current artboards, duplicate each artboard 10 times but with different IDs
+    const allArtboards: Artboard[] = [];
+    for (let i = 0; i < RENDER_N; i++) {
+      for (let j = 0; j < artboards.length; j++) {
+        const artboard = artboards[j];
+        const newArtboard = {
+          ...artboard,
+          id: generateId(),
+        };
+        allArtboards.push(newArtboard);
+      }
+    }
+
+    console.log("Total artboards = ", allArtboards.length);
+    return allArtboards;
+  };
+
   return (
     <Box className={classes.root}>
       <Box className={classes.header}>
@@ -604,19 +736,37 @@ function App() {
       <Flex className={classes.shell}>
         {showSidebar ? (
           <Box className={classes.left}>
-            <Stack spacing={0}>
-              {artboards.map((artboard) => (
-                <Group
-                  key={artboard.id}
-                  className={classes.artboardButton}
-                  onClick={() => updateSelectedArtboard(artboard)}
-                >
-                  <Text size={14}>{artboard.name}</Text>
-                  <Text size={12} color="gray">
-                    {artboard.width}x{artboard.height}
-                  </Text>
-                </Group>
-              ))}
+            <Stack spacing={0} mah={"95vh"}>
+              <Group p="md" position="apart">
+                <Text weight={500} size={"sm"}>
+                  Artboards ({artboards.length})
+                </Text>
+                {artboards.length >= 100 ? (
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={() => setShowAll((c) => !c)}
+                  >
+                    {showAll ? "Show less" : "Show all"}
+                  </Button>
+                ) : null}
+              </Group>
+              {artboards.length > 0
+                ? (!showAll ? artboards.slice(0, 100) : artboards).map(
+                    (artboard) => (
+                      <Group
+                        key={artboard.id}
+                        className={classes.artboardButton}
+                        onClick={() => updateSelectedArtboard(artboard)}
+                      >
+                        <Text size={14}>{artboard.name}</Text>
+                        <Text size={12} color="gray">
+                          {artboard.width}x{artboard.height}
+                        </Text>
+                      </Group>
+                    )
+                  )
+                : null}
             </Stack>
           </Box>
         ) : null}
@@ -688,19 +838,36 @@ function App() {
               </Stack>
               <Stack spacing={4}>
                 <Text size={"sm"} weight={600} color="gray">
-                  Zoom
+                  Canvas
                 </Text>
                 <Button
                   size="xs"
                   leftIcon={<IconBoxModel2 size={14} />}
                   variant="light"
                   onClick={() => {
-                    fitBoardToCanvas(selectedArtboard as Artboard);
-                    
+                    resetZoom();
                   }}
                 >
-                  Fit board to canvas
+                  Reset zoom
                 </Button>
+                <Button
+                  size="xs"
+                  leftIcon={<IconArtboard size={14} />}
+                  variant="light"
+                  loading={isRendering}
+                  onClick={() => {
+                    setRendering(true);
+                    const data = createBulkData();
+                    renderMultipleArtboards(data);
+                  }}
+                >
+                  Simulate bulk artboards
+                </Button>
+                <Center py={4}>
+                <Text size={"xs"} color="gray">
+                  👆 This will render {RENDER_N * artboards.length} artboards
+                </Text>
+                </Center>
               </Stack>
             </Stack>
           </Box>
@@ -742,14 +909,36 @@ function App() {
               {...newArtboardForm.getInputProps("height")}
             />
           </Group>
+          <NumberInput
+            label="Number of artboards"
+            placeholder="1"
+            required
+            classNames={{ label: modalClasses.label }}
+            {...newArtboardForm.getInputProps("number")}
+            min={1}
+            max={1000}
+          />
           <Button
             variant="light"
             size="sm"
             fullWidth
             mt={"md"}
-            onClick={() => addNewArtboard(newArtboardForm.values)}
+            loading={isCreatingArboards}
+            onClick={() => {
+              if (newArtboardForm.values.number > 1) {
+                createMultipleArtboards(
+                  newArtboardForm.values,
+                  newArtboardForm.values.number
+                );
+                return;
+              }
+
+              addNewArtboard(newArtboardForm.values);
+            }}
           >
-            Create
+            {newArtboardForm.values.number > 1
+              ? `Create ${newArtboardForm.values.number} artboards`
+              : `Create artboard`}
           </Button>
         </Stack>
       </Modal>
@@ -795,6 +984,7 @@ const useStyles = createStyles((theme) => ({
     backgroundColor: theme.colors.gray[2],
     width: "100vw",
     height: "100vh",
+    overflow: "hidden",
   },
   header: {
     borderBottom: `1px solid ${theme.colors.gray[3]}`,
@@ -818,10 +1008,12 @@ const useStyles = createStyles((theme) => ({
     backgroundColor: theme.colors.gray[0],
     borderRight: `1px solid ${theme.colors.gray[3]}`,
     width: 300,
-    height: "100%",
+    height: "calc(100vh - 60px)",
     zIndex: 1,
     position: "absolute",
     left: 0,
+    overflowY: "auto",
+    paddingBlockEnd: "1rem",
   },
   right: {
     backgroundColor: theme.colors.gray[0],
