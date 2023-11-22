@@ -100,6 +100,9 @@ function App() {
   const [isRendering, setRendering] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
+  const undoable = useSelector((state: RootState) => state.history.undoable);
+  const redoable = useSelector((state: RootState) => state.history.redoable);
+
   useEffect(() => {
     canvasRef.current = new fabric.Canvas("canvas", {
       // create a canvas with clientWidth and clientHeight
@@ -828,6 +831,7 @@ function App() {
                     dispatch(undo());
                   }}
                   // When stack pointer is 0, disable undo
+                  disabled={!undoable}
                 >
                   Undo
                 </Button>
@@ -838,7 +842,8 @@ function App() {
                   onClick={() => {
                     dispatch(redo());
                   }}
-                 // when stack pointer is at the last index, disable redo
+                  // when stack pointer is at the last index, disable redo
+                  disabled={!redoable}
                 >
                   Redo
                 </Button>

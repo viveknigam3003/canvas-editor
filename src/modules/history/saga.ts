@@ -4,7 +4,14 @@ import { put, select, takeEvery } from "redux-saga/effects";
 import { RootState } from "../../store/rootReducer";
 import { Artboard } from "../../types";
 import { setArtboards, updateArtboards } from "../app/actions";
-import { redo, undo, updatePointer, updateStateHistory } from "./actions";
+import {
+  redo,
+  setRedoable,
+  setUndoable,
+  undo,
+  updatePointer,
+  updateStateHistory,
+} from "./actions";
 import { Delta } from "./reducer";
 
 export function* observeStateChanges(action: Action) {
@@ -32,6 +39,19 @@ export function* observeStateChanges(action: Action) {
   };
 
   yield put(updateStateHistory(delta));
+  yield put(setUndoable(true));
+
+  const deltas: Array<Delta> = yield select(
+    (state: RootState) => state.history.deltas
+  );
+  const currentIndex: number = yield select(
+    (state: RootState) => state.history.currentIndex
+  );
+
+  // If the current pointer is not at the end of the array, then there is something to redo
+  if (currentIndex < deltas.length - 1) {
+    yield put(setRedoable(true));
+  }
 }
 
 function getReverseDiff(diff: Array<deepDiff.Diff<Artboard[], Artboard[]>>) {
@@ -114,6 +134,17 @@ function* undoSaga() {
 
   yield put(updateArtboards(artboardCopy));
   yield put(updatePointer(Math.max(currentIndex - 1, 0)));
+
+  // Set undoable flag based on if the user can undo or not
+  const newPointer = Math.max(currentIndex - 1, 0);
+
+  if (newPointer <= 0) {
+    yield put(setUndoable(false));
+  }
+
+  if (newPointer < deltas.length - 1) {
+    yield put(setRedoable(true));
+  }
 }
 
 function* redoSaga() {
@@ -145,6 +176,16 @@ function* redoSaga() {
 
   yield put(updateArtboards(artboardCopy));
   yield put(updatePointer(Math.min(currentIndex + 1, deltas.length - 1)));
+
+  const newPointer = Math.min(currentIndex + 1, deltas.length - 1);
+
+  if (newPointer >= deltas.length - 1) {
+    yield put(setRedoable(false));
+  }
+
+  if (newPointer > 0) {
+    yield put(setUndoable(true));
+  }
 }
 
 function* historySaga() {
