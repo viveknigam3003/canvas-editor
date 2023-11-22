@@ -7,6 +7,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import ArtboardPage from "./Artboard.tsx";
 import store from "./store/index.ts";
 import { Provider } from "react-redux";
+import { Notifications } from "@mantine/notifications";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     >
       <Provider store={store}>
         <RouterProvider router={router} />
+        <Notifications position="bottom-center" />
       </Provider>
     </MantineProvider>
   </React.StrictMode>

@@ -15,13 +15,15 @@ import {
   createStyles,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useHotkeys } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
+  IconArrowBackUp,
+  IconArrowForwardUp,
   IconArtboard,
   IconBoxModel2,
   IconBug,
-  IconCircleArrowLeft,
-  IconCircleArrowRight,
+  IconCircleCheck,
   IconDeviceFloppy,
   IconDownload,
   IconEye,
@@ -35,14 +37,13 @@ import axios from "axios";
 import { fabric } from "fabric";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import ImageModal from "./components/ImageModal";
+import { useModalStyles, useQueryParam } from "./hooks";
 import { appStart, setArtboards } from "./modules/app/actions";
+import { redo, undo } from "./modules/history/actions";
 import store from "./store";
 import { RootState } from "./store/rootReducer";
-import ImageModal from "./components/ImageModal";
 import { Artboard, colorSpaceType } from "./types";
-import { useModalStyles, useQueryParam } from "./hooks";
-import { redo, undo } from "./modules/history/actions";
-
 
 const generateId = () => {
   return Math.random().toString(36).substr(2, 9);
@@ -58,7 +59,7 @@ function App() {
 
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
-  const [colorSpace] = useQueryParam('colorSpace', 'srgb');
+  const [colorSpace] = useQueryParam("colorSpace", "srgb");
 
   const { classes: modalClasses } = useModalStyles();
   const [opened, { open, close }] = useDisclosure();
@@ -110,7 +111,7 @@ function App() {
       height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
       imageSmoothingEnabled: false,
-      colorSpace: colorSpace as colorSpaceType
+      colorSpace: colorSpace as colorSpaceType,
     });
 
     return () => {
@@ -217,7 +218,7 @@ function App() {
       height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
       imageSmoothingEnabled: false,
-      colorSpace: colorSpace as colorSpaceType
+      colorSpace: colorSpace as colorSpaceType,
     });
 
     offScreenCanvas.add(artboardRect);
@@ -383,7 +384,7 @@ function App() {
     const offscreenCanvas = new fabric.Canvas("print", {
       width: artboardRef.current?.width,
       height: artboardRef.current?.height,
-      colorSpace: colorSpace as colorSpaceType
+      colorSpace: colorSpace as colorSpaceType,
     });
 
     const stateJSON = canvasRef.current?.toJSON(["data", "selectable"]);
@@ -560,7 +561,6 @@ function App() {
     };
   }, [selectedArtboard?.height, selectedArtboard?.width]);
 
-
   const debug = () => {
     console.log(canvasRef.current?.toJSON(["data", "selectable"]));
   };
@@ -638,6 +638,39 @@ function App() {
     return allArtboards;
   };
 
+  useHotkeys([
+    [
+      "mod+shift+z",
+      () => {
+        if (redoable) {
+          dispatch(redo());
+        }
+      },
+    ],
+    [
+      "mod+z",
+      () => {
+        if (undoable) {
+          dispatch(undo());
+        }
+      },
+    ],
+    [
+      "mod+s",
+      (e) => {
+        e.preventDefault();
+        saveArtboardChanges();
+        notifications.show({
+          title: "Changes saved",
+          message: "Artboard changes saved successfully",
+          icon: <IconCircleCheck size={20} />,
+          color: "green",
+          autoClose: 1500,
+        });
+      },
+    ],
+  ]);
+
   return (
     <Box className={classes.root}>
       <Box className={classes.header}>
@@ -688,19 +721,19 @@ function App() {
               </Group>
               {artboards.length > 0
                 ? (!showAll ? artboards.slice(0, 100) : artboards).map(
-                  (artboard) => (
-                    <Group
-                      key={artboard.id}
-                      className={classes.artboardButton}
-                      onClick={() => updateSelectedArtboard(artboard)}
-                    >
-                      <Text size={14}>{artboard.name}</Text>
-                      <Text size={12} color="gray">
-                        {artboard.width}x{artboard.height}
-                      </Text>
-                    </Group>
+                    (artboard) => (
+                      <Group
+                        key={artboard.id}
+                        className={classes.artboardButton}
+                        onClick={() => updateSelectedArtboard(artboard)}
+                      >
+                        <Text size={14}>{artboard.name}</Text>
+                        <Text size={12} color="gray">
+                          {artboard.width}x{artboard.height}
+                        </Text>
+                      </Group>
+                    )
                   )
-                )
                 : null}
             </Stack>
           </Box>
@@ -719,11 +752,10 @@ function App() {
                   disabled
                   value={colorSpace}
                   data={[
-                    { label: 'SRGB', value: 'srgb' },
-                    { label: 'DCI P3', value: 'display-p3' },
+                    { label: "SRGB", value: "srgb" },
+                    { label: "DCI P3", value: "display-p3" },
                   ]}
                 />
-
               </Stack>
               <Stack spacing={8}>
                 <Text size={"sm"} weight={600} color="gray">
@@ -823,30 +855,30 @@ function App() {
                   Undo-Redo
                 </Text>
                 <Group grow>
-                <Button
-                  size="xs"
-                  leftIcon={<IconCircleArrowLeft size={14} />}
-                  variant="light"
-                  onClick={() => {
-                    dispatch(undo());
-                  }}
-                  // When stack pointer is 0, disable undo
-                  disabled={!undoable}
-                >
-                  Undo
-                </Button>
-                <Button
-                  size="xs"
-                  leftIcon={<IconCircleArrowRight size={14} />}
-                  variant="light"
-                  onClick={() => {
-                    dispatch(redo());
-                  }}
-                  // when stack pointer is at the last index, disable redo
-                  disabled={!redoable}
-                >
-                  Redo
-                </Button>
+                  <Button
+                    size="xs"
+                    leftIcon={<IconArrowBackUp size={14} />}
+                    variant="light"
+                    onClick={() => {
+                      dispatch(undo());
+                    }}
+                    // When stack pointer is 0, disable undo
+                    disabled={!undoable}
+                  >
+                    Undo
+                  </Button>
+                  <Button
+                    size="xs"
+                    leftIcon={<IconArrowForwardUp size={14} />}
+                    variant="light"
+                    onClick={() => {
+                      dispatch(redo());
+                    }}
+                    // when stack pointer is at the last index, disable redo
+                    disabled={!redoable}
+                  >
+                    Redo
+                  </Button>
                 </Group>
               </Stack>
             </Stack>
@@ -922,7 +954,13 @@ function App() {
           </Button>
         </Stack>
       </Modal>
-      <ImageModal selectedArtboard={selectedArtboard} artboardRef={artboardRef} canvasRef={canvasRef} imageModalOpened={imageModalOpened} closeImageModal={closeImageModal} />
+      <ImageModal
+        selectedArtboard={selectedArtboard}
+        artboardRef={artboardRef}
+        canvasRef={canvasRef}
+        imageModalOpened={imageModalOpened}
+        closeImageModal={closeImageModal}
+      />
     </Box>
   );
 }
@@ -996,5 +1034,3 @@ const useStyles = createStyles((theme) => ({
     },
   },
 }));
-
-
