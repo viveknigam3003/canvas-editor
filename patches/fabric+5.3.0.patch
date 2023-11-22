@@ -1,0 +1,139 @@
+diff --git a/node_modules/fabric/package-lock.json b/node_modules/fabric/package-lock.json
+new file mode 100644
+index 0000000..a58eab3
+--- /dev/null
+diff --git a/node_modules/fabric/src/canvas.class.js b/node_modules/fabric/src/canvas.class.js
+index 893d7ac..672ad4a 100644
+--- a/node_modules/fabric/src/canvas.class.js
++++ b/node_modules/fabric/src/canvas.class.js
+@@ -930,7 +930,7 @@
+ 
+       this._copyCanvasStyle(lowerCanvasEl, upperCanvasEl);
+       this._applyCanvasStyle(upperCanvasEl);
+-      this.contextTop = upperCanvasEl.getContext('2d');
++      this.contextTop = upperCanvasEl.getContext('2d',{ colorSpace:this.colorSpace });
+     },
+ 
+     /**
+@@ -948,7 +948,7 @@
+       this.cacheCanvasEl = this._createCanvasElement();
+       this.cacheCanvasEl.setAttribute('width', this.width);
+       this.cacheCanvasEl.setAttribute('height', this.height);
+-      this.contextCache = this.cacheCanvasEl.getContext('2d');
++      this.contextCache = this.cacheCanvasEl.getContext('2d',{ colorSpace: this.colorSpace });
+     },
+ 
+     /**
+diff --git a/node_modules/fabric/src/mixins/canvas_dataurl_exporter.mixin.js b/node_modules/fabric/src/mixins/canvas_dataurl_exporter.mixin.js
+index b23ffab..fd744d9 100644
+--- a/node_modules/fabric/src/mixins/canvas_dataurl_exporter.mixin.js
++++ b/node_modules/fabric/src/mixins/canvas_dataurl_exporter.mixin.js
+@@ -82,7 +82,7 @@
+       this.width = scaledWidth;
+       this.height = scaledHeight;
+       this.calcViewportBoundaries();
+-      this.renderCanvas(canvasEl.getContext('2d'), this._objects);
++      this.renderCanvas(canvasEl.getContext('2d',{ colorSpace : this.colorSpace }), this._objects);
+       this.viewportTransform = vp;
+       this.width = originalWidth;
+       this.height = originalHeight;
+diff --git a/node_modules/fabric/src/shapes/image.class.js b/node_modules/fabric/src/shapes/image.class.js
+index 701fd88..d7b9301 100644
+--- a/node_modules/fabric/src/shapes/image.class.js
++++ b/node_modules/fabric/src/shapes/image.class.js
+@@ -470,7 +470,7 @@
+         // clear the existing element to get new filter data
+         // also dereference the eventual resized _element
+         this._element = this._filteredEl;
+-        this._filteredEl.getContext('2d').clearRect(0, 0, sourceWidth, sourceHeight);
++        this._filteredEl.getContext('2d',{ colorSpace: this.colorSpace }).clearRect(0, 0, sourceWidth, sourceHeight);
+         // we also need to resize again at next renderAll, so remove saved _lastScaleX/Y
+         this._lastScaleX = 1;
+         this._lastScaleY = 1;
+diff --git a/node_modules/fabric/src/shapes/object.class.js b/node_modules/fabric/src/shapes/object.class.js
+index 79228f0..53cea0c 100644
+--- a/node_modules/fabric/src/shapes/object.class.js
++++ b/node_modules/fabric/src/shapes/object.class.js
+@@ -662,7 +662,7 @@
+     _createCacheCanvas: function() {
+       this._cacheProperties = {};
+       this._cacheCanvas = fabric.util.createCanvasElement();
+-      this._cacheContext = this._cacheCanvas.getContext('2d');
++      this._cacheContext = this._cacheCanvas.getContext('2d',{ colorSpace: this.canvas.colorSpace });
+       this._updateCacheCanvas();
+       // if canvas gets created, is empty, so dirty.
+       this.dirty = true;
+@@ -1579,7 +1579,7 @@
+           width = dims.x / this.scaleX / retinaScaling, height = dims.y / this.scaleY / retinaScaling;
+       pCanvas.width = width;
+       pCanvas.height = height;
+-      pCtx = pCanvas.getContext('2d');
++      pCtx = pCanvas.getContext('2d',{ colorSpace : this.canvas.colorSpace });
+       pCtx.beginPath(); pCtx.moveTo(0, 0); pCtx.lineTo(width, 0); pCtx.lineTo(width, height);
+       pCtx.lineTo(0, height); pCtx.closePath();
+       pCtx.translate(width / 2, height / 2);
+diff --git a/node_modules/fabric/src/static_canvas.class.js b/node_modules/fabric/src/static_canvas.class.js
+index a070fca..0c66031 100644
+--- a/node_modules/fabric/src/static_canvas.class.js
++++ b/node_modules/fabric/src/static_canvas.class.js
+@@ -206,7 +206,7 @@
+     _initStatic: function(el, options) {
+       var cb = this.requestRenderAllBound;
+       this._objects = [];
+-      this._createLowerCanvas(el);
++      this._createLowerCanvas(el,options);
+       this._initOptions(options);
+       // only initialize retina scaling once
+       if (!this.interactive) {
+@@ -517,7 +517,7 @@
+      * @private
+      * @param {HTMLElement} [canvasEl]
+      */
+-    _createLowerCanvas: function (canvasEl) {
++    _createLowerCanvas: function (canvasEl,options) {
+       // canvasEl === 'HTMLCanvasElement' does not work on jsdom/node
+       if (canvasEl && canvasEl.getContext) {
+         this.lowerCanvasEl = canvasEl;
+@@ -531,8 +531,7 @@
+       if (this.interactive) {
+         this._applyCanvasStyle(this.lowerCanvasEl);
+       }
+-
+-      this.contextContainer = this.lowerCanvasEl.getContext('2d');
++      this.contextContainer = this.lowerCanvasEl.getContext('2d',{ colorSpace:options.colorSpace });
+     },
+ 
+     /**
+@@ -1831,8 +1830,8 @@
+       if (!el || !el.getContext) {
+         return null;
+       }
+-
+-      var ctx = el.getContext('2d');
++      console.log('supports',this.colorSpace )
++      var ctx = el.getContext('2d' ,{ colorSpace:this.colorSpace });
+       if (!ctx) {
+         return null;
+       }
+diff --git a/node_modules/fabric/src/util/misc.js b/node_modules/fabric/src/util/misc.js
+index f7d1acd..77e29af 100644
+--- a/node_modules/fabric/src/util/misc.js
++++ b/node_modules/fabric/src/util/misc.js
+@@ -714,7 +714,7 @@
+       var newCanvas = fabric.util.createCanvasElement();
+       newCanvas.width = canvas.width;
+       newCanvas.height = canvas.height;
+-      newCanvas.getContext('2d').drawImage(canvas, 0, 0);
++      newCanvas.getContext('2d',{ colorSpace:canvas.colorSpace }).drawImage(canvas, 0, 0);
+       return newCanvas;
+     },
+ 
+@@ -946,7 +946,7 @@
+       }
+ 
+       var _isTransparent = true, i, temp,
+-          imageData = ctx.getImageData(x, y, (tolerance * 2) || 1, (tolerance * 2) || 1),
++          imageData = ctx.getImageData(x, y, (tolerance * 2) || 1, (tolerance * 2) || 1,{ colorSpace: canvas.colorSpace }),
+           l = imageData.data.length;
+ 
+       // Split image data - for tolerance > 1, pixelDataSize = 4;

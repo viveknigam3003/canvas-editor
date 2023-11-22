@@ -1,0 +1,18 @@
+diff --git a/node_modules/@types/fabric/fabric-impl.d.ts b/node_modules/@types/fabric/fabric-impl.d.ts
+index d47a6cb..4835423 100644
+--- a/node_modules/@types/fabric/fabric-impl.d.ts
++++ b/node_modules/@types/fabric/fabric-impl.d.ts
+@@ -1949,6 +1949,13 @@ interface ICanvasOptions extends IStaticCanvasOptions {
+      * @default
+      */
+     height?: number | undefined;
++
++    /**
++     * color space
++     * @default
++     * 
++     */
++    colorSpace?: 'srgb' | 'display-p3' | undefined;
+ }
+ export interface Canvas extends StaticCanvas {}
+ export interface Canvas extends ICanvasOptions {}
