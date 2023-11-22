@@ -1,6 +1,6 @@
 import { createReducer } from "@reduxjs/toolkit";
-import { Artboard } from "../../App";
-import { initState, setArtboards } from "./actions";
+import { initState, updateArtboards } from "./actions";
+import { Artboard } from "../../types";
 
 export interface ApplicationState {
   artboards: Array<Artboard>;
@@ -15,7 +15,7 @@ const appReducer = createReducer(initialState, (builder) => {
     .addCase(initState, (state, action) => {
       state.artboards = action.payload;
     })
-    .addCase(setArtboards, (state, action) => {
+    .addCase(updateArtboards, (state, action) => {
       state.artboards = action.payload;
     });
 });

@@ -20,6 +20,8 @@ import {
   IconArtboard,
   IconBoxModel2,
   IconBug,
+  IconCircleArrowLeft,
+  IconCircleArrowRight,
   IconDeviceFloppy,
   IconDownload,
   IconEye,
@@ -39,6 +41,7 @@ import { RootState } from "./store/rootReducer";
 import ImageModal from "./components/ImageModal";
 import { Artboard, colorSpaceType } from "./types";
 import { useModalStyles, useQueryParam } from "./hooks";
+import { redo, undo } from "./modules/history/actions";
 
 
 const generateId = () => {
@@ -151,8 +154,6 @@ function App() {
     // Place the canvas in the center of the screen
     centerBoardToCanvas(artboardRef);
   };
-
-
 
   const centerBoardToCanvas = (
     artboardRef: React.MutableRefObject<fabric.Rect | null>
@@ -457,8 +458,6 @@ function App() {
     dispatch(setArtboards(updatedArtboards));
   };
 
-
-
   const getMaxMinZoomLevel = (dimensions: {
     width: number;
     height: number;
@@ -491,6 +490,26 @@ function App() {
       maxZoom: 10,
     };
   };
+
+  // Handle the undo and redo actions to update artboards
+  useEffect(() => {
+    if (!selectedArtboard) {
+      return;
+    }
+
+    const currentArtboardState = artboards.find(
+      (item) => item.id === selectedArtboard.id
+    );
+
+    if (!currentArtboardState) {
+      return;
+    }
+
+    const json = currentArtboardState.state;
+    canvasRef.current?.loadFromJSON(json, () => {
+      canvasRef.current?.renderAll();
+    });
+  }, [selectedArtboard, artboards]);
 
   // Handle dragging of canvas with mouse down and alt key pressed
   useEffect(() => {
@@ -795,6 +814,35 @@ function App() {
                     👆 This will render {RENDER_N * artboards.length} artboards
                   </Text>
                 </Center>
+              </Stack>
+              <Stack spacing={4}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Undo-Redo
+                </Text>
+                <Group grow>
+                <Button
+                  size="xs"
+                  leftIcon={<IconCircleArrowLeft size={14} />}
+                  variant="light"
+                  onClick={() => {
+                    dispatch(undo());
+                  }}
+                  // When stack pointer is 0, disable undo
+                >
+                  Undo
+                </Button>
+                <Button
+                  size="xs"
+                  leftIcon={<IconCircleArrowRight size={14} />}
+                  variant="light"
+                  onClick={() => {
+                    dispatch(redo());
+                  }}
+                 // when stack pointer is at the last index, disable redo
+                >
+                  Redo
+                </Button>
+                </Group>
               </Stack>
             </Stack>
           </Box>
