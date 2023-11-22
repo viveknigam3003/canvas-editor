@@ -15,11 +15,15 @@ import {
   createStyles,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useDisclosure, useLocalStorage } from "@mantine/hooks";
+import { useDisclosure, useHotkeys } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
+  IconArrowBackUp,
+  IconArrowForwardUp,
   IconArtboard,
   IconBoxModel2,
   IconBug,
+  IconCircleCheck,
   IconDeviceFloppy,
   IconDownload,
   IconEye,
@@ -32,10 +36,14 @@ import {
 import axios from "axios";
 import { fabric } from "fabric";
 import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import ImageModal from "./components/ImageModal";
-import { Artboard, colorSpaceType } from "./types";
 import { useModalStyles, useQueryParam } from "./hooks";
-
+import { appStart, setArtboards } from "./modules/app/actions";
+import { redo, undo } from "./modules/history/actions";
+import store from "./store";
+import { RootState } from "./store/rootReducer";
+import { Artboard, colorSpaceType } from "./types";
 
 const generateId = () => {
   return Math.random().toString(36).substr(2, 9);
@@ -43,10 +51,15 @@ const generateId = () => {
 
 const RENDER_N = 2500;
 
+store.dispatch(appStart());
+
 function App() {
+  const dispatch = useDispatch();
+  const artboards = useSelector((state: RootState) => state.app.artboards);
+
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
-  const [colorSpace] = useQueryParam('colorSpace', 'srgb');
+  const [colorSpace] = useQueryParam("colorSpace", "srgb");
 
   const { classes: modalClasses } = useModalStyles();
   const [opened, { open, close }] = useDisclosure();
@@ -77,11 +90,6 @@ function App() {
 
   const [imageModalOpened, { open: openImageModal, close: closeImageModal }] =
     useDisclosure();
-
-  const [artboards, setArtboards] = useLocalStorage<Artboard[]>({
-    key: "artboards",
-    defaultValue: [],
-  });
   const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
     null
   );
@@ -93,6 +101,9 @@ function App() {
   const [isRendering, setRendering] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
+  const undoable = useSelector((state: RootState) => state.history.undoable);
+  const redoable = useSelector((state: RootState) => state.history.redoable);
+
   useEffect(() => {
     canvasRef.current = new fabric.Canvas("canvas", {
       // create a canvas with clientWidth and clientHeight
@@ -100,7 +111,7 @@ function App() {
       height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
       imageSmoothingEnabled: false,
-      colorSpace: colorSpace as colorSpaceType
+      colorSpace: colorSpace as colorSpaceType,
     });
 
     return () => {
@@ -147,8 +158,6 @@ function App() {
     // Place the canvas in the center of the screen
     centerBoardToCanvas(artboardRef);
   };
-
-
 
   const centerBoardToCanvas = (
     artboardRef: React.MutableRefObject<fabric.Rect | null>
@@ -209,7 +218,7 @@ function App() {
       height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
       imageSmoothingEnabled: false,
-      colorSpace: colorSpace as colorSpaceType
+      colorSpace: colorSpace as colorSpaceType,
     });
 
     offScreenCanvas.add(artboardRect);
@@ -249,7 +258,6 @@ function App() {
     artboardRef.current = artboardRect;
     // Save the state of the canvas
     const json = canvasRef.current?.toJSON(["data", "selectable"]);
-    console.log("Saving new artboard state", json);
     const updatedArtboards = [
       ...artboards,
       {
@@ -257,7 +265,7 @@ function App() {
         state: json,
       },
     ];
-    setArtboards(updatedArtboards);
+    dispatch(setArtboards(updatedArtboards));
     newArtboardForm.reset();
     close();
   };
@@ -276,7 +284,7 @@ function App() {
 
     // Update the artboards state
     const updatedArtboards = [...artboards, ...allArtboards];
-    setArtboards(updatedArtboards);
+    dispatch(setArtboards(updatedArtboards));
     newArtboardForm.reset();
     setSelectedArtboard(allArtboards[0]);
     setIsCreatingArtboards(false);
@@ -320,15 +328,12 @@ function App() {
   };
 
   const updateSelectedArtboard = (artboard: Artboard) => {
+    if (selectedArtboard?.id === artboard.id) {
+      return;
+    }
+
     // clear the canvas of selected artboard
     canvasRef.current?.clear();
-    const updatedArtboards = artboards.map((item) => {
-      if (item.id === artboard.id) {
-        return artboard;
-      }
-      return item;
-    });
-    setArtboards(updatedArtboards);
     setSelectedArtboard(artboard);
   };
 
@@ -379,7 +384,7 @@ function App() {
     const offscreenCanvas = new fabric.Canvas("print", {
       width: artboardRef.current?.width,
       height: artboardRef.current?.height,
-      colorSpace: colorSpace as colorSpaceType
+      colorSpace: colorSpace as colorSpaceType,
     });
 
     const stateJSON = canvasRef.current?.toJSON(["data", "selectable"]);
@@ -445,7 +450,6 @@ function App() {
     }
 
     const json = canvasRef.current?.toJSON(["data", "selectable"]);
-    console.log("Saving artboard changes", json);
     const updatedArtboards = artboards.map((item) => {
       if (item.id === selectedArtboard.id) {
         return {
@@ -455,10 +459,8 @@ function App() {
       }
       return item;
     });
-    setArtboards(updatedArtboards);
+    dispatch(setArtboards(updatedArtboards));
   };
-
-
 
   const getMaxMinZoomLevel = (dimensions: {
     width: number;
@@ -493,6 +495,26 @@ function App() {
     };
   };
 
+  // Handle the undo and redo actions to update artboards
+  useEffect(() => {
+    if (!selectedArtboard) {
+      return;
+    }
+
+    const currentArtboardState = artboards.find(
+      (item) => item.id === selectedArtboard.id
+    );
+
+    if (!currentArtboardState) {
+      return;
+    }
+
+    const json = currentArtboardState.state;
+    canvasRef.current?.loadFromJSON(json, () => {
+      canvasRef.current?.renderAll();
+    });
+  }, [selectedArtboard, artboards]);
+
   // Handle dragging of canvas with mouse down and alt key pressed
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -514,7 +536,6 @@ function App() {
           height: selectedArtboard?.height || 1,
         });
 
-        console.log("Min zoom = ", minZoom, "Max zoom = ", maxZoom);
         if (zoom > maxZoom) zoom = maxZoom;
         if (zoom < minZoom) zoom = minZoom;
         if (!zoom || isNaN(zoom)) {
@@ -539,7 +560,6 @@ function App() {
       canvas.off("mouse:wheel", handlePan);
     };
   }, [selectedArtboard?.height, selectedArtboard?.width]);
-
 
   const debug = () => {
     console.log(canvasRef.current?.toJSON(["data", "selectable"]));
@@ -618,6 +638,39 @@ function App() {
     return allArtboards;
   };
 
+  useHotkeys([
+    [
+      "mod+shift+z",
+      () => {
+        if (redoable) {
+          dispatch(redo());
+        }
+      },
+    ],
+    [
+      "mod+z",
+      () => {
+        if (undoable) {
+          dispatch(undo());
+        }
+      },
+    ],
+    [
+      "mod+s",
+      (e) => {
+        e.preventDefault();
+        saveArtboardChanges();
+        notifications.show({
+          title: "Changes saved",
+          message: "Artboard changes saved successfully",
+          icon: <IconCircleCheck size={20} />,
+          color: "green",
+          autoClose: 1500,
+        });
+      },
+    ],
+  ]);
+
   return (
     <Box className={classes.root}>
       <Box className={classes.header}>
@@ -668,19 +721,19 @@ function App() {
               </Group>
               {artboards.length > 0
                 ? (!showAll ? artboards.slice(0, 100) : artboards).map(
-                  (artboard) => (
-                    <Group
-                      key={artboard.id}
-                      className={classes.artboardButton}
-                      onClick={() => updateSelectedArtboard(artboard)}
-                    >
-                      <Text size={14}>{artboard.name}</Text>
-                      <Text size={12} color="gray">
-                        {artboard.width}x{artboard.height}
-                      </Text>
-                    </Group>
+                    (artboard) => (
+                      <Group
+                        key={artboard.id}
+                        className={classes.artboardButton}
+                        onClick={() => updateSelectedArtboard(artboard)}
+                      >
+                        <Text size={14}>{artboard.name}</Text>
+                        <Text size={12} color="gray">
+                          {artboard.width}x{artboard.height}
+                        </Text>
+                      </Group>
+                    )
                   )
-                )
                 : null}
             </Stack>
           </Box>
@@ -699,11 +752,10 @@ function App() {
                   disabled
                   value={colorSpace}
                   data={[
-                    { label: 'SRGB', value: 'srgb' },
-                    { label: 'DCI P3', value: 'display-p3' },
+                    { label: "SRGB", value: "srgb" },
+                    { label: "DCI P3", value: "display-p3" },
                   ]}
                 />
-
               </Stack>
               <Stack spacing={8}>
                 <Text size={"sm"} weight={600} color="gray">
@@ -798,6 +850,37 @@ function App() {
                   </Text>
                 </Center>
               </Stack>
+              <Stack spacing={4}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Undo-Redo
+                </Text>
+                <Group grow>
+                  <Button
+                    size="xs"
+                    leftIcon={<IconArrowBackUp size={14} />}
+                    variant="light"
+                    onClick={() => {
+                      dispatch(undo());
+                    }}
+                    // When stack pointer is 0, disable undo
+                    disabled={!undoable}
+                  >
+                    Undo
+                  </Button>
+                  <Button
+                    size="xs"
+                    leftIcon={<IconArrowForwardUp size={14} />}
+                    variant="light"
+                    onClick={() => {
+                      dispatch(redo());
+                    }}
+                    // when stack pointer is at the last index, disable redo
+                    disabled={!redoable}
+                  >
+                    Redo
+                  </Button>
+                </Group>
+              </Stack>
             </Stack>
           </Box>
         ) : null}
@@ -871,7 +954,13 @@ function App() {
           </Button>
         </Stack>
       </Modal>
-      <ImageModal selectedArtboard={selectedArtboard} artboardRef={artboardRef} canvasRef={canvasRef} imageModalOpened={imageModalOpened} closeImageModal={closeImageModal} />
+      <ImageModal
+        selectedArtboard={selectedArtboard}
+        artboardRef={artboardRef}
+        canvasRef={canvasRef}
+        imageModalOpened={imageModalOpened}
+        closeImageModal={closeImageModal}
+      />
     </Box>
   );
 }
@@ -945,5 +1034,3 @@ const useStyles = createStyles((theme) => ({
     },
   },
 }));
-
-
