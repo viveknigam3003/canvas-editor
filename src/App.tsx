@@ -8,6 +8,7 @@ import {
   Group,
   Modal,
   NumberInput,
+  SegmentedControl,
   Stack,
   Text,
   TextInput,
@@ -31,15 +32,10 @@ import {
 import axios from "axios";
 import { fabric } from "fabric";
 import React, { useEffect, useRef, useState } from "react";
+import ImageModal from "./components/ImageModal";
+import { Artboard, colorSpaceType } from "./types";
+import { useModalStyles, useQueryParam } from "./hooks";
 
-interface Artboard {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state?: Record<string, any>;
-}
 
 const generateId = () => {
   return Math.random().toString(36).substr(2, 9);
@@ -50,6 +46,8 @@ const RENDER_N = 2500;
 function App() {
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
+  const [colorSpace] = useQueryParam('colorSpace', 'srgb');
+
   const { classes: modalClasses } = useModalStyles();
   const [opened, { open, close }] = useDisclosure();
   const newArtboardForm = useForm<Omit<Artboard, "id"> & { number: number }>({
@@ -76,18 +74,7 @@ function App() {
       return errors;
     },
   });
-  const imageForm = useForm<{ url: string }>({
-    initialValues: {
-      url: "",
-    },
-    validate: (values) => {
-      const errors: Record<string, string> = {};
-      if (values.url.trim().length === 0) {
-        errors.url = "Image url cannot be empty";
-      }
-      return errors;
-    },
-  });
+
   const [imageModalOpened, { open: openImageModal, close: closeImageModal }] =
     useDisclosure();
 
@@ -113,6 +100,7 @@ function App() {
       height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
       imageSmoothingEnabled: false,
+      colorSpace: colorSpace as colorSpaceType
     });
 
     return () => {
@@ -159,6 +147,8 @@ function App() {
     // Place the canvas in the center of the screen
     centerBoardToCanvas(artboardRef);
   };
+
+
 
   const centerBoardToCanvas = (
     artboardRef: React.MutableRefObject<fabric.Rect | null>
@@ -219,6 +209,7 @@ function App() {
       height: window.innerHeight - 60,
       backgroundColor: "#e9ecef",
       imageSmoothingEnabled: false,
+      colorSpace: colorSpace as colorSpaceType
     });
 
     offScreenCanvas.add(artboardRect);
@@ -388,6 +379,7 @@ function App() {
     const offscreenCanvas = new fabric.Canvas("print", {
       width: artboardRef.current?.width,
       height: artboardRef.current?.height,
+      colorSpace: colorSpace as colorSpaceType
     });
 
     const stateJSON = canvasRef.current?.toJSON(["data", "selectable"]);
@@ -466,85 +458,7 @@ function App() {
     setArtboards(updatedArtboards);
   };
 
-  const getImageScale = (image: fabric.Image): number => {
-    // Calculate the scale needed to fit the image inside the artboard with 20% padding
-    const artboardWidth = artboardRef.current?.width;
-    const artboardHeight = artboardRef.current?.height;
 
-    console.log("Artboard = ", artboardWidth, artboardHeight);
-
-    if (!artboardWidth || !artboardHeight) {
-      return 1;
-    }
-
-    const imageWidth = image.width;
-    const imageHeight = image.height;
-
-    console.log("Image = ", imageWidth, imageHeight);
-
-    if (!imageWidth || !imageHeight) {
-      return 1;
-    }
-
-    const widthScale = (artboardWidth * 0.8) / imageWidth;
-    const heightScale = (artboardHeight * 0.8) / imageHeight;
-
-    console.log("Width scale = ", widthScale, "Height scale = ", heightScale);
-
-    return Math.min(widthScale, heightScale);
-  };
-
-  const addImageFromUrl = (url: string) => {
-    const validationResult = imageForm.validate();
-    if (validationResult.hasErrors) {
-      console.log("Errors in image form= ", validationResult.errors);
-      return;
-    }
-    fabric.Image.fromURL(
-      url,
-      (img) => {
-        if (!selectedArtboard) {
-          return;
-        }
-
-        if (!artboardRef.current) {
-          return;
-        }
-
-        const left = artboardRef.current.left;
-        const top = artboardRef.current.top;
-        const width = artboardRef.current.width;
-        const height = artboardRef.current.height;
-
-        if (!left || !top || !width || !height) {
-          return;
-        }
-
-        // calculate the center of the artboard
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
-
-        const scale = getImageScale(img);
-
-        console.log("Scale = ", scale);
-
-        img.set({
-          left: centerX,
-          top: centerY,
-          scaleX: scale,
-          scaleY: scale,
-        });
-
-        canvasRef.current?.add(img);
-        canvasRef.current?.setActiveObject(img);
-        imageForm.reset();
-        closeImageModal();
-      },
-      {
-        crossOrigin: "anonymous",
-      }
-    );
-  };
 
   const getMaxMinZoomLevel = (dimensions: {
     width: number;
@@ -625,6 +539,7 @@ function App() {
       canvas.off("mouse:wheel", handlePan);
     };
   }, [selectedArtboard?.height, selectedArtboard?.width]);
+
 
   const debug = () => {
     console.log(canvasRef.current?.toJSON(["data", "selectable"]));
@@ -753,19 +668,19 @@ function App() {
               </Group>
               {artboards.length > 0
                 ? (!showAll ? artboards.slice(0, 100) : artboards).map(
-                    (artboard) => (
-                      <Group
-                        key={artboard.id}
-                        className={classes.artboardButton}
-                        onClick={() => updateSelectedArtboard(artboard)}
-                      >
-                        <Text size={14}>{artboard.name}</Text>
-                        <Text size={12} color="gray">
-                          {artboard.width}x{artboard.height}
-                        </Text>
-                      </Group>
-                    )
+                  (artboard) => (
+                    <Group
+                      key={artboard.id}
+                      className={classes.artboardButton}
+                      onClick={() => updateSelectedArtboard(artboard)}
+                    >
+                      <Text size={14}>{artboard.name}</Text>
+                      <Text size={12} color="gray">
+                        {artboard.width}x{artboard.height}
+                      </Text>
+                    </Group>
                   )
+                )
                 : null}
             </Stack>
           </Box>
@@ -776,6 +691,20 @@ function App() {
         {showSidebar ? (
           <Box className={classes.right}>
             <Stack spacing={16}>
+              <Stack spacing={8}>
+                <Text size={"sm"} weight={600} color="gray">
+                  Color Space
+                </Text>
+                <SegmentedControl
+                  disabled
+                  value={colorSpace}
+                  data={[
+                    { label: 'SRGB', value: 'srgb' },
+                    { label: 'DCI P3', value: 'display-p3' },
+                  ]}
+                />
+
+              </Stack>
               <Stack spacing={8}>
                 <Text size={"sm"} weight={600} color="gray">
                   Debug
@@ -810,7 +739,7 @@ function App() {
                   leftIcon={<IconPhoto size={12} />}
                   onClick={openImageModal}
                 >
-                  Add image from url
+                  Add image
                 </Button>
               </Stack>
               <Stack spacing={4}>
@@ -864,9 +793,9 @@ function App() {
                   Simulate bulk artboards
                 </Button>
                 <Center py={4}>
-                <Text size={"xs"} color="gray">
-                  👆 This will render {RENDER_N * artboards.length} artboards
-                </Text>
+                  <Text size={"xs"} color="gray">
+                    👆 This will render {RENDER_N * artboards.length} artboards
+                  </Text>
                 </Center>
               </Stack>
             </Stack>
@@ -942,37 +871,7 @@ function App() {
           </Button>
         </Stack>
       </Modal>
-      <Modal
-        opened={imageModalOpened}
-        onClose={() => {
-          imageForm.reset();
-          closeImageModal();
-        }}
-        title={`Add image to ${selectedArtboard?.name}`}
-        classNames={{
-          content: modalClasses.content,
-          title: modalClasses.title,
-        }}
-      >
-        <Stack spacing={"lg"}>
-          <TextInput
-            label="Image URL"
-            placeholder="Enter valid url"
-            required
-            classNames={{ label: modalClasses.label }}
-            {...imageForm.getInputProps("url")}
-          />
-          <Button
-            variant="light"
-            size="sm"
-            fullWidth
-            mt={"md"}
-            onClick={() => addImageFromUrl(imageForm.values.url)}
-          >
-            Add image
-          </Button>
-        </Stack>
-      </Modal>
+      <ImageModal selectedArtboard={selectedArtboard} artboardRef={artboardRef} canvasRef={canvasRef} imageModalOpened={imageModalOpened} closeImageModal={closeImageModal} />
     </Box>
   );
 }
@@ -1047,18 +946,4 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-const useModalStyles = createStyles((theme) => ({
-  content: {
-    width: 400,
-    padding: "1rem 0.5rem",
-  },
-  title: {
-    fontWeight: 700,
-    fontSize: 18,
-    color: theme.colors.gray[8],
-  },
-  label: {
-    color: theme.colors.gray[7],
-    paddingBottom: "0.25rem",
-  },
-}));
+
