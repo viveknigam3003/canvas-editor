@@ -1,4 +1,4 @@
-import { Box, Button, Select } from '@mantine/core';
+import { Box, Select } from '@mantine/core';
 import { useEffect, useState } from 'react';
 
 const Panel = ({ canvas, currentSelectedElement }: any) => {

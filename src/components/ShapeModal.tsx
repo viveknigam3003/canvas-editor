@@ -14,7 +14,7 @@ type ShapeModalProps = {
 	closeImageModal: () => void;
 	selectedArtboard?: Artboard | null;
 	canvasRef: React.MutableRefObject<fabric.Canvas | null>;
-	artboardRef: React.MutableRefObject<fabric.Rect | null>;
+	artboardRef?: React.MutableRefObject<fabric.Rect | null>;
 };
 
 function actionHandler(eventData, transform, x, y) {
@@ -44,7 +44,7 @@ function anchorWrapper(anchorIndex, fn) {
 				fabricObject.calcTransformMatrix(),
 			),
 			actionPerformed = fn(eventData, transform, x, y),
-			newDim = fabricObject._setPositionDimensions({}),
+			// newDim = fabricObject._setPositionDimensions({}),
 			polygonBaseSize = getObjectSizeWithStroke(fabricObject),
 			newX = (fabricObject.points[anchorIndex].x - fabricObject.pathOffset.x) / polygonBaseSize.x,
 			newY = (fabricObject.points[anchorIndex].y - fabricObject.pathOffset.y) / polygonBaseSize.y;
@@ -164,7 +164,7 @@ const addCircle = (canvas: fabric.Canvas) => {
 	canvas.requestRenderAll();
 };
 
-const ShapeModal = ({ open, closeImageModal, selectedArtboard, canvasRef, artboardRef }: ShapeModalProps) => {
+const ShapeModal = ({ open, closeImageModal, selectedArtboard, canvasRef }: ShapeModalProps) => {
 	const { classes: modalClasses } = useModalStyles();
 	return (
 		<Modal
