@@ -4,7 +4,7 @@ import { call, put, takeEvery } from "redux-saga/effects";
 import { Artboard } from "../../types";
 import { updateStateHistory } from "../history/actions";
 import { Delta } from "../history/reducer";
-import { appStart, initState, setArtboards, updateArtboards } from "./actions";
+import { appStart, initState, setArtboards, setSelectedArtboard, updateArtboards } from "./actions";
 
 function* initStateSaga() {
   const savedState: string = yield call([localStorage, "getItem"], "artboards");
@@ -27,6 +27,11 @@ function* initStateSaga() {
     diff,
   };
   yield put(updateStateHistory(delta));
+
+  // Set selected artboard to the first artboard
+  if (initialState && initialState.length > 0) {
+    yield put(setSelectedArtboard(initialState[0]));
+  }
 }
 
 function* setArtboardsSaga(action: Action) {

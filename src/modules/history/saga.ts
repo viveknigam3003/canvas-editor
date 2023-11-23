@@ -3,7 +3,7 @@ import deepDiff from "deep-diff";
 import { put, select, takeEvery } from "redux-saga/effects";
 import { RootState } from "../../store/rootReducer";
 import { Artboard } from "../../types";
-import { setArtboards, updateArtboards } from "../app/actions";
+import { setArtboards, setSelectedArtboard, updateArtboards } from "../app/actions";
 import {
   redo,
   setRedoable,
@@ -14,17 +14,19 @@ import {
 } from "./actions";
 import { Delta } from "./reducer";
 
+const trackedActions = [setArtboards, setSelectedArtboard];
+
 export function* observeStateChanges(action: Action) {
-  if (!setArtboards.match(action)) {
+  // If the action is not one of the tracked actions, then do nothing
+  if (!trackedActions.includes(action.type)) {
     return;
   }
 
   // Whenever setArtboards is dispatched, save the difference between the current state and the previous state in history redux
   const previousState: Array<Artboard> = yield select(
-    (state: RootState) => state.app.artboards
+    (state: RootState) => state.app
   );
-
-  const currentState: Array<Artboard> = action.payload;
+  const currentState: Array<Artboard> = (action as any).payload;
   const diff = deepDiff.diff(previousState, currentState);
 
   if (!diff) {

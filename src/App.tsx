@@ -39,7 +39,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ImageModal from "./components/ImageModal";
 import { useModalStyles, useQueryParam } from "./hooks";
-import { appStart, setArtboards } from "./modules/app/actions";
+import { appStart, setArtboards, setSelectedArtboard } from "./modules/app/actions";
 import { redo, undo } from "./modules/history/actions";
 import store from "./store";
 import { RootState } from "./store/rootReducer";
@@ -56,6 +56,7 @@ store.dispatch(appStart());
 function App() {
   const dispatch = useDispatch();
   const artboards = useSelector((state: RootState) => state.app.artboards);
+  const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
 
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
@@ -90,9 +91,6 @@ function App() {
 
   const [imageModalOpened, { open: openImageModal, close: closeImageModal }] =
     useDisclosure();
-  const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
-    null
-  );
   const [isDownloading, setIsDownloading] = useState(false);
   const canvasRef = useRef<fabric.Canvas | null>(null);
   const artboardRef = useRef<fabric.Rect | null>(null);
@@ -238,7 +236,7 @@ function App() {
     }
     const id = generateId();
     const newArtboard: Artboard = { ...artboard, id };
-    setSelectedArtboard(newArtboard);
+    dispatch(setSelectedArtboard(newArtboard));
 
     canvasRef.current?.clear();
     const artboardRect = new fabric.Rect({
@@ -286,7 +284,7 @@ function App() {
     const updatedArtboards = [...artboards, ...allArtboards];
     dispatch(setArtboards(updatedArtboards));
     newArtboardForm.reset();
-    setSelectedArtboard(allArtboards[0]);
+    dispatch(setSelectedArtboard(allArtboards[0]));
     setIsCreatingArtboards(false);
     close();
   };
@@ -334,7 +332,7 @@ function App() {
 
     // clear the canvas of selected artboard
     canvasRef.current?.clear();
-    setSelectedArtboard(artboard);
+    dispatch(setSelectedArtboard(artboard));
   };
 
   const exportAllArtboards = async () => {
