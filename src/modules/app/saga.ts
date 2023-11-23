@@ -8,9 +8,16 @@ import { appStart, initState, setArtboards, updateArtboards } from "./actions";
 
 function* initStateSaga() {
   const savedState: string = yield call([localStorage, "getItem"], "artboards");
+
   const initialState: Artboard[] = savedState
     ? JSON.parse(savedState)
-    : undefined;
+    : [];
+
+  if (initialState.length === 0) {
+    // Set state to local storage
+    const serializedState = JSON.stringify(initialState);
+    yield call([localStorage, "setItem"], "artboards", serializedState);
+  }
 
   yield put(initState(initialState));
 
