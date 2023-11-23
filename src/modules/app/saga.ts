@@ -2,16 +2,14 @@ import { Action } from "@reduxjs/toolkit";
 import deepDiff from "deep-diff";
 import { call, put, takeEvery } from "redux-saga/effects";
 import { Artboard } from "../../types";
-import { updateStateHistory } from "../history/actions";
+import { updatePointer, updateStateHistory } from "../history/actions";
 import { Delta } from "../history/reducer";
 import { appStart, initState, setArtboards, updateArtboards } from "./actions";
 
 function* initStateSaga() {
   const savedState: string = yield call([localStorage, "getItem"], "artboards");
 
-  const initialState: Artboard[] = savedState
-    ? JSON.parse(savedState)
-    : [];
+  const initialState: Artboard[] = savedState ? JSON.parse(savedState) : [];
 
   if (initialState.length === 0) {
     // Set state to local storage
@@ -33,7 +31,8 @@ function* initStateSaga() {
     actionType: appStart.type,
     diff,
   };
-  yield put(updateStateHistory(delta));
+  yield put(updateStateHistory([delta]));
+  yield put(updatePointer(0));
 }
 
 function* setArtboardsSaga(action: Action) {

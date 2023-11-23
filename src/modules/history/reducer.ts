@@ -31,9 +31,7 @@ const initialState: HistoryState = {
 const historyReducer = createReducer(initialState, (builder) => {
   return builder
     .addCase(updateStateHistory, (state, action) => {
-      state.currentIndex += 1;
-      state.deltas = state.deltas.slice(0, state.currentIndex);
-      state.deltas.push(action.payload);
+      state.deltas = action.payload;
     })
     .addCase(updatePointer, (state, action) => {
       state.currentIndex = action.payload;
