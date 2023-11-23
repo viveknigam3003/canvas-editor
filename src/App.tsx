@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
 	ActionIcon,
 	Box,
@@ -114,7 +113,7 @@ function App() {
 			// create a canvas with clientWidth and clientHeight
 			width: window.innerWidth - 600,
 			height: window.innerHeight - 60,
-			backgroundColor: '#000',
+			backgroundColor: '#e9ecef',
 			imageSmoothingEnabled: false,
 			colorSpace: colorSpace as colorSpaceType,
 		});

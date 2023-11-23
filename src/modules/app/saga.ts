@@ -2,7 +2,7 @@ import { Action } from '@reduxjs/toolkit';
 import deepDiff from 'deep-diff';
 import { call, put, takeEvery } from 'redux-saga/effects';
 import { Artboard } from '../../types';
-import { updateStateHistory } from '../history/actions';
+import { updatePointer, updateStateHistory } from '../history/actions';
 import { Delta } from '../history/reducer';
 import { appStart, initState, setArtboards, updateArtboards } from './actions';
 
@@ -32,6 +32,7 @@ function* initStateSaga() {
 		diff,
 	};
 	yield put(updateStateHistory(delta));
+	yield put(updatePointer(0));
 }
 
 function* setArtboardsSaga(action: Action) {
