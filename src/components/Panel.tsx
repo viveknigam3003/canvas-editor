@@ -1,8 +1,20 @@
 import { Box, Select } from '@mantine/core';
 import { useEffect, useState } from 'react';
 
-const Panel = ({ canvas, currentSelectedElement }: any) => {
-	const [fontList, setFontList] = useState([]);
+type Font = {
+	family: string;
+	files: {
+		regular: string;
+	};
+};
+
+type PanelProps = {
+	canvas: fabric.Canvas;
+	currentSelectedElement: fabric.Object[];
+};
+
+const Panel = ({ canvas, currentSelectedElement }: PanelProps) => {
+	const [fontList, setFontList] = useState<Font[]>([]);
 	const [value, setValue] = useState('');
 	useEffect(() => {
 		fetch('/fonts.json')
@@ -17,7 +29,6 @@ const Panel = ({ canvas, currentSelectedElement }: any) => {
 	if (!currentSelectedElement || currentSelectedElement?.length !== 1) {
 		return null;
 	}
-	console.log('value', value);
 	return (
 		<div>
 			<Box>Text</Box>
@@ -25,24 +36,24 @@ const Panel = ({ canvas, currentSelectedElement }: any) => {
 				value={value}
 				onChange={e => {
 					console.log('change', e);
-					const font = fontList.find(font => font.family === e);
+					const font = fontList.find(font => font.family === e) as Font;
 					setValue(font.family);
 					fetch(font.files.regular)
 						.then(response => response.arrayBuffer())
 						.then(arrayBuffer => {
 							const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 							const fontFaceRule = `
-              @font-face {
-                font-family:  ${font.family};
-                src: url(data:font/woff;base64,${fontBase64}) format('woff');
-              }
-            `;
+								@font-face {
+									font-family:  ${font.family};
+									src: url(data:font/woff;base64,${fontBase64}) format('woff');
+								}
+           					`;
 
 							const styleElement = document.createElement('style');
 							styleElement.appendChild(document.createTextNode(fontFaceRule));
 							document.head.appendChild(styleElement);
 							console.log('first', currentSelectedElement?.[0]);
-							currentSelectedElement?.[0]?.set('fontFamily', font.family);
+							(currentSelectedElement?.[0] as fabric.Text)?.set('fontFamily', font.family);
 							canvas.requestRenderAll();
 						})
 						.catch(error => console.error('Error loading font:', error));

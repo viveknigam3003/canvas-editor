@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-nocheck
+//TODO: ak fix types
 import { Modal } from '@mantine/core';
 import { Artboard } from '../types';
 import { useModalStyles } from '../hooks';
@@ -8,6 +11,7 @@ import Square from '../assets/Square.svg?react';
 import Circle from '../assets/Circle.svg?react';
 import Triangle from '../assets/Triangle.svg?react';
 import { IconPhoto, IconLinkPlus } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
 type ShapeModalProps = {
 	open: boolean;
@@ -44,7 +48,6 @@ function anchorWrapper(anchorIndex, fn) {
 				fabricObject.calcTransformMatrix(),
 			),
 			actionPerformed = fn(eventData, transform, x, y),
-			// newDim = fabricObject._setPositionDimensions({}),
 			polygonBaseSize = getObjectSizeWithStroke(fabricObject),
 			newX = (fabricObject.points[anchorIndex].x - fabricObject.pathOffset.x) / polygonBaseSize.x,
 			newY = (fabricObject.points[anchorIndex].y - fabricObject.pathOffset.y) / polygonBaseSize.y;
@@ -122,34 +125,6 @@ const addPolygon = (canvas: fabric.Canvas, sides: number = 4) => {
 		transparentCorners: false,
 		cornerColor: 'blue',
 	});
-	canvas.on('mouse:dblclick', function (e) {
-		console.log('canvas:dblclick', e);
-		const poly = e.target;
-		canvas.setActiveObject(poly);
-		poly.edit = !poly.edit;
-		if (poly.edit) {
-			const lastControl = poly.points.length - 1;
-			poly.cornerStyle = 'circle';
-			poly.cornerColor = 'rgba(0,0,255,0.5)';
-
-			poly.controls = poly.points.reduce(function (acc, point, index) {
-				acc['p' + index] = new fabric.Control({
-					positionHandler: polygonPositionHandler,
-					actionHandler: anchorWrapper(index > 0 ? index - 1 : lastControl, actionHandler),
-					actionName: 'modifyPolygon',
-					pointIndex: index,
-				});
-				return acc;
-			}, {});
-		} else {
-			poly.cornerColor = 'blue';
-			poly.cornerStyle = 'rect';
-			poly.controls = fabric.Object.prototype.controls;
-		}
-		poly.hasBorders = true;
-		canvas.requestRenderAll();
-		// Perform the desired action, such as opening a dialog box or changing the text of the element.
-	});
 	canvas.add(polygon);
 	canvas.requestRenderAll();
 };
@@ -165,6 +140,36 @@ const addCircle = (canvas: fabric.Canvas) => {
 };
 
 const ShapeModal = ({ open, closeImageModal, selectedArtboard, canvasRef }: ShapeModalProps) => {
+	useEffect(() => {
+		canvasRef.current?.on('mouse:dblclick', function (e) {
+			console.log('canvas:dblclick', e);
+			const poly = e.target;
+			canvasRef.current.setActiveObject(poly);
+			poly.edit = !poly.edit;
+			if (poly.edit) {
+				const lastControl = poly.points.length - 1;
+				poly.cornerStyle = 'circle';
+				poly.cornerColor = 'rgba(0,0,255,0.5)';
+
+				poly.controls = poly.points.reduce(function (acc, point, index) {
+					acc['p' + index] = new fabric.Control({
+						positionHandler: polygonPositionHandler,
+						actionHandler: anchorWrapper(index > 0 ? index - 1 : lastControl, actionHandler),
+						actionName: 'modifyPolygon',
+						pointIndex: index,
+					});
+					return acc;
+				}, {});
+			} else {
+				poly.cornerColor = 'blue';
+				poly.cornerStyle = 'rect';
+				poly.controls = fabric.Object.prototype.controls;
+			}
+			poly.hasBorders = true;
+			canvasRef.current.requestRenderAll();
+		});
+	}, [canvasRef.current]);
+
 	const { classes: modalClasses } = useModalStyles();
 	return (
 		<Modal
@@ -294,29 +299,6 @@ const ShapeModal = ({ open, closeImageModal, selectedArtboard, canvasRef }: Shap
 							}}
 						>
 							<Triangle />
-						</Grid.Col>
-						<Grid.Col
-							span={4}
-							onClick={() => {
-								//pentagon
-								closeImageModal();
-							}}
-						>
-							<svg height="60" width="60" viewBox="0 0 50 50">
-								<path
-									d="M 24, 0 L 29.6129, 17.2746 L 47.7764, 17.2746 L 33.0818, 27.9508 L 38.6946, 45.2254 L 24, 34.5491 L 9.30537, 45.2254 L 14.9182, 27.9508 L 0.223587, 17.2746 L 18.3871, 17.2746 Z"
-									fill="#C4C4C4"
-								></path>
-							</svg>
-						</Grid.Col>
-						<Grid.Col
-							span={4}
-							onClick={() => {
-								//star
-								closeImageModal();
-							}}
-						>
-							1
 						</Grid.Col>
 					</Grid>
 				</Tabs.Panel>

@@ -65,7 +65,7 @@ function App() {
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const dark = colorScheme === 'dark';
-	//TODO: Ak use saga maybe here for scalability?
+	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
@@ -725,7 +725,7 @@ function App() {
 			<Flex className={classes.shell}>
 				{showSidebar ? (
 					<Box className={classes.left}>
-						<Stack sx={{ overflowY: 'auto' }} spacing={0} mah={'50vh'}>
+						<Stack sx={{ overflowY: 'auto' }} spacing={0}>
 							<Group p="md" position="apart">
 								<Text weight={500} size={'sm'}>
 									Artboards ({artboards.length})
@@ -982,7 +982,7 @@ const useStyles = createStyles(theme => ({
 		width: 300,
 		display: 'grid',
 		gridTemplateRows: '50% 50%',
-		height1: '100%',
+		height: '100%',
 		zIndex: 1,
 		position: 'absolute',
 		left: 0,

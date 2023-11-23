@@ -31,7 +31,7 @@ function* initStateSaga() {
 		actionType: appStart.type,
 		diff,
 	};
-	yield put(updateStateHistory(delta));
+	yield put(updateStateHistory([delta]));
 	yield put(updatePointer(0));
 }
 
