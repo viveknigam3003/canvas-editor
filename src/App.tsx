@@ -8,11 +8,12 @@ import {
   Group,
   Modal,
   NumberInput,
-  SegmentedControl,
   Stack,
   Text,
   TextInput,
+  Tooltip,
   createStyles,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
@@ -30,8 +31,10 @@ import {
   IconEyeOff,
   IconFileDownload,
   IconHeading,
+  IconMoonStars,
   IconPhoto,
   IconPlus,
+  IconSun,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { fabric } from "fabric";
@@ -44,6 +47,8 @@ import { redo, undo } from "./modules/history/actions";
 import store from "./store";
 import { RootState } from "./store/rootReducer";
 import { Artboard, colorSpaceType } from "./types";
+import ShapeModal from "./components/ShapeModal";
+import Panel from "./components/Panel";
 
 const generateId = () => {
   return Math.random().toString(36).substr(2, 9);
@@ -56,11 +61,15 @@ store.dispatch(appStart());
 function App() {
   const dispatch = useDispatch();
   const artboards = useSelector((state: RootState) => state.app.artboards);
-
   const { classes } = useStyles();
   const [showSidebar, setShowSidebar] = useState(true);
   const [colorSpace] = useQueryParam("colorSpace", "srgb");
-
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const dark = colorScheme === "dark";
+  //TODO: Ak use saga maybe here for scalability?
+  const [currentSelectedElement, setCurrentSelectedElement] = useState<
+    fabric.Object[] | null
+  >(null);
   const { classes: modalClasses } = useModalStyles();
   const [opened, { open, close }] = useDisclosure();
   const newArtboardForm = useForm<Omit<Artboard, "id"> & { number: number }>({
@@ -90,6 +99,8 @@ function App() {
 
   const [imageModalOpened, { open: openImageModal, close: closeImageModal }] =
     useDisclosure();
+  const [shapeModalOpened, { open: openShapeModal, close: closeShapeModal }] =
+    useDisclosure();
   const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(
     null
   );
@@ -109,9 +120,19 @@ function App() {
       // create a canvas with clientWidth and clientHeight
       width: window.innerWidth - 600,
       height: window.innerHeight - 60,
-      backgroundColor: "#e9ecef",
+      backgroundColor: "#000",
       imageSmoothingEnabled: false,
       colorSpace: colorSpace as colorSpaceType,
+    });
+    // Handle element selection TODO: add more element type and handle it
+    canvasRef.current?.on("selection:created", function (event) {
+      setCurrentSelectedElement(event.selected as fabric.Object[]);
+    });
+    canvasRef.current?.on("selection:updated", function (event) {
+      setCurrentSelectedElement(event.selected as fabric.Object[]);
+    });
+    canvasRef.current?.on("selection:cleared", function () {
+      setCurrentSelectedElement(null);
     });
 
     return () => {
@@ -676,26 +697,68 @@ function App() {
       <Box className={classes.header}>
         <Text className={classes.logo}>Phoenix Editor</Text>
         <Group>
-          <ActionIcon
-            color="violet"
-            variant="subtle"
-            onClick={() => {
-              setShowSidebar(!showSidebar);
-              canvasRef.current?.setDimensions({
-                width: window.innerWidth,
-                height: window.innerHeight - 60,
-              });
-            }}
-          >
-            {showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
-          </ActionIcon>
-          <ActionIcon
-            color="violet"
-            variant="subtle"
-            onClick={saveArtboardChanges}
-          >
-            <IconDeviceFloppy size={20} />
-          </ActionIcon>
+          <Tooltip label="Undo">
+            <ActionIcon
+              disabled={!undoable}
+              color="violet"
+              variant="subtle"
+              onClick={() => {
+                dispatch(undo());
+              }}
+            >
+              <IconArrowBackUp size={16} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Redo">
+            <ActionIcon
+              color="violet"
+              variant="subtle"
+              onClick={() => {
+                dispatch(redo());
+              }}
+              disabled={!redoable}
+            >
+              <IconArrowForwardUp size={16} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Log State">
+            <ActionIcon color="violet" variant="subtle" onClick={debug}>
+              <IconBug size={16} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Toggle Sidebar">
+            <ActionIcon
+              color="violet"
+              variant="subtle"
+              onClick={() => {
+                setShowSidebar(!showSidebar);
+                canvasRef.current?.setDimensions({
+                  width: window.innerWidth,
+                  height: window.innerHeight - 60,
+                });
+              }}
+            >
+              {showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="toggle Light/Dark Mode">
+            <ActionIcon
+              color={dark ? "yellow" : "blue"}
+              onClick={() => toggleColorScheme()}
+              title="Toggle color scheme"
+            >
+              {dark ? <IconSun size={16} /> : <IconMoonStars size={16} />}
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Save">
+            <ActionIcon
+              color="violet"
+              variant="subtle"
+              onClick={saveArtboardChanges}
+            >
+              <IconDeviceFloppy size={20} />
+            </ActionIcon>
+          </Tooltip>
           <Button size="xs" leftIcon={<IconPlus size={12} />} onClick={open}>
             New artboard
           </Button>
@@ -704,7 +767,7 @@ function App() {
       <Flex className={classes.shell}>
         {showSidebar ? (
           <Box className={classes.left}>
-            <Stack spacing={0} mah={"95vh"}>
+            <Stack sx={{ overflowY: "auto" }} spacing={0} mah={"50vh"}>
               <Group p="md" position="apart">
                 <Text weight={500} size={"sm"}>
                   Artboards ({artboards.length})
@@ -736,64 +799,46 @@ function App() {
                   )
                 : null}
             </Stack>
-          </Box>
-        ) : null}
-        <Center className={classes.center} ref={canvasContainerRef}>
-          <canvas id="canvas" />
-        </Center>
-        {showSidebar ? (
-          <Box className={classes.right}>
-            <Stack spacing={16}>
+
+            <Stack spacing={16} mah={"45vh"}>
               <Stack spacing={8}>
                 <Text size={"sm"} weight={600} color="gray">
-                  Color Space
-                </Text>
-                <SegmentedControl
-                  disabled
-                  value={colorSpace}
-                  data={[
-                    { label: "SRGB", value: "srgb" },
-                    { label: "DCI P3", value: "display-p3" },
-                  ]}
-                />
-              </Stack>
-              <Stack spacing={8}>
-                <Text size={"sm"} weight={600} color="gray">
-                  Debug
+                  Add Element
                 </Text>
                 <Button
                   size="xs"
-                  leftIcon={<IconBug size={16} />}
-                  onClick={debug}
-                  variant="outline"
-                >
-                  Log state
-                </Button>
-              </Stack>
-              <Stack spacing={8}>
-                <Text size={"sm"} weight={600} color="gray">
-                  Text
-                </Text>
-                <Button
-                  size="xs"
-                  leftIcon={<IconHeading size={12} />}
+                  variant="light"
                   onClick={addText}
+                  leftIcon={<IconHeading size={12} />}
                 >
                   Add text
                 </Button>
-              </Stack>
-              <Stack spacing={8}>
-                <Text size={"sm"} weight={600} color="gray">
-                  Image
-                </Text>
                 <Button
                   size="xs"
+                  variant="light"
                   leftIcon={<IconPhoto size={12} />}
                   onClick={openImageModal}
                 >
                   Add image
                 </Button>
+                <Button
+                  size="xs"
+                  variant="light"
+                  leftIcon={<IconPhoto size={12} />}
+                  onClick={openShapeModal}
+                >
+                  Add Shape
+                </Button>
+                <Button
+                  size="xs"
+                  variant="light"
+                  leftIcon={<IconPhoto size={12} />}
+                  onClick={openShapeModal}
+                >
+                  Add Preset
+                </Button>
               </Stack>
+
               <Stack spacing={4}>
                 <Text size={"sm"} weight={600} color="gray">
                   Export
@@ -854,34 +899,20 @@ function App() {
                 <Text size={"sm"} weight={600} color="gray">
                   Undo-Redo
                 </Text>
-                <Group grow>
-                  <Button
-                    size="xs"
-                    leftIcon={<IconArrowBackUp size={14} />}
-                    variant="light"
-                    onClick={() => {
-                      dispatch(undo());
-                    }}
-                    // When stack pointer is 0, disable undo
-                    disabled={!undoable}
-                  >
-                    Undo
-                  </Button>
-                  <Button
-                    size="xs"
-                    leftIcon={<IconArrowForwardUp size={14} />}
-                    variant="light"
-                    onClick={() => {
-                      dispatch(redo());
-                    }}
-                    // when stack pointer is at the last index, disable redo
-                    disabled={!redoable}
-                  >
-                    Redo
-                  </Button>
-                </Group>
+                <Group grow></Group>
               </Stack>
             </Stack>
+          </Box>
+        ) : null}
+        <Center className={classes.center} ref={canvasContainerRef}>
+          <canvas id="canvas" />
+        </Center>
+        {showSidebar ? (
+          <Box className={classes.right}>
+            <Panel
+              canvas={canvasRef.current}
+              currentSelectedElement={currentSelectedElement}
+            />
           </Box>
         ) : null}
       </Flex>
@@ -961,6 +992,13 @@ function App() {
         imageModalOpened={imageModalOpened}
         closeImageModal={closeImageModal}
       />
+      <ShapeModal
+        selectedArtboard={selectedArtboard}
+        artboardRef={artboardRef}
+        canvasRef={canvasRef}
+        open={shapeModalOpened}
+        closeImageModal={closeShapeModal}
+      />
     </Box>
   );
 }
@@ -996,7 +1034,9 @@ const useStyles = createStyles((theme) => ({
     backgroundColor: theme.colors.gray[0],
     borderRight: `1px solid ${theme.colors.gray[3]}`,
     width: 300,
-    height: "calc(100vh - 60px)",
+    display: "grid",
+    gridTemplateRows: "50% 50%",
+    height1: "100%",
     zIndex: 1,
     position: "absolute",
     left: 0,

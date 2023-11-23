@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { MantineProvider } from "@mantine/core";
+import {
+  ColorScheme,
+  ColorSchemeProvider,
+  MantineProvider,
+} from "@mantine/core";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import ArtboardPage from "./Artboard.tsx";
 import store from "./store/index.ts";
@@ -22,19 +26,32 @@ const router = createBrowserRouter([
   },
 ]);
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <MantineProvider
-      theme={{
-        primaryColor: "violet",
-      }}
-      withGlobalStyles
-      withNormalizeCSS
-    >
-      <Provider store={store}>
-        <RouterProvider router={router} />
-        <Notifications position="bottom-center" />
-      </Provider>
-    </MantineProvider>
-  </React.StrictMode>
-);
+export const MainWrapper = () => {
+  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
+  const toggleColorScheme = (value?: ColorScheme) =>
+    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
+  return (
+    <React.StrictMode>
+      <ColorSchemeProvider
+        colorScheme={colorScheme}
+        toggleColorScheme={toggleColorScheme}
+      >
+        <MantineProvider
+          theme={{
+            primaryColor: "violet",
+            colorScheme,
+          }}
+          withGlobalStyles
+          withNormalizeCSS
+        >
+          <Provider store={store}>
+            <RouterProvider router={router} />
+            <Notifications position="bottom-center" />
+          </Provider>
+        </MantineProvider>
+      </ColorSchemeProvider>
+    </React.StrictMode>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")!).render(<MainWrapper />);
