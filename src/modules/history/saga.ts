@@ -30,28 +30,48 @@ export function* observeStateChanges(action: Action) {
   const diff = deepDiff.diff(previousState, currentState);
 
   if (!diff) {
-    console.log("no diff");
+    console.debug("no diff");
     return;
   }
 
-  console.log("Diff found", diff);
+  console.debug("Diff found", diff);
   const delta: Delta = {
     actionType: setArtboards.type,
     diff,
   };
 
-  yield put(updateStateHistory(delta));
-  yield put(setUndoable(true));
-
-  const deltas: Array<Delta> = yield select(
-    (state: RootState) => state.history.deltas
-  );
+  // Update the state history with the new delta on the next index
   const currentIndex: number = yield select(
     (state: RootState) => state.history.currentIndex
   );
+  const deltas: Array<Delta> = yield select(
+    (state: RootState) => state.history.deltas
+  );
+  // Remove all the deltas after the current index and replace them with the new delta (don't mutate the array)
+  const deltasToKeep = deltas.slice(0, currentIndex + 1);
+  const newDeltas = [...deltasToKeep, delta];
 
-  // If the current pointer is not at the end of the array, then there is something to redo
-  if (currentIndex < deltas.length - 1) {
+  yield put(updatePointer(currentIndex + 1));
+
+  yield put(updateStateHistory(newDeltas));
+
+  const undoable: boolean = yield select(
+    (state: RootState) => state.history.undoable
+  );
+  const redoable: boolean = yield select(
+    (state: RootState) => state.history.redoable
+  );
+
+  if (!undoable) {
+    yield put(setUndoable(true));
+  }
+
+  // Decide if the user can redo or not based on the current index and the new deltas length
+  if (redoable) {
+    if (currentIndex + 1 === newDeltas.length - 1) {
+      yield put(setRedoable(false));
+    }
+  } else if (currentIndex < deltas.length - 1) {
     yield put(setRedoable(true));
   }
 }

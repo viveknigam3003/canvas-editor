@@ -10,7 +10,7 @@ export enum CanvasHistoryActionType {
   SET_REDOABLE = "history/setRedoable",
 }
 
-export const updateStateHistory = createAction<Delta>(
+export const updateStateHistory = createAction<Delta[]>(
   CanvasHistoryActionType.UPDATE_STATE_HISTORY
 );
 
