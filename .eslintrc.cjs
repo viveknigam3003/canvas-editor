@@ -16,5 +16,6 @@ module.exports = {
       // No explicit any allowed
     ],
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/ban-ts-comment': 'warn',
   },
 }
