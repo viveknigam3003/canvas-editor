@@ -69,6 +69,8 @@ function App() {
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
+	const horizontalLine = useRef<fabric.Rect | null>(null);
+	const verticleLine = useRef<fabric.Rect | null>(null);
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
 		initialValues: {
 			name: '',
@@ -117,6 +119,32 @@ function App() {
 			imageSmoothingEnabled: false,
 			colorSpace: colorSpace as colorSpaceType,
 		});
+
+		// horizontal rect
+		const hline = new fabric.Rect({
+			left: 0,
+			top: 0,
+			width: canvasRef.current.width,
+			height: 10,
+			fill: 'gray',
+			borderColor: 'red',
+			selectable: false,
+		});
+
+		const vline = new fabric.Rect({
+			left: 0,
+			top: 0,
+			width: 10,
+			height: canvasRef.current.height,
+			fill: 'gray',
+			borderColor: 'red',
+			selectable: false,
+		});
+
+		horizontalLine.current = hline;
+		verticleLine.current = vline;
+		canvasRef.current.add(hline);
+		canvasRef.current.add(vline);
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
 			setCurrentSelectedElement(event.selected as fabric.Object[]);
@@ -525,14 +553,36 @@ function App() {
 					zoom = minZoom;
 				}
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+
+				// rectRef.current.scaleX = 1 / canvas.getZoom();
+				// rectRef.current.scaleY = 1 / canvas.getZoom();
 			} else {
 				const vpt = canvas.viewportTransform;
 				if (!vpt) {
 					return;
 				}
 
+				// rectRef?.current?.setCoords();
 				vpt[4] -= e.deltaX;
 				vpt[5] -= e.deltaY;
+				const invertedTransform = fabric.util.invertTransform(vpt);
+				const transformedPoint = fabric.util.transformPoint({ x: 0, y: 0 }, invertedTransform);
+
+				// Set the new position of the fixedRect
+				horizontalLine.current.set({
+					left: transformedPoint.x,
+					top: transformedPoint.y,
+				});
+				horizontalLine?.current?.setCoords();
+				verticleLine.current.set({
+					left: transformedPoint.x,
+					top: transformedPoint.y,
+				});
+				verticleLine?.current?.setCoords();
+
+				// vpt[4] -= e.deltaX;
+				// vpt[5] -= e.deltaY;
+				// console.log(rectRef.current?.left, rectRef.current?.top);
 				canvas.requestRenderAll();
 			}
 		};
