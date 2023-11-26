@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 type Font = {
 	family: string;
 	files: {
-		regular: string;
+		[key: string]: string;
 	};
 };
 
@@ -83,26 +83,28 @@ const alignElementToRect =
 		canvas.requestRenderAll();
 	};
 const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+	//TODO: fix this
+	const castedArtboardRef = artboardRef.current as fabric.Rect;
 	return (
 		<Stack>
 			<Box>Alignment</Box>
 			<Flex gap={16}>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, artboardRef.current, 'left', canvas)}>
+				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas)}>
 					<IconLayoutAlignLeft />
 				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, artboardRef.current, 'center', canvas)}>
+				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas)}>
 					<IconLayoutAlignMiddle />{' '}
 				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, artboardRef.current, 'right', canvas)}>
+				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas)}>
 					<IconLayoutAlignRight />
 				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, artboardRef.current, 'top', canvas)}>
+				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas)}>
 					<IconLayoutAlignTop />
 				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, artboardRef.current, 'middle', canvas)}>
+				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas)}>
 					<IconLayoutAlignCenter />
 				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, artboardRef.current, 'bottom', canvas)}>
+				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas)}>
 					<IconLayoutAlignBottom />
 				</ActionIcon>
 			</Flex>
@@ -110,7 +112,7 @@ const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelPr
 	);
 };
 
-const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 	const [fontList, setFontList] = useState<Font[]>([]);
 	const [value, setValue] = useState('');
 	const [fontWeight, setFontWeight] = useState('regular');
@@ -168,7 +170,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 						value={fontWeight}
 						onChange={e => {
 							setFontWeight(e as string);
-							fetch(currentFont.files?.[e])
+							fetch(currentFont.files?.[e as string])
 								.then(response => response.arrayBuffer())
 								.then(arrayBuffer => {
 									const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));

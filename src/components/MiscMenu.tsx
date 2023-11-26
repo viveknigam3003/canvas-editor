@@ -17,7 +17,7 @@ const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
 };
 
-export default function MiscMenu({ artboards, artboardRef, selectedArtboard, canvasRef }: MiscMenuProps) {
+export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 	const [isRendering, setRendering] = useState(false);
 
 	const renderMultipleArtboards = (artboards: Artboard[]) => {
