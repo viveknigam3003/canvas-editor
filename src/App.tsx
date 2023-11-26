@@ -45,6 +45,7 @@ import { Artboard, colorSpaceType } from './types';
 import Panel from './components/Panel';
 import AddMenu from './components/AddMenu';
 import MiscMenu from './components/MiscMenu';
+import ColorSpaceSwitch from './components/ColorSpaceSwitch';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
@@ -131,6 +132,12 @@ function App() {
 			canvasRef.current?.dispose();
 		};
 	}, []);
+
+	const recreateCanvas = () => {
+		//reload window
+		saveArtboardChanges();
+		window.location.reload();
+	};
 
 	useEffect(() => {
 		if (selectedArtboard) {
@@ -561,6 +568,7 @@ function App() {
 					/>
 				</Flex>
 				<Group>
+					<ColorSpaceSwitch recreateCanvas={recreateCanvas} />
 					<Tooltip label="Undo">
 						<ActionIcon
 							disabled={!undoable}
