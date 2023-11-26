@@ -8,6 +8,7 @@ import ArtboardPage from './Artboard.tsx';
 import store from './store/index.ts';
 import { Provider } from 'react-redux';
 import { Notifications } from '@mantine/notifications';
+import { useLocalStorage } from '@mantine/hooks';
 
 const router = createBrowserRouter([
 	{
@@ -23,9 +24,15 @@ const router = createBrowserRouter([
 ]);
 
 export const MainWrapper = () => {
-	const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
+	const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+		key: 'mantine-color-scheme',
+		defaultValue: 'light',
+		getInitialValueInEffect: true,
+	});
+
 	const toggleColorScheme = (value?: ColorScheme) =>
 		setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+
 	return (
 		<React.StrictMode>
 			<ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>

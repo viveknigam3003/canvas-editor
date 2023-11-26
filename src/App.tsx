@@ -20,7 +20,6 @@ import { notifications } from '@mantine/notifications';
 import {
 	IconArrowBackUp,
 	IconArrowForwardUp,
-	IconArtboard,
 	IconBoxModel2,
 	IconBug,
 	IconCircleCheck,
@@ -45,12 +44,11 @@ import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
 import Panel from './components/Panel';
 import AddMenu from './components/AddMenu';
+import MiscMenu from './components/MiscMenu';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
 };
-
-const RENDER_N = 2500;
 
 store.dispatch(appStart());
 
@@ -61,7 +59,7 @@ function App() {
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-	const dark = colorScheme === 'dark';
+	const darkMode = colorScheme === 'dark';
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -97,9 +95,7 @@ function App() {
 	const artboardRef = useRef<fabric.Rect | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
-	const [isRendering, setRendering] = useState(false);
 	const [showAll, setShowAll] = useState(false);
-	console.log(selectedArtboard);
 
 	useEffect(() => {
 		if (artboards?.[0]) {
@@ -515,79 +511,6 @@ function App() {
 		console.log(canvasRef.current?.toJSON(['data', 'selectable']));
 	};
 
-	const renderMultipleArtboards = (artboards: Artboard[]) => {
-		// Render all artboards on the canvas
-		canvasRef.current?.clear();
-		let topCursor = 0;
-		let leftCursor = 0;
-		const MARGIN = 50;
-
-		const canvasState = [];
-
-		for (let i = 0; i < artboards.length; i++) {
-			const artboard = artboards[i];
-			const width = artboard.width;
-			const height = artboard.height;
-
-			if (!width || !height) {
-				continue;
-			}
-
-			// Just render the artboard on the canvas four on each row
-			if (i % 10 === 0) {
-				// Move the cursor to the next row
-				topCursor += height + MARGIN;
-				leftCursor = 0;
-			} else {
-				leftCursor += width + MARGIN;
-			}
-
-			const adjustedArtboard = {
-				...artboard,
-				state: {
-					...artboard.state,
-					objects: artboard.state?.objects.map((item: any) => {
-						return {
-							...item,
-							left: item.left + leftCursor,
-							top: item.top + topCursor,
-						};
-					}),
-				},
-			};
-
-			canvasState.push(...adjustedArtboard.state.objects);
-		}
-
-		const json = {
-			objects: canvasState,
-		};
-
-		canvasRef.current?.loadFromJSON(json, () => {
-			canvasRef.current?.renderAll();
-			console.log('Performance', window.performance);
-			setRendering(false);
-		});
-	};
-
-	const createBulkData = () => {
-		// With the current artboards, duplicate each artboard 10 times but with different IDs
-		const allArtboards: Artboard[] = [];
-		for (let i = 0; i < RENDER_N; i++) {
-			for (let j = 0; j < artboards.length; j++) {
-				const artboard = artboards[j];
-				const newArtboard = {
-					...artboard,
-					id: generateId(),
-				};
-				allArtboards.push(newArtboard);
-			}
-		}
-
-		console.log('Total artboards = ', allArtboards.length);
-		return allArtboards;
-	};
-
 	useHotkeys([
 		[
 			'mod+shift+z',
@@ -630,6 +553,12 @@ function App() {
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
 					<AddMenu artboardRef={artboardRef} selectedArtboard={selectedArtboard} canvasRef={canvasRef} />
+					<MiscMenu
+						artboards={artboards}
+						artboardRef={artboardRef}
+						selectedArtboard={selectedArtboard}
+						canvasRef={canvasRef}
+					/>
 				</Flex>
 				<Group>
 					<Tooltip label="Undo">
@@ -678,16 +607,26 @@ function App() {
 					</Tooltip>
 					<Tooltip label="toggle Light/Dark Mode">
 						<ActionIcon
-							color={dark ? 'yellow' : 'blue'}
+							color={darkMode ? 'yellow' : 'blue'}
 							onClick={() => toggleColorScheme()}
 							title="Toggle color scheme"
 						>
-							{dark ? <IconSun size={16} /> : <IconMoonStars size={16} />}
+							{darkMode ? <IconSun size={16} /> : <IconMoonStars size={16} />}
 						</ActionIcon>
 					</Tooltip>
 					<Tooltip label="Save">
 						<ActionIcon color="violet" variant="subtle" onClick={saveArtboardChanges}>
 							<IconDeviceFloppy size={20} />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Reset zoom">
+						<ActionIcon
+							onClick={() => {
+								resetZoom();
+							}}
+							title="Reset zoom"
+						>
+							<IconBoxModel2 size={16} />
 						</ActionIcon>
 					</Tooltip>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
@@ -702,29 +641,6 @@ function App() {
 						disabled={window.location.hostname.includes('vercel')}
 					>
 						Export all
-					</Button>
-					<Button
-						size="xs"
-						leftIcon={<IconArtboard size={14} />}
-						variant="light"
-						loading={isRendering}
-						onClick={() => {
-							setRendering(true);
-							const data = createBulkData();
-							renderMultipleArtboards(data);
-						}}
-					>
-						Simulate bulk artboards
-					</Button>
-					<Button
-						size="xs"
-						leftIcon={<IconBoxModel2 size={14} />}
-						variant="light"
-						onClick={() => {
-							resetZoom();
-						}}
-					>
-						Reset zoom
 					</Button>
 				</Group>
 			</Box>
@@ -871,14 +787,14 @@ export default App;
 
 const useStyles = createStyles(theme => ({
 	root: {
-		backgroundColor: theme.colors.gray[2],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
 		width: '100vw',
 		height: '100vh',
 		overflow: 'hidden',
 	},
 	header: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderBottom: `1px solid ${theme.colors.gray[3]}`,
-		backgroundColor: theme.colors.gray[0],
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'space-between',
@@ -894,7 +810,7 @@ const useStyles = createStyles(theme => ({
 		position: 'relative',
 	},
 	left: {
-		backgroundColor: theme.colors.gray[0],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderRight: `1px solid ${theme.colors.gray[3]}`,
 		width: 300,
 		display: 'grid',
@@ -907,7 +823,7 @@ const useStyles = createStyles(theme => ({
 		paddingBlockEnd: '1rem',
 	},
 	right: {
-		backgroundColor: theme.colors.gray[0],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderLeft: `1px solid ${theme.colors.gray[3]}`,
 		zIndex: 1,
 		position: 'absolute',
@@ -917,7 +833,7 @@ const useStyles = createStyles(theme => ({
 		padding: '1rem',
 	},
 	center: {
-		backgroundColor: theme.colors.gray[2],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
 		borderLeft: `1px solid ${theme.colors.gray[3]}`,
 		borderRight: `1px solid ${theme.colors.gray[3]}`,
 		flexGrow: 1,
@@ -926,14 +842,14 @@ const useStyles = createStyles(theme => ({
 	},
 	artboardButton: {
 		cursor: 'pointer',
-		backgroundColor: theme.colors.gray[0],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		border: `1px solid ${theme.colors.gray[3]}`,
 		padding: '0.5rem 1rem',
 		transition: 'background-color 100ms ease',
 		height: 40,
 		width: '100%',
 		'&:hover': {
-			backgroundColor: theme.colors.gray[1],
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[1],
 		},
 	},
 }));

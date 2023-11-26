@@ -126,8 +126,8 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 	}, []);
 
 	return (
-		<Stack>
-			<Box>Text</Box>
+		<Stack spacing={16}>
+			<Box>Font Family</Box>
 			<Select
 				searchable
 				value={value}
@@ -161,7 +161,9 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 				}))}
 			/>
 			{currentFont && (
-				<Flex gap={16} align={'center'} justify={'center'}>
+				<Box>
+					<Box>Font Weight</Box>
+
 					<Select
 						value={fontWeight}
 						onChange={e => {
@@ -191,7 +193,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 							label: fontName,
 						}))}
 					/>
-				</Flex>
+				</Box>
 			)}
 		</Stack>
 	);
@@ -203,12 +205,12 @@ const Panel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
 	}
 	console.log(currentSelectedElement);
 	return (
-		<div>
+		<Stack>
 			<AlignmentPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
 			{currentSelectedElement?.[0]?.type === 'textbox' && (
 				<TextPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
 			)}
-		</div>
+		</Stack>
 	);
 };
 
