@@ -29,9 +29,7 @@ import {
 	IconEye,
 	IconEyeOff,
 	IconFileDownload,
-	IconHeading,
 	IconMoonStars,
-	IconPhoto,
 	IconPlus,
 	IconSun,
 } from '@tabler/icons-react';
@@ -46,8 +44,8 @@ import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
-import ShapeModal from './components/ShapeModal';
 import Panel from './components/Panel';
+import AddMenu from './components/AddMenu';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
@@ -106,6 +104,10 @@ function App() {
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [isRendering, setRendering] = useState(false);
 	const [showAll, setShowAll] = useState(false);
+	console.log(selectedArtboard);
+	useEffect(() => {
+		setSelectedArtboard(artboards?.[0]);
+	}, []);
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
@@ -120,31 +122,6 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
-		// horizontal rect
-		const hline = new fabric.Rect({
-			left: 0,
-			top: 0,
-			width: canvasRef.current.width,
-			height: 10,
-			fill: 'gray',
-			borderColor: 'red',
-			selectable: false,
-		});
-
-		const vline = new fabric.Rect({
-			left: 0,
-			top: 0,
-			width: 10,
-			height: canvasRef.current.height,
-			fill: 'gray',
-			borderColor: 'red',
-			selectable: false,
-		});
-
-		horizontalLine.current = hline;
-		verticleLine.current = vline;
-		canvasRef.current.add(hline);
-		canvasRef.current.add(vline);
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
 			setCurrentSelectedElement(event.selected as fabric.Object[]);
@@ -314,42 +291,6 @@ function App() {
 		setSelectedArtboard(allArtboards[0]);
 		setIsCreatingArtboards(false);
 		close();
-	};
-
-	const addText = () => {
-		if (!selectedArtboard) {
-			return;
-		}
-
-		if (!artboardRef.current) {
-			return;
-		}
-
-		const left = artboardRef.current.left;
-		const top = artboardRef.current.top;
-		const width = artboardRef.current.width;
-		const height = artboardRef.current.height;
-
-		if (!left || !top || !width || !height) {
-			return;
-		}
-
-		// calculate the center of the artboard
-		const centerX = left + width / 2;
-		const centerY = top + height / 2;
-
-		const text = new fabric.Textbox('Edit this text', {
-			left: centerX,
-			top: centerY,
-			fontFamily: 'Inter',
-			fontSize: 20,
-			width: width / 10,
-		});
-
-		canvasRef.current?.add(text);
-		canvasRef.current?.setActiveObject(text);
-		text.enterEditing();
-		text.selectAll();
 	};
 
 	const updateSelectedArtboard = (artboard: Artboard) => {
@@ -565,20 +506,6 @@ function App() {
 				// rectRef?.current?.setCoords();
 				vpt[4] -= e.deltaX;
 				vpt[5] -= e.deltaY;
-				const invertedTransform = fabric.util.invertTransform(vpt);
-				const transformedPoint = fabric.util.transformPoint({ x: 0, y: 0 }, invertedTransform);
-
-				// Set the new position of the fixedRect
-				horizontalLine.current.set({
-					left: transformedPoint.x,
-					top: transformedPoint.y,
-				});
-				horizontalLine?.current?.setCoords();
-				verticleLine.current.set({
-					left: transformedPoint.x,
-					top: transformedPoint.y,
-				});
-				verticleLine?.current?.setCoords();
 
 				// vpt[4] -= e.deltaX;
 				// vpt[5] -= e.deltaY;
@@ -707,7 +634,18 @@ function App() {
 	return (
 		<Box className={classes.root}>
 			<Box className={classes.header}>
-				<Text className={classes.logo}>Phoenix Editor</Text>
+				<Flex gap={16} justify={'center'} align={'center'}>
+					<Flex justify={'center'} align={'center'}>
+						<img src="/logo.png" alt="logo" width={64} height={64} />
+						<Text className={classes.logo}>Phoenix Editor</Text>
+					</Flex>
+					<AddMenu
+						openImageModal={openImageModal}
+						artboardRef={artboardRef}
+						selectedArtboard={selectedArtboard}
+						canvasRef={canvasRef}
+					/>
+				</Flex>
 				<Group>
 					<Tooltip label="Undo">
 						<ActionIcon
@@ -770,6 +708,42 @@ function App() {
 					<Button size="xs" leftIcon={<IconPlus size={12} />} onClick={open}>
 						New artboard
 					</Button>
+					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
+						Export artboard
+					</Button>
+					<Button
+						size="xs"
+						leftIcon={<IconFileDownload size={14} />}
+						variant="light"
+						onClick={exportAllArtboards}
+						loading={isDownloading}
+						disabled={window.location.hostname.includes('vercel')}
+					>
+						Export all
+					</Button>
+					<Button
+						size="xs"
+						leftIcon={<IconArtboard size={14} />}
+						variant="light"
+						loading={isRendering}
+						onClick={() => {
+							setRendering(true);
+							const data = createBulkData();
+							renderMultipleArtboards(data);
+						}}
+					>
+						Simulate bulk artboards
+					</Button>
+					<Button
+						size="xs"
+						leftIcon={<IconBoxModel2 size={14} />}
+						variant="light"
+						onClick={() => {
+							resetZoom();
+						}}
+					>
+						Reset zoom
+					</Button>
 				</Group>
 			</Box>
 			<Flex className={classes.shell}>
@@ -803,105 +777,11 @@ function App() {
 						</Stack>
 
 						<Stack spacing={16} mah={'45vh'}>
+							<Text size={'sm'} weight={600} color="gray">
+								Layers
+							</Text>
 							<Stack spacing={8}>
-								<Text size={'sm'} weight={600} color="gray">
-									Add Element
-								</Text>
-								<Button
-									size="xs"
-									variant="light"
-									onClick={addText}
-									leftIcon={<IconHeading size={12} />}
-								>
-									Add text
-								</Button>
-								<Button
-									size="xs"
-									variant="light"
-									leftIcon={<IconPhoto size={12} />}
-									onClick={openImageModal}
-								>
-									Add image
-								</Button>
-								<Button
-									size="xs"
-									variant="light"
-									leftIcon={<IconPhoto size={12} />}
-									onClick={openShapeModal}
-								>
-									Add Shape
-								</Button>
-								<Button
-									size="xs"
-									variant="light"
-									leftIcon={<IconPhoto size={12} />}
-									onClick={openShapeModal}
-								>
-									Add Preset
-								</Button>
-							</Stack>
-
-							<Stack spacing={4}>
-								<Text size={'sm'} weight={600} color="gray">
-									Export
-								</Text>
-								<Button
-									size="xs"
-									leftIcon={<IconDownload size={14} />}
-									variant="light"
-									onClick={exportArtboard}
-								>
-									Export artboard
-								</Button>
-								<Button
-									size="xs"
-									leftIcon={<IconFileDownload size={14} />}
-									variant="light"
-									onClick={exportAllArtboards}
-									loading={isDownloading}
-									disabled={window.location.hostname.includes('vercel')}
-								>
-									Export all
-								</Button>
-							</Stack>
-							<Stack spacing={4}>
-								<Text size={'sm'} weight={600} color="gray">
-									Canvas
-								</Text>
-								<Button
-									size="xs"
-									leftIcon={<IconBoxModel2 size={14} />}
-									variant="light"
-									onClick={() => {
-										resetZoom();
-									}}
-								>
-									Reset zoom
-								</Button>
-								<Button
-									size="xs"
-									leftIcon={<IconArtboard size={14} />}
-									variant="light"
-									loading={isRendering}
-									onClick={() => {
-										setRendering(true);
-										const data = createBulkData();
-										renderMultipleArtboards(data);
-									}}
-								>
-									Simulate bulk artboards
-								</Button>
-								<Center py={4}>
-									<Text size={'xs'} color="gray">
-										👆 This will render {RENDER_N * artboards.length} artboards
-									</Text>
-								</Center>
-							</Stack>
-							<Stack spacing={4}>
-								<Text size={'sm'} weight={600} color="gray">
-									Undo-Redo
-								</Text>
-								<Group grow></Group>
+								{selectedArtboard?.state?.objects?.map(x => <Text>{x.type}</Text>)}
 							</Stack>
 						</Stack>
 					</Box>
@@ -911,7 +791,11 @@ function App() {
 				</Center>
 				{showSidebar ? (
 					<Box className={classes.right}>
-						<Panel canvas={canvasRef.current} currentSelectedElement={currentSelectedElement} />
+						<Panel
+							artboardRef={artboardRef}
+							canvas={canvasRef.current}
+							currentSelectedElement={currentSelectedElement}
+						/>
 					</Box>
 				) : null}
 			</Flex>
@@ -988,13 +872,6 @@ function App() {
 				imageModalOpened={imageModalOpened}
 				closeImageModal={closeImageModal}
 			/>
-			<ShapeModal
-				selectedArtboard={selectedArtboard}
-				artboardRef={artboardRef}
-				canvasRef={canvasRef}
-				open={shapeModalOpened}
-				closeImageModal={closeShapeModal}
-			/>
 		</Box>
 	);
 }
@@ -1011,7 +888,6 @@ const useStyles = createStyles(theme => ({
 	header: {
 		borderBottom: `1px solid ${theme.colors.gray[3]}`,
 		backgroundColor: theme.colors.gray[0],
-		padding: '1rem 3rem',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'space-between',
