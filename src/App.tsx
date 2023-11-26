@@ -30,14 +30,13 @@ import {
 	IconEyeOff,
 	IconFileDownload,
 	IconMoonStars,
-	IconPlus,
+	IconFilePlus,
 	IconSun,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ImageModal from './components/ImageModal';
 import { useModalStyles, useQueryParam } from './hooks';
 import { appStart, setArtboards } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
@@ -92,7 +91,6 @@ function App() {
 		},
 	});
 
-	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
 	const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(null);
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
@@ -631,12 +629,7 @@ function App() {
 						<img src="/logo.png" alt="logo" width={64} height={64} />
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
-					<AddMenu
-						openImageModal={openImageModal}
-						artboardRef={artboardRef}
-						selectedArtboard={selectedArtboard}
-						canvasRef={canvasRef}
-					/>
+					<AddMenu artboardRef={artboardRef} selectedArtboard={selectedArtboard} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
 					<Tooltip label="Undo">
@@ -697,9 +690,6 @@ function App() {
 							<IconDeviceFloppy size={20} />
 						</ActionIcon>
 					</Tooltip>
-					<Button size="xs" leftIcon={<IconPlus size={12} />} onClick={open}>
-						New artboard
-					</Button>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
 						Export artboard
 					</Button>
@@ -741,31 +731,43 @@ function App() {
 			<Flex className={classes.shell}>
 				{showSidebar ? (
 					<Box className={classes.left}>
-						<Stack sx={{ overflowY: 'auto' }} spacing={0}>
-							<Group p="md" position="apart">
-								<Text weight={500} size={'sm'}>
-									Artboards ({artboards.length})
-								</Text>
-								{artboards.length >= 100 ? (
-									<Button size="xs" variant="subtle" onClick={() => setShowAll(c => !c)}>
-										{showAll ? 'Show less' : 'Show all'}
-									</Button>
-								) : null}
+						<Stack spacing={0}>
+							<Flex sx={{ padding: '0.5rem' }} align={'center'} justify={'space-between'}>
+								<Flex align={'center'}>
+									<Text weight={500} size={'sm'}>
+										Artboards ({artboards.length})
+									</Text>
+									<Tooltip label="Create new artboard">
+										<ActionIcon onClick={open}>
+											<IconFilePlus size={20} />
+										</ActionIcon>
+									</Tooltip>
+								</Flex>
+								<Box>
+									{artboards.length >= 100 ? (
+										<Button size="xs" variant="subtle" onClick={() => setShowAll(c => !c)}>
+											{showAll ? 'Show less' : 'Show all'}
+										</Button>
+									) : null}
+								</Box>
+							</Flex>
+
+							<Group sx={{ overflowY: 'auto', margin: 0, padding: 0, gap: 0 }}>
+								{artboards.length > 0
+									? (!showAll ? artboards.slice(0, 100) : artboards).map(artboard => (
+											<Group
+												key={artboard.id}
+												className={classes.artboardButton}
+												onClick={() => updateSelectedArtboard(artboard)}
+											>
+												<Text size={14}>{artboard.name}</Text>
+												<Text size={12} color="gray">
+													{artboard.width}x{artboard.height}
+												</Text>
+											</Group>
+									  ))
+									: null}
 							</Group>
-							{artboards.length > 0
-								? (!showAll ? artboards.slice(0, 100) : artboards).map(artboard => (
-										<Group
-											key={artboard.id}
-											className={classes.artboardButton}
-											onClick={() => updateSelectedArtboard(artboard)}
-										>
-											<Text size={14}>{artboard.name}</Text>
-											<Text size={12} color="gray">
-												{artboard.width}x{artboard.height}
-											</Text>
-										</Group>
-								  ))
-								: null}
 						</Stack>
 
 						<Stack spacing={16}>
@@ -785,11 +787,13 @@ function App() {
 				</Center>
 				{showSidebar ? (
 					<Box className={classes.right}>
-						<Panel
-							artboardRef={artboardRef}
-							canvas={canvasRef.current}
-							currentSelectedElement={currentSelectedElement}
-						/>
+						{canvasRef.current && currentSelectedElement && (
+							<Panel
+								artboardRef={artboardRef}
+								canvas={canvasRef.current}
+								currentSelectedElement={currentSelectedElement}
+							/>
+						)}
 					</Box>
 				) : null}
 			</Flex>
@@ -859,13 +863,6 @@ function App() {
 					</Button>
 				</Stack>
 			</Modal>
-			<ImageModal
-				selectedArtboard={selectedArtboard}
-				artboardRef={artboardRef}
-				canvasRef={canvasRef}
-				imageModalOpened={imageModalOpened}
-				closeImageModal={closeImageModal}
-			/>
 		</Box>
 	);
 }
