@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Group, MantineTheme, Modal, Stack, createStyles, Text, Radio } from '@mantine/core';
+import { ActionIcon, Box, Button, Group, MantineTheme, Modal, Stack, createStyles, Radio } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useModalStyles, useQueryParam } from '../hooks';
 import { useState } from 'react';
