@@ -15,20 +15,16 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef, open
 		if (!selectedArtboard) {
 			return;
 		}
-
 		if (!artboardRef.current) {
 			return;
 		}
-
 		const left = artboardRef.current.left;
 		const top = artboardRef.current.top;
 		const width = artboardRef.current.width;
 		const height = artboardRef.current.height;
-
 		if (!left || !top || !width || !height) {
 			return;
 		}
-
 		// calculate the center of the artboard
 		const centerX = left + width / 2;
 		const centerY = top + height / 2;
@@ -40,7 +36,6 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef, open
 			fontSize: 20,
 			width: width / 10,
 		});
-
 		canvasRef.current?.add(text);
 		canvasRef.current?.setActiveObject(text);
 		text.enterEditing();

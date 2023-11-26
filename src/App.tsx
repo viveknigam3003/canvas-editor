@@ -67,8 +67,6 @@ function App() {
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
-	const horizontalLine = useRef<fabric.Rect | null>(null);
-	const verticleLine = useRef<fabric.Rect | null>(null);
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
 		initialValues: {
 			name: '',
@@ -95,7 +93,6 @@ function App() {
 	});
 
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
-	const [shapeModalOpened, { open: openShapeModal, close: closeShapeModal }] = useDisclosure();
 	const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(null);
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
@@ -105,8 +102,11 @@ function App() {
 	const [isRendering, setRendering] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	console.log(selectedArtboard);
+
 	useEffect(() => {
-		setSelectedArtboard(artboards?.[0]);
+		if (artboards?.[0]) {
+			setSelectedArtboard(artboards?.[0]);
+		}
 	}, []);
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
@@ -494,22 +494,14 @@ function App() {
 					zoom = minZoom;
 				}
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-
-				// rectRef.current.scaleX = 1 / canvas.getZoom();
-				// rectRef.current.scaleY = 1 / canvas.getZoom();
 			} else {
 				const vpt = canvas.viewportTransform;
 				if (!vpt) {
 					return;
 				}
 
-				// rectRef?.current?.setCoords();
 				vpt[4] -= e.deltaX;
 				vpt[5] -= e.deltaY;
-
-				// vpt[4] -= e.deltaX;
-				// vpt[5] -= e.deltaY;
-				// console.log(rectRef.current?.left, rectRef.current?.top);
 				canvas.requestRenderAll();
 			}
 		};
@@ -776,12 +768,14 @@ function App() {
 								: null}
 						</Stack>
 
-						<Stack spacing={16} mah={'45vh'}>
+						<Stack spacing={16}>
 							<Text size={'sm'} weight={600} color="gray">
 								Layers
 							</Text>
 							<Stack spacing={8}>
-								{selectedArtboard?.state?.objects?.map(x => <Text>{x.type}</Text>)}
+								{selectedArtboard?.state?.objects?.map((x: fabric.Object, index: number) => (
+									<Text key={index}>{x.type}</Text>
+								))}
 							</Stack>
 						</Stack>
 					</Box>
