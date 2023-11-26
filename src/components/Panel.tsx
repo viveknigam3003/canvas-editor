@@ -21,6 +21,7 @@ type PanelProps = {
 	currentSelectedElement: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 };
+//TODO: fix center logic and types
 const alignElementToRect =
 	(currentSelectedElement: fabric.Object[], targetRect: fabric.Rect, position: string, canvas: fabric.Canvas) =>
 	() => {

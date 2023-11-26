@@ -1,5 +1,5 @@
 import { Menu, ActionIcon, Box } from '@mantine/core';
-import { IconSquare, IconBaselineDensitySmall, IconLayersSubtract } from '@tabler/icons-react';
+import { IconBaselineDensitySmall } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { Artboard } from '../types';
 import { IconArtboard } from '@tabler/icons-react';
@@ -112,9 +112,6 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 					>
 						Simulate bulk artboards
 					</Menu.Item>
-
-					<Menu.Item icon={<IconSquare size={14} />}>Shape</Menu.Item>
-					<Menu.Item icon={<IconLayersSubtract size={14} />}>Preset</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Box>
