@@ -1,11 +1,11 @@
-import { ActionIcon, Box, Button, Group, MantineTheme, Modal, Stack, createStyles, Radio } from '@mantine/core';
+import { Box, Button, Group, Modal, Stack, Radio, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useModalStyles, useQueryParam } from '../hooks';
 import { useState } from 'react';
 
 const ColorSpaceSwitch = ({ recreateCanvas }: any) => {
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
-	const { classes } = useStyles();
+
 	const { classes: modalClasses } = useModalStyles();
 	const [colorSpaceQuery, setColorSpaceQuery] = useQueryParam('colorSpace', 'srgb');
 	const [colorSpace, setColorSpace] = useState(() => colorSpaceQuery);
@@ -17,9 +17,11 @@ const ColorSpaceSwitch = ({ recreateCanvas }: any) => {
 	};
 	return (
 		<Box>
-			<ActionIcon onClick={openColorSpaceModal}>
-				<Box className={classes.colorLogo}>{getDisplayValue()}</Box>
-			</ActionIcon>
+			<Tooltip label="change color space">
+				<Button variant="gradient" onClick={openColorSpaceModal}>
+					{getDisplayValue()}
+				</Button>
+			</Tooltip>
 			<Modal
 				opened={colorSpaceModalOpened}
 				onClose={() => {
@@ -65,13 +67,5 @@ const ColorSpaceSwitch = ({ recreateCanvas }: any) => {
 		</Box>
 	);
 };
-const useStyles = createStyles((theme: MantineTheme) => ({
-	colorLogo: {
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		border: `1px solid`,
-		borderRadius: 4,
-		padding: '0.25rem',
-	},
-}));
 
 export default ColorSpaceSwitch;
