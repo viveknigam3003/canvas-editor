@@ -54,3 +54,9 @@ export const useQueryParam = (key: string, defaultVal: string): [string, (val: s
 
 	return [query, updateUrl];
 };
+
+export const useMenuStyles = createStyles(() => ({
+	item: {
+		fontSize: 12,
+	},
+}));
