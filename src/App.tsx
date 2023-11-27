@@ -138,6 +138,7 @@ function App() {
 					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
 					if (artboard) {
 						artboardRef.current = artboard as fabric.Rect;
+						centerBoardToCanvas(artboardRef);
 					}
 				});
 			}
@@ -167,24 +168,33 @@ function App() {
 	};
 
 	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
-		const artboardLeft = artboardRef.current?.left;
-		const artboardTop = artboardRef.current?.top;
-		const artboardWidth = artboardRef.current?.width;
-		const artboardHeight = artboardRef.current?.height;
-		const canvasWidth = canvasRef.current?.width;
-		const canvasHeight = canvasRef.current?.height;
+		const canvas = canvasRef.current;
+		const artboard = artboardRef.current;
 
-		if (!artboardLeft || !artboardTop || !artboardWidth || !artboardHeight || !canvasWidth || !canvasHeight) {
-			return;
+		if (!canvas) {
+			throw new Error('Canvas is not defined');
 		}
 
-		const left = (canvasWidth - artboardWidth) / 2 - artboardLeft;
-		const top = (canvasHeight - artboardHeight) / 2 - artboardTop;
+		if (!artboard) {
+			throw new Error('Artboard is not defined');
+		}
 
-		canvasRef.current?.absolutePan({
-			x: left,
-			y: top,
-		});
+		// const object = canvas.getActiveObject();
+		const objWidth = artboard.getScaledWidth();
+		const objHeight = artboard.getScaledHeight();
+		const zoom = canvas.getZoom();
+		let panX = 0;
+		let panY = 0;
+
+		console.log('object width is: ' + artboard.width);
+		console.log(' object.getScaledWidth.x is: ' + artboard.getScaledWidth());
+
+		// WORKS - setViewportTransform
+		if (artboard.aCoords) {
+			panX = (canvas.getWidth() / zoom / 2 - artboard.aCoords.tl.x - objWidth / 2) * zoom;
+			panY = (canvas.getHeight() / zoom / 2 - artboard.aCoords.tl.y - objHeight / 2) * zoom;
+			canvas.setViewportTransform([zoom, 0, 0, zoom, panX, panY]);
+		}
 	};
 
 	const createSingleArtboard = (artboard: Omit<Artboard, 'id'>, index: number) => {
