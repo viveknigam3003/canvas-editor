@@ -1,9 +1,8 @@
-import { Menu, ActionIcon, Box, Group, Tooltip } from '@mantine/core';
-import { IconBaselineDensitySmall } from '@tabler/icons-react';
-import { fabric } from 'fabric';
-import { Artboard } from '../types';
+import { ActionIcon, Group, Tooltip } from '@mantine/core';
 import { IconArtboard } from '@tabler/icons-react';
+import { fabric } from 'fabric';
 import { useState } from 'react';
+import { Artboard } from '../types';
 
 type MiscMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;

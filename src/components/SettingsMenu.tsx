@@ -131,7 +131,7 @@ const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSideb
 
 export default SettingsMenu;
 
-const useStyles = createStyles(theme => ({
+const useStyles = createStyles(() => ({
 	item: {
 		fontSize: 12,
 	},

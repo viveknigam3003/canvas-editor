@@ -1,8 +1,8 @@
-import { Menu, ActionIcon, Box, Group, Tooltip, useMantineColorScheme } from '@mantine/core';
-import { IconSquare, IconPhoto, IconLayersSubtract, IconPencilPlus, IconLetterT } from '@tabler/icons-react';
+import { ActionIcon, Group, Tooltip } from '@mantine/core';
+import { useDisclosure, useHotkeys } from '@mantine/hooks';
+import { IconLayersSubtract, IconLetterT, IconPhoto, IconSquare } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { Artboard } from '../types';
-import { useColorScheme, useDisclosure, useHotkeys } from '@mantine/hooks';
 import ImageModal from './ImageModal';
 
 type AddMenuProps = {
