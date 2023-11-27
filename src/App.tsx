@@ -745,7 +745,7 @@ const useStyles = createStyles(theme => ({
 		justifyContent: 'space-between',
 	},
 	logo: {
-		fontSize: theme.fontSizes.xl,
+		fontSize: theme.fontSizes.md,
 		fontWeight: 700,
 		color: theme.colors.violet[7],
 	},

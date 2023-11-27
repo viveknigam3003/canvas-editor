@@ -35,7 +35,7 @@ const ColorSpaceSwitch = ({ open, onClose, recreateCanvas }: any) => {
 							<Radio value="display-p3" label="Display P3" />
 						</Group>
 					</Radio.Group>
-					<Text size={14} color="gray">
+					<Text size={14} className={modalClasses.subtext}>
 						{colorSpace === 'display-p3'
 							? "Best for Apple devices, Display P3 has a broader color spectrum—but isn't recommended for web design."
 							: 'sRGB is best when designing for a variety of devices, but has a smaller color spectrum than Display P3.'}
@@ -53,7 +53,7 @@ const ColorSpaceSwitch = ({ open, onClose, recreateCanvas }: any) => {
 						>
 							Apply color space
 						</Button>
-						<Text size={14} color="gray">
+						<Text size={14} className={modalClasses.subtext}>
 							Applying the color space will reload the page.
 						</Text>
 					</Stack>
