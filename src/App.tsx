@@ -379,6 +379,61 @@ function App() {
 		});
 	};
 
+	// Take selected options in the selected artboard and when this function is called, group the selected elements
+	const createGroup = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObject = canvas.getActiveObject();
+		if (!activeObject || activeObject.type !== 'activeSelection') {
+			return;
+		}
+
+		// Cast activeObject to fabric.ActiveSelection
+		const activeSelection = activeObject as fabric.ActiveSelection;
+
+		const activeObjects = activeSelection.getObjects();
+		const group = new fabric.Group(activeObjects, {
+			left: activeSelection.left,
+			top: activeSelection.top,
+		});
+
+		activeObjects.forEach(object => {
+			canvas.remove(object);
+		});
+
+		canvas.add(group);
+		canvas.renderAll();
+	};
+
+	// ungroup function
+	const ungroup = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObject = canvas.getActiveObject();
+		if (!activeObject || activeObject.type !== 'group') {
+			return;
+		}
+
+		// Cast activeObject to fabric.Group
+		const group = activeObject as fabric.Group;
+
+		// Ungroup the objects
+		const items = group._objects;
+		group._restoreObjectsState();
+		canvas.remove(group);
+		for (let i = 0; i < items.length; i++) {
+			canvas.add(items[i]);
+		}
+
+		canvas.renderAll();
+	};
+
 	const getMultiplierFor4K = (width?: number, height?: number): number => {
 		// Assuming the canvas is not already 4K, calculate the multiplier needed
 		// to scale the current canvas size up to 4K resolution
@@ -532,6 +587,22 @@ function App() {
 					color: 'green',
 					autoClose: 1500,
 				});
+			},
+		],
+		[
+			'mod+g',
+			e => {
+				console.log('grouping');
+				e.preventDefault();
+				createGroup();
+			},
+		],
+		[
+			'mod+shift+g',
+			e => {
+				console.log('ungrouping');
+				e.preventDefault();
+				ungroup();
 			},
 		],
 	]);
