@@ -16,14 +16,7 @@ import {
 import { useForm } from '@mantine/form';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import {
-	IconBoxModel2,
-	IconCircleCheck,
-	IconDeviceFloppy,
-	IconDownload,
-	IconFileDownload,
-	IconPlus,
-} from '@tabler/icons-react';
+import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
@@ -32,6 +25,7 @@ import AddMenu from './components/AddMenu';
 import MiscMenu from './components/MiscMenu';
 import Panel from './components/Panel';
 import SettingsMenu from './components/SettingsMenu';
+import ZoomMenu from './components/ZoomMenu';
 import { useModalStyles, useQueryParam } from './hooks';
 import { appStart, setArtboards } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
@@ -55,6 +49,7 @@ function App() {
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
+	const [zoomLevel, setZoomLevel] = useState(1);
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
 		initialValues: {
 			name: '',
@@ -165,6 +160,7 @@ function App() {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
 		centerBoardToCanvas(artboardRef);
+		setZoomLevel(canvasRef.current?.getZoom() || 1);
 	};
 
 	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
@@ -531,6 +527,22 @@ function App() {
 		);
 	};
 
+	const zoomIn = () => {
+		const zoom = canvasRef.current?.getZoom();
+		if (zoom) {
+			zoomFromCenter(zoom + 0.1);
+			setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1);
+		}
+	};
+
+	const zoomOut = () => {
+		const zoom = canvasRef.current?.getZoom();
+		if (zoom) {
+			zoomFromCenter(zoom - 0.1);
+			setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1);
+		}
+	};
+
 	// Handle the undo and redo actions to update artboards
 	useEffect(() => {
 		if (!selectedArtboard) {
@@ -575,6 +587,7 @@ function App() {
 				if (!zoom || isNaN(zoom)) {
 					zoom = minZoom;
 				}
+				setZoomLevel(zoom);
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
 			} else {
 				const vpt = canvas.viewportTransform;
@@ -630,20 +643,14 @@ function App() {
 			'mod+=',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				const zoom = canvasRef.current?.getZoom();
-				if (zoom) {
-					zoomFromCenter(zoom + 0.1);
-				}
+				zoomIn();
 			},
 		],
 		[
 			'mod+-',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				const zoom = canvasRef.current?.getZoom();
-				if (zoom) {
-					zoomFromCenter(zoom - 0.1);
-				}
+				zoomOut();
 			},
 		],
 		[
@@ -698,17 +705,7 @@ function App() {
 							<IconDeviceFloppy />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label="Reset zoom" openDelay={500}>
-						<ActionIcon
-							onClick={() => {
-								resetZoom();
-							}}
-							title="Reset zoom"
-							size={20}
-						>
-							<IconBoxModel2 />
-						</ActionIcon>
-					</Tooltip>
+					<ZoomMenu zoom={zoomLevel} zoomIn={zoomIn} zoomOut={zoomOut} zoomReset={resetZoom} />
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
 						Export artboard
 					</Button>
@@ -766,8 +763,8 @@ function App() {
 							</Group>
 						</Stack>
 
-						<Stack spacing={16}>
-							<Text size={'sm'} weight={600} color="gray">
+						<Stack spacing={16} sx={{ padding: '0.5rem 1rem' }}>
+							<Text weight={500} size={'sm'}>
 								Layers
 							</Text>
 							<Stack spacing={8}>

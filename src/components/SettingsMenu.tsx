@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Menu, Text, Tooltip, createStyles, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Box, Menu, Text, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
@@ -9,6 +9,8 @@ import {
 	IconSettings,
 	IconSun,
 } from '@tabler/icons-react';
+import { useMenuStyles } from '../hooks';
+import { getAltKey, getModKey } from '../modules/utils/keyboard';
 import ColorSpaceSwitch from './ColorSpaceSwitch';
 
 interface Props {
@@ -18,7 +20,7 @@ interface Props {
 }
 
 const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSidebar }) => {
-	const { classes } = useStyles();
+	const { classes } = useMenuStyles();
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
 
@@ -59,25 +61,9 @@ const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSideb
 		],
 	]);
 
-	const getModKey = () => {
-		if (navigator.platform.indexOf('Mac') === -1) {
-			return 'Ctrl';
-		} else {
-			return '⌘';
-		}
-	};
-
-	const getAltKey = () => {
-		if (navigator.platform.indexOf('Mac') === -1) {
-			return 'Alt';
-		} else {
-			return '⌥';
-		}
-	};
-
 	return (
 		<Box>
-			<Menu position="bottom-end">
+			<Menu withArrow>
 				<Menu.Target>
 					<Tooltip label="Settings" openDelay={500}>
 						<ActionIcon size={20} variant="subtle">
@@ -130,9 +116,3 @@ const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSideb
 };
 
 export default SettingsMenu;
-
-const useStyles = createStyles(() => ({
-	item: {
-		fontSize: 12,
-	},
-}));
