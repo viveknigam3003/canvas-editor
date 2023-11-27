@@ -117,16 +117,16 @@ const ImageModal = ({
 				title: modalClasses.title,
 			}}
 		>
-			<Tabs defaultValue="url">
+			<Tabs defaultValue="unsplash">
 				<Tabs.List>
-					<Tabs.Tab value="url" icon={<IconPhoto size="0.8rem" />}>
-						From URL
+					<Tabs.Tab value="unsplash" icon={<IconSettings size="0.8rem" />}>
+						Unsplash Random
 					</Tabs.Tab>
 					<Tabs.Tab value="upload" icon={<IconLinkPlus size="0.8rem" />}>
 						Upload
 					</Tabs.Tab>
-					<Tabs.Tab value="unsplash" icon={<IconSettings size="0.8rem" />}>
-						Unsplash Random
+					<Tabs.Tab value="url" icon={<IconPhoto size="0.8rem" />}>
+						From URL
 					</Tabs.Tab>
 				</Tabs.List>
 

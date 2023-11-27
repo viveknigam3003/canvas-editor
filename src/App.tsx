@@ -7,11 +7,12 @@ import {
 	Group,
 	Modal,
 	NumberInput,
-	SegmentedControl,
 	Stack,
 	Text,
 	TextInput,
+	Tooltip,
 	createStyles,
+	useMantineColorScheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
@@ -19,7 +20,6 @@ import { notifications } from '@mantine/notifications';
 import {
 	IconArrowBackUp,
 	IconArrowForwardUp,
-	IconArtboard,
 	IconBoxModel2,
 	IconBug,
 	IconCircleCheck,
@@ -28,27 +28,28 @@ import {
 	IconEye,
 	IconEyeOff,
 	IconFileDownload,
-	IconHeading,
-	IconPhoto,
-	IconPlus,
+	IconMoonStars,
+	IconFilePlus,
+	IconSun,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ImageModal from './components/ImageModal';
 import { useModalStyles, useQueryParam } from './hooks';
 import { appStart, setArtboards, setSelectedArtboard } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
+import Panel from './components/Panel';
+import AddMenu from './components/AddMenu';
+import MiscMenu from './components/MiscMenu';
+import ColorSpaceSwitch from './components/ColorSpaceSwitch';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
 };
-
-const RENDER_N = 2500;
 
 store.dispatch(appStart());
 
@@ -60,7 +61,10 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-
+	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+	const darkMode = colorScheme === 'dark';
+	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
+	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
@@ -87,15 +91,18 @@ function App() {
 			return errors;
 		},
 	});
-
-	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const artboardRef = useRef<fabric.Rect | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
-	const [isRendering, setRendering] = useState(false);
 	const [showAll, setShowAll] = useState(false);
+
+	useEffect(() => {
+		if (artboards?.[0]) {
+			setSelectedArtboard(artboards?.[0]);
+		}
+	}, []);
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
@@ -110,10 +117,27 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
+		// Handle element selection TODO: add more element type and handle it
+		canvasRef.current?.on('selection:created', function (event) {
+			setCurrentSelectedElement(event.selected as fabric.Object[]);
+		});
+		canvasRef.current?.on('selection:updated', function (event) {
+			setCurrentSelectedElement(event.selected as fabric.Object[]);
+		});
+		canvasRef.current?.on('selection:cleared', function () {
+			setCurrentSelectedElement(null);
+		});
+
 		return () => {
 			canvasRef.current?.dispose();
 		};
 	}, []);
+
+	const recreateCanvas = () => {
+		//reload window
+		saveArtboardChanges();
+		window.location.reload();
+	};
 
 	useEffect(() => {
 		if (selectedArtboard) {
@@ -268,42 +292,6 @@ function App() {
 		dispatch(setSelectedArtboard(allArtboards[0]));
 		setIsCreatingArtboards(false);
 		close();
-	};
-
-	const addText = () => {
-		if (!selectedArtboard) {
-			return;
-		}
-
-		if (!artboardRef.current) {
-			return;
-		}
-
-		const left = artboardRef.current.left;
-		const top = artboardRef.current.top;
-		const width = artboardRef.current.width;
-		const height = artboardRef.current.height;
-
-		if (!left || !top || !width || !height) {
-			return;
-		}
-
-		// calculate the center of the artboard
-		const centerX = left + width / 2;
-		const centerY = top + height / 2;
-
-		const text = new fabric.Textbox('Edit this text', {
-			left: centerX,
-			top: centerY,
-			fontFamily: 'Inter',
-			fontSize: 20,
-			width: width / 10,
-		});
-
-		canvasRef.current?.add(text);
-		canvasRef.current?.setActiveObject(text);
-		text.enterEditing();
-		text.selectAll();
 	};
 
 	const updateSelectedArtboard = (artboard: Artboard) => {
@@ -530,79 +518,6 @@ function App() {
 		console.log(canvasRef.current?.toJSON(['data', 'selectable']));
 	};
 
-	const renderMultipleArtboards = (artboards: Artboard[]) => {
-		// Render all artboards on the canvas
-		canvasRef.current?.clear();
-		let topCursor = 0;
-		let leftCursor = 0;
-		const MARGIN = 50;
-
-		const canvasState = [];
-
-		for (let i = 0; i < artboards.length; i++) {
-			const artboard = artboards[i];
-			const width = artboard.width;
-			const height = artboard.height;
-
-			if (!width || !height) {
-				continue;
-			}
-
-			// Just render the artboard on the canvas four on each row
-			if (i % 10 === 0) {
-				// Move the cursor to the next row
-				topCursor += height + MARGIN;
-				leftCursor = 0;
-			} else {
-				leftCursor += width + MARGIN;
-			}
-
-			const adjustedArtboard = {
-				...artboard,
-				state: {
-					...artboard.state,
-					objects: artboard.state?.objects.map((item: any) => {
-						return {
-							...item,
-							left: item.left + leftCursor,
-							top: item.top + topCursor,
-						};
-					}),
-				},
-			};
-
-			canvasState.push(...adjustedArtboard.state.objects);
-		}
-
-		const json = {
-			objects: canvasState,
-		};
-
-		canvasRef.current?.loadFromJSON(json, () => {
-			canvasRef.current?.renderAll();
-			console.log('Performance', window.performance);
-			setRendering(false);
-		});
-	};
-
-	const createBulkData = () => {
-		// With the current artboards, duplicate each artboard 10 times but with different IDs
-		const allArtboards: Artboard[] = [];
-		for (let i = 0; i < RENDER_N; i++) {
-			for (let j = 0; j < artboards.length; j++) {
-				const artboard = artboards[j];
-				const newArtboard = {
-					...artboard,
-					id: generateId(),
-				};
-				allArtboards.push(newArtboard);
-			}
-		}
-
-		console.log('Total artboards = ', allArtboards.length);
-		return allArtboards;
-	};
-
 	useHotkeys([
 		[
 			'mod+shift+z',
@@ -639,57 +554,155 @@ function App() {
 	return (
 		<Box className={classes.root}>
 			<Box className={classes.header}>
-				<Text className={classes.logo}>Phoenix Editor</Text>
+				<Flex gap={16} justify={'center'} align={'center'}>
+					<Flex justify={'center'} align={'center'}>
+						<img src="/logo.png" alt="logo" width={64} height={64} />
+						<Text className={classes.logo}>Phoenix Editor</Text>
+					</Flex>
+					<AddMenu artboardRef={artboardRef} selectedArtboard={selectedArtboard} canvasRef={canvasRef} />
+					<MiscMenu
+						artboards={artboards}
+						artboardRef={artboardRef}
+						selectedArtboard={selectedArtboard}
+						canvasRef={canvasRef}
+					/>
+				</Flex>
 				<Group>
-					<ActionIcon
-						color="violet"
-						variant="subtle"
-						onClick={() => {
-							setShowSidebar(!showSidebar);
-							canvasRef.current?.setDimensions({
-								width: window.innerWidth,
-								height: window.innerHeight - 60,
-							});
-						}}
+					<ColorSpaceSwitch recreateCanvas={recreateCanvas} />
+					<Tooltip label="Undo">
+						<ActionIcon
+							disabled={!undoable}
+							color="violet"
+							variant="subtle"
+							onClick={() => {
+								dispatch(undo());
+							}}
+						>
+							<IconArrowBackUp size={16} />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Redo">
+						<ActionIcon
+							color="violet"
+							variant="subtle"
+							onClick={() => {
+								dispatch(redo());
+							}}
+							disabled={!redoable}
+						>
+							<IconArrowForwardUp size={16} />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Log State">
+						<ActionIcon color="violet" variant="subtle" onClick={debug}>
+							<IconBug size={16} />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Toggle Sidebar">
+						<ActionIcon
+							color="violet"
+							variant="subtle"
+							onClick={() => {
+								setShowSidebar(!showSidebar);
+								canvasRef.current?.setDimensions({
+									width: window.innerWidth,
+									height: window.innerHeight - 60,
+								});
+							}}
+						>
+							{showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="toggle Light/Dark Mode">
+						<ActionIcon
+							color={darkMode ? 'yellow' : 'blue'}
+							onClick={() => toggleColorScheme()}
+							title="Toggle color scheme"
+						>
+							{darkMode ? <IconSun size={16} /> : <IconMoonStars size={16} />}
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Save">
+						<ActionIcon color="violet" variant="subtle" onClick={saveArtboardChanges}>
+							<IconDeviceFloppy size={20} />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Reset zoom">
+						<ActionIcon
+							onClick={() => {
+								resetZoom();
+							}}
+							title="Reset zoom"
+						>
+							<IconBoxModel2 size={16} />
+						</ActionIcon>
+					</Tooltip>
+					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
+						Export artboard
+					</Button>
+					<Button
+						size="xs"
+						leftIcon={<IconFileDownload size={14} />}
+						variant="light"
+						onClick={exportAllArtboards}
+						loading={isDownloading}
+						disabled={window.location.hostname.includes('vercel')}
 					>
-						{showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
-					</ActionIcon>
-					<ActionIcon color="violet" variant="subtle" onClick={saveArtboardChanges}>
-						<IconDeviceFloppy size={20} />
-					</ActionIcon>
-					<Button size="xs" leftIcon={<IconPlus size={12} />} onClick={open}>
-						New artboard
+						Export all
 					</Button>
 				</Group>
 			</Box>
 			<Flex className={classes.shell}>
 				{showSidebar ? (
 					<Box className={classes.left}>
-						<Stack spacing={0} mah={'95vh'}>
-							<Group p="md" position="apart">
-								<Text weight={500} size={'sm'}>
-									Artboards ({artboards.length})
-								</Text>
-								{artboards.length >= 100 ? (
-									<Button size="xs" variant="subtle" onClick={() => setShowAll(c => !c)}>
-										{showAll ? 'Show less' : 'Show all'}
-									</Button>
-								) : null}
+						<Stack spacing={0}>
+							<Flex sx={{ padding: '0.5rem' }} align={'center'} justify={'space-between'}>
+								<Flex align={'center'}>
+									<Text weight={500} size={'sm'}>
+										Artboards ({artboards.length})
+									</Text>
+									<Tooltip label="Create new artboard">
+										<ActionIcon onClick={open}>
+											<IconFilePlus size={20} />
+										</ActionIcon>
+									</Tooltip>
+								</Flex>
+								<Box>
+									{artboards.length >= 100 ? (
+										<Button size="xs" variant="subtle" onClick={() => setShowAll(c => !c)}>
+											{showAll ? 'Show less' : 'Show all'}
+										</Button>
+									) : null}
+								</Box>
+							</Flex>
+
+							<Group sx={{ overflowY: 'auto', margin: 0, padding: 0, gap: 0 }}>
+								{artboards.length > 0
+									? (!showAll ? artboards.slice(0, 100) : artboards).map(artboard => (
+											<Group
+												key={artboard.id}
+												className={classes.artboardButton}
+												onClick={() => updateSelectedArtboard(artboard)}
+											>
+												<Text size={14}>{artboard.name}</Text>
+												<Text size={12} color="gray">
+													{artboard.width}x{artboard.height}
+												</Text>
+											</Group>
+									  ))
+									: null}
 							</Group>
-							{artboards.length > 0
-								? (!showAll ? artboards.slice(0, 100) : artboards).map(artboard => (
-										<Group
-											key={artboard.id}
-											className={classes.artboardButton}
-											onClick={() => updateSelectedArtboard(artboard)}
-										>
-											<Text size={14}>{artboard.name}</Text>
-											<Text size={12} color="gray">
-												{artboard.width}x{artboard.height}
-											</Text>
-										</Group>
-								  ))
-								: null}
+						</Stack>
+
+						<Stack spacing={16}>
+							<Text size={'sm'} weight={600} color="gray">
+								Layers
+							</Text>
+							<Stack spacing={8}>
+								{selectedArtboard?.state?.objects?.map((x: fabric.Object, index: number) => (
+									<Text key={index}>{x.type}</Text>
+								))}
+							</Stack>
 						</Stack>
 					</Box>
 				) : null}
@@ -698,132 +711,13 @@ function App() {
 				</Center>
 				{showSidebar ? (
 					<Box className={classes.right}>
-						<Stack spacing={16}>
-							<Stack spacing={8}>
-								<Text size={'sm'} weight={600} color="gray">
-									Color Space
-								</Text>
-								<SegmentedControl
-									disabled
-									value={colorSpace}
-									data={[
-										{ label: 'SRGB', value: 'srgb' },
-										{ label: 'DCI P3', value: 'display-p3' },
-									]}
-								/>
-							</Stack>
-							<Stack spacing={8}>
-								<Text size={'sm'} weight={600} color="gray">
-									Debug
-								</Text>
-								<Button size="xs" leftIcon={<IconBug size={16} />} onClick={debug} variant="outline">
-									Log state
-								</Button>
-							</Stack>
-							<Stack spacing={8}>
-								<Text size={'sm'} weight={600} color="gray">
-									Text
-								</Text>
-								<Button size="xs" leftIcon={<IconHeading size={12} />} onClick={addText}>
-									Add text
-								</Button>
-							</Stack>
-							<Stack spacing={8}>
-								<Text size={'sm'} weight={600} color="gray">
-									Image
-								</Text>
-								<Button size="xs" leftIcon={<IconPhoto size={12} />} onClick={openImageModal}>
-									Add image
-								</Button>
-							</Stack>
-							<Stack spacing={4}>
-								<Text size={'sm'} weight={600} color="gray">
-									Export
-								</Text>
-								<Button
-									size="xs"
-									leftIcon={<IconDownload size={14} />}
-									variant="light"
-									onClick={exportArtboard}
-								>
-									Export artboard
-								</Button>
-								<Button
-									size="xs"
-									leftIcon={<IconFileDownload size={14} />}
-									variant="light"
-									onClick={exportAllArtboards}
-									loading={isDownloading}
-									disabled={window.location.hostname.includes('vercel')}
-								>
-									Export all
-								</Button>
-							</Stack>
-							<Stack spacing={4}>
-								<Text size={'sm'} weight={600} color="gray">
-									Canvas
-								</Text>
-								<Button
-									size="xs"
-									leftIcon={<IconBoxModel2 size={14} />}
-									variant="light"
-									onClick={() => {
-										resetZoom();
-									}}
-								>
-									Reset zoom
-								</Button>
-								<Button
-									size="xs"
-									leftIcon={<IconArtboard size={14} />}
-									variant="light"
-									loading={isRendering}
-									onClick={() => {
-										setRendering(true);
-										const data = createBulkData();
-										renderMultipleArtboards(data);
-									}}
-								>
-									Simulate bulk artboards
-								</Button>
-								<Center py={4}>
-									<Text size={'xs'} color="gray">
-										👆 This will render {RENDER_N * artboards.length} artboards
-									</Text>
-								</Center>
-							</Stack>
-							<Stack spacing={4}>
-								<Text size={'sm'} weight={600} color="gray">
-									Undo-Redo
-								</Text>
-								<Group grow>
-									<Button
-										size="xs"
-										leftIcon={<IconArrowBackUp size={14} />}
-										variant="light"
-										onClick={() => {
-											dispatch(undo());
-										}}
-										// When stack pointer is 0, disable undo
-										disabled={!undoable}
-									>
-										Undo
-									</Button>
-									<Button
-										size="xs"
-										leftIcon={<IconArrowForwardUp size={14} />}
-										variant="light"
-										onClick={() => {
-											dispatch(redo());
-										}}
-										// when stack pointer is at the last index, disable redo
-										disabled={!redoable}
-									>
-										Redo
-									</Button>
-								</Group>
-							</Stack>
-						</Stack>
+						{canvasRef.current && currentSelectedElement && (
+							<Panel
+								artboardRef={artboardRef}
+								canvas={canvasRef.current}
+								currentSelectedElement={currentSelectedElement}
+							/>
+						)}
 					</Box>
 				) : null}
 			</Flex>
@@ -893,13 +787,6 @@ function App() {
 					</Button>
 				</Stack>
 			</Modal>
-			<ImageModal
-				selectedArtboard={selectedArtboard}
-				artboardRef={artboardRef}
-				canvasRef={canvasRef}
-				imageModalOpened={imageModalOpened}
-				closeImageModal={closeImageModal}
-			/>
 		</Box>
 	);
 }
@@ -908,15 +795,14 @@ export default App;
 
 const useStyles = createStyles(theme => ({
 	root: {
-		backgroundColor: theme.colors.gray[2],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
 		width: '100vw',
 		height: '100vh',
 		overflow: 'hidden',
 	},
 	header: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderBottom: `1px solid ${theme.colors.gray[3]}`,
-		backgroundColor: theme.colors.gray[0],
-		padding: '1rem 3rem',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'space-between',
@@ -932,10 +818,12 @@ const useStyles = createStyles(theme => ({
 		position: 'relative',
 	},
 	left: {
-		backgroundColor: theme.colors.gray[0],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderRight: `1px solid ${theme.colors.gray[3]}`,
 		width: 300,
-		height: 'calc(100vh - 60px)',
+		display: 'grid',
+		gridTemplateRows: '50% 50%',
+		height: '100%',
 		zIndex: 1,
 		position: 'absolute',
 		left: 0,
@@ -943,7 +831,7 @@ const useStyles = createStyles(theme => ({
 		paddingBlockEnd: '1rem',
 	},
 	right: {
-		backgroundColor: theme.colors.gray[0],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderLeft: `1px solid ${theme.colors.gray[3]}`,
 		zIndex: 1,
 		position: 'absolute',
@@ -953,7 +841,7 @@ const useStyles = createStyles(theme => ({
 		padding: '1rem',
 	},
 	center: {
-		backgroundColor: theme.colors.gray[2],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
 		borderLeft: `1px solid ${theme.colors.gray[3]}`,
 		borderRight: `1px solid ${theme.colors.gray[3]}`,
 		flexGrow: 1,
@@ -962,14 +850,14 @@ const useStyles = createStyles(theme => ({
 	},
 	artboardButton: {
 		cursor: 'pointer',
-		backgroundColor: theme.colors.gray[0],
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		border: `1px solid ${theme.colors.gray[3]}`,
 		padding: '0.5rem 1rem',
 		transition: 'background-color 100ms ease',
 		height: 40,
 		width: '100%',
 		'&:hover': {
-			backgroundColor: theme.colors.gray[1],
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[1],
 		},
 	},
 }));
