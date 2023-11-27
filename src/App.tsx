@@ -12,40 +12,32 @@ import {
 	TextInput,
 	Tooltip,
 	createStyles,
-	useMantineColorScheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
-	IconArrowBackUp,
-	IconArrowForwardUp,
 	IconBoxModel2,
-	IconBug,
 	IconCircleCheck,
 	IconDeviceFloppy,
 	IconDownload,
-	IconEye,
-	IconEyeOff,
 	IconFileDownload,
-	IconMoonStars,
-	IconFilePlus,
-	IconSun,
+	IconPlus,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import AddMenu from './components/AddMenu';
+import MiscMenu from './components/MiscMenu';
+import Panel from './components/Panel';
+import SettingsMenu from './components/SettingsMenu';
 import { useModalStyles, useQueryParam } from './hooks';
 import { appStart, setArtboards } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
-import Panel from './components/Panel';
-import AddMenu from './components/AddMenu';
-import MiscMenu from './components/MiscMenu';
-import ColorSpaceSwitch from './components/ColorSpaceSwitch';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
@@ -59,8 +51,6 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-	const darkMode = colorScheme === 'dark';
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -113,7 +103,6 @@ function App() {
 			width: window.innerWidth - 600,
 			height: window.innerHeight - 60,
 			backgroundColor: '#e9ecef',
-			imageSmoothingEnabled: false,
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
@@ -514,10 +503,6 @@ function App() {
 		};
 	}, [selectedArtboard?.height, selectedArtboard?.width]);
 
-	const debug = () => {
-		console.log(canvasRef.current?.toJSON(['data', 'selectable']));
-	};
-
 	useHotkeys([
 		[
 			'mod+shift+z',
@@ -553,10 +538,10 @@ function App() {
 
 	return (
 		<Box className={classes.root}>
-			<Box className={classes.header}>
+			<Box className={classes.header} px={16}>
 				<Flex gap={16} justify={'center'} align={'center'}>
-					<Flex justify={'center'} align={'center'}>
-						<img src="/logo.png" alt="logo" width={64} height={64} />
+					<Flex justify={'center'} align={'center'} mih={64}>
+						{/* <img src="/logo.png" alt="logo" width={64} height={64} /> */}
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
 					<AddMenu artboardRef={artboardRef} selectedArtboard={selectedArtboard} canvasRef={canvasRef} />
@@ -568,73 +553,25 @@ function App() {
 					/>
 				</Flex>
 				<Group>
-					<ColorSpaceSwitch recreateCanvas={recreateCanvas} />
-					<Tooltip label="Undo">
-						<ActionIcon
-							disabled={!undoable}
-							color="violet"
-							variant="subtle"
-							onClick={() => {
-								dispatch(undo());
-							}}
-						>
-							<IconArrowBackUp size={16} />
+					<SettingsMenu
+						recreateCanvas={recreateCanvas}
+						canvasRef={canvasRef}
+						setShowSidebar={setShowSidebar}
+					/>
+					<Tooltip label="Save" openDelay={500}>
+						<ActionIcon onClick={saveArtboardChanges} size={20}>
+							<IconDeviceFloppy />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label="Redo">
-						<ActionIcon
-							color="violet"
-							variant="subtle"
-							onClick={() => {
-								dispatch(redo());
-							}}
-							disabled={!redoable}
-						>
-							<IconArrowForwardUp size={16} />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Log State">
-						<ActionIcon color="violet" variant="subtle" onClick={debug}>
-							<IconBug size={16} />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Toggle Sidebar">
-						<ActionIcon
-							color="violet"
-							variant="subtle"
-							onClick={() => {
-								setShowSidebar(!showSidebar);
-								canvasRef.current?.setDimensions({
-									width: window.innerWidth,
-									height: window.innerHeight - 60,
-								});
-							}}
-						>
-							{showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="toggle Light/Dark Mode">
-						<ActionIcon
-							color={darkMode ? 'yellow' : 'blue'}
-							onClick={() => toggleColorScheme()}
-							title="Toggle color scheme"
-						>
-							{darkMode ? <IconSun size={16} /> : <IconMoonStars size={16} />}
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Save">
-						<ActionIcon color="violet" variant="subtle" onClick={saveArtboardChanges}>
-							<IconDeviceFloppy size={20} />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Reset zoom">
+					<Tooltip label="Reset zoom" openDelay={500}>
 						<ActionIcon
 							onClick={() => {
 								resetZoom();
 							}}
 							title="Reset zoom"
+							size={20}
 						>
-							<IconBoxModel2 size={16} />
+							<IconBoxModel2 />
 						</ActionIcon>
 					</Tooltip>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
@@ -656,14 +593,14 @@ function App() {
 				{showSidebar ? (
 					<Box className={classes.left}>
 						<Stack spacing={0}>
-							<Flex sx={{ padding: '0.5rem' }} align={'center'} justify={'space-between'}>
-								<Flex align={'center'}>
+							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
+								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<Text weight={500} size={'sm'}>
 										Artboards ({artboards.length})
 									</Text>
-									<Tooltip label="Create new artboard">
-										<ActionIcon onClick={open}>
-											<IconFilePlus size={20} />
+									<Tooltip label="Create new artboard" openDelay={500}>
+										<ActionIcon onClick={open} color="violet" size={16}>
+											<IconPlus />
 										</ActionIcon>
 									</Tooltip>
 								</Flex>
@@ -851,13 +788,12 @@ const useStyles = createStyles(theme => ({
 	artboardButton: {
 		cursor: 'pointer',
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		border: `1px solid ${theme.colors.gray[3]}`,
 		padding: '0.5rem 1rem',
 		transition: 'background-color 100ms ease',
 		height: 40,
 		width: '100%',
 		'&:hover': {
-			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[1],
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
 		},
 	},
 }));

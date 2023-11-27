@@ -1,8 +1,8 @@
-import { Menu, ActionIcon, Box } from '@mantine/core';
+import { Menu, ActionIcon, Box, Group, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { IconSquare, IconPhoto, IconLayersSubtract, IconPencilPlus, IconLetterT } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { Artboard } from '../types';
-import { useDisclosure } from '@mantine/hooks';
+import { useColorScheme, useDisclosure, useHotkeys } from '@mantine/hooks';
 import ImageModal from './ImageModal';
 
 type AddMenuProps = {
@@ -42,25 +42,48 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 		text.enterEditing();
 		text.selectAll();
 	};
+
+	useHotkeys([
+		[
+			'T',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				addText();
+			},
+		],
+		[
+			'I',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				openImageModal();
+			},
+		],
+	]);
+
 	return (
-		<Box>
-			<Menu trigger="hover" shadow="md">
-				<Menu.Target>
-					<ActionIcon>
-						<IconPencilPlus />
+		<>
+			<Group spacing={4}>
+				<Tooltip label="Add text (T)" openDelay={500}>
+					<ActionIcon onClick={addText}>
+						<IconLetterT size={14} />
 					</ActionIcon>
-				</Menu.Target>
-				<Menu.Dropdown>
-					<Menu.Item onClick={addText} icon={<IconLetterT size={14} />}>
-						Text
-					</Menu.Item>
-					<Menu.Item onClick={openImageModal} icon={<IconPhoto size={14} />}>
-						Image
-					</Menu.Item>
-					<Menu.Item icon={<IconSquare size={14} />}>Shape</Menu.Item>
-					<Menu.Item icon={<IconLayersSubtract size={14} />}>Preset</Menu.Item>
-				</Menu.Dropdown>
-			</Menu>
+				</Tooltip>
+				<Tooltip label="Add image (I)" openDelay={500}>
+					<ActionIcon onClick={openImageModal}>
+						<IconPhoto size={14} />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label="Add shape" openDelay={500}>
+					<ActionIcon>
+						<IconSquare size={14} />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label="Add preset" openDelay={500}>
+					<ActionIcon>
+						<IconLayersSubtract size={14} />
+					</ActionIcon>
+				</Tooltip>
+			</Group>
 			<ImageModal
 				selectedArtboard={selectedArtboard}
 				artboardRef={artboardRef}
@@ -68,6 +91,6 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 				imageModalOpened={imageModalOpened}
 				closeImageModal={closeImageModal}
 			/>
-		</Box>
+		</>
 	);
 }
