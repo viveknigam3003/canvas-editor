@@ -504,6 +504,33 @@ function App() {
 		};
 	};
 
+	const zoomFromCenter = (zoom: number) => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const { minZoom, maxZoom } = getMaxMinZoomLevel({
+			width: selectedArtboard?.width || 1,
+			height: selectedArtboard?.height || 1,
+		});
+
+		if (zoom > maxZoom) zoom = maxZoom;
+		if (zoom < minZoom) zoom = minZoom;
+		if (!zoom || isNaN(zoom)) {
+			zoom = minZoom;
+		}
+
+		const center = canvas.getCenter();
+		canvas.zoomToPoint(
+			{
+				x: center.left,
+				y: center.top,
+			},
+			zoom,
+		);
+	};
+
 	// Handle the undo and redo actions to update artboards
 	useEffect(() => {
 		if (!selectedArtboard) {
@@ -597,6 +624,33 @@ function App() {
 					color: 'green',
 					autoClose: 1500,
 				});
+			},
+		],
+		[
+			'mod+=',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				const zoom = canvasRef.current?.getZoom();
+				if (zoom) {
+					zoomFromCenter(zoom + 0.1);
+				}
+			},
+		],
+		[
+			'mod+-',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				const zoom = canvasRef.current?.getZoom();
+				if (zoom) {
+					zoomFromCenter(zoom - 0.1);
+				}
+			},
+		],
+		[
+			'mod+0',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				resetZoom();
 			},
 		],
 		[
