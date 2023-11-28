@@ -1,9 +1,8 @@
-import { Menu, ActionIcon, Box } from '@mantine/core';
-import { IconBaselineDensitySmall } from '@tabler/icons-react';
-import { fabric } from 'fabric';
-import { Artboard } from '../types';
+import { ActionIcon, Group, Tooltip } from '@mantine/core';
 import { IconArtboard } from '@tabler/icons-react';
+import { fabric } from 'fabric';
 import { useState } from 'react';
+import { Artboard } from '../types';
 
 type MiscMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -74,6 +73,7 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 			setRendering(false);
 		});
 	};
+
 	const createBulkData = () => {
 		// With the current artboards, duplicate each artboard 10 times but with different IDs
 		const allArtboards: Artboard[] = [];
@@ -93,27 +93,19 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 	};
 
 	return (
-		<Box>
-			<Menu trigger="hover" shadow="md">
-				<Menu.Target>
-					<ActionIcon>
-						<IconBaselineDensitySmall />
-					</ActionIcon>
-				</Menu.Target>
-				<Menu.Dropdown>
-					<Menu.Item
-						disabled={isRendering}
-						onClick={() => {
-							setRendering(true);
-							const data = createBulkData();
-							renderMultipleArtboards(data);
-						}}
-						icon={<IconArtboard size={14} />}
-					>
-						Simulate bulk artboards
-					</Menu.Item>
-				</Menu.Dropdown>
-			</Menu>
-		</Box>
+		<Group>
+			<Tooltip label="Simulate multiple artboards" openDelay={500}>
+				<ActionIcon
+					disabled={isRendering}
+					onClick={() => {
+						setRendering(true);
+						const data = createBulkData();
+						renderMultipleArtboards(data);
+					}}
+				>
+					<IconArtboard size={14} />
+				</ActionIcon>
+			</Tooltip>
+		</Group>
 	);
 }

@@ -12,40 +12,26 @@ import {
 	TextInput,
 	Tooltip,
 	createStyles,
-	useMantineColorScheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import {
-	IconArrowBackUp,
-	IconArrowForwardUp,
-	IconBoxModel2,
-	IconBug,
-	IconCircleCheck,
-	IconDeviceFloppy,
-	IconDownload,
-	IconEye,
-	IconEyeOff,
-	IconFileDownload,
-	IconMoonStars,
-	IconFilePlus,
-	IconSun,
-} from '@tabler/icons-react';
+import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import AddMenu from './components/AddMenu';
+import MiscMenu from './components/MiscMenu';
+import Panel from './components/Panel';
+import SettingsMenu from './components/SettingsMenu';
+import ZoomMenu from './components/ZoomMenu';
 import { useModalStyles, useQueryParam } from './hooks';
 import { appStart, setArtboards, setSelectedArtboard } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
-import Panel from './components/Panel';
-import AddMenu from './components/AddMenu';
-import MiscMenu from './components/MiscMenu';
-import ColorSpaceSwitch from './components/ColorSpaceSwitch';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
@@ -61,12 +47,11 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-	const darkMode = colorScheme === 'dark';
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
+	const [zoomLevel, setZoomLevel] = useState(1);
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
 		initialValues: {
 			name: '',
@@ -113,7 +98,6 @@ function App() {
 			width: window.innerWidth - 600,
 			height: window.innerHeight - 60,
 			backgroundColor: '#e9ecef',
-			imageSmoothingEnabled: false,
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
@@ -139,63 +123,41 @@ function App() {
 		window.location.reload();
 	};
 
-	useEffect(() => {
-		if (selectedArtboard) {
-			// Load state if it exists
-			if (selectedArtboard.state) {
-				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
-					canvasRef.current?.renderAll();
-					// change artboard ref
-					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
-					if (artboard) {
-						artboardRef.current = artboard as fabric.Rect;
-					}
-				});
-			}
-		}
-	}, [selectedArtboard]);
-
-	// Update canvas size when viewport size changes
-	useEffect(() => {
-		const handleResize = () => {
-			canvasRef.current?.setDimensions({
-				width: window.innerWidth,
-				height: window.innerHeight - 60,
-			});
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
-
 	const resetZoom = () => {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
 		centerBoardToCanvas(artboardRef);
+		setZoomLevel(canvasRef.current?.getZoom() || 1);
 	};
 
 	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
-		const artboardLeft = artboardRef.current?.left;
-		const artboardTop = artboardRef.current?.top;
-		const artboardWidth = artboardRef.current?.width;
-		const artboardHeight = artboardRef.current?.height;
-		const canvasWidth = canvasRef.current?.width;
-		const canvasHeight = canvasRef.current?.height;
+		const canvas = canvasRef.current;
+		const artboard = artboardRef.current;
 
-		if (!artboardLeft || !artboardTop || !artboardWidth || !artboardHeight || !canvasWidth || !canvasHeight) {
-			return;
+		if (!canvas) {
+			throw new Error('Canvas is not defined');
 		}
 
-		const left = (canvasWidth - artboardWidth) / 2 - artboardLeft;
-		const top = (canvasHeight - artboardHeight) / 2 - artboardTop;
+		if (!artboard) {
+			throw new Error('Artboard is not defined');
+		}
 
-		canvasRef.current?.absolutePan({
-			x: left,
-			y: top,
-		});
+		// const object = canvas.getActiveObject();
+		const objWidth = artboard.getScaledWidth();
+		const objHeight = artboard.getScaledHeight();
+		const zoom = canvas.getZoom();
+		let panX = 0;
+		let panY = 0;
+
+		console.log('object width is: ' + artboard.width);
+		console.log(' object.getScaledWidth.x is: ' + artboard.getScaledWidth());
+
+		// WORKS - setViewportTransform
+		if (artboard.aCoords) {
+			panX = (canvas.getWidth() / zoom / 2 - artboard.aCoords.tl.x - objWidth / 2) * zoom;
+			panY = (canvas.getHeight() / zoom / 2 - artboard.aCoords.tl.y - objHeight / 2) * zoom;
+			canvas.setViewportTransform([zoom, 0, 0, zoom, panX, panY]);
+		}
 	};
 
 	const createSingleArtboard = (artboard: Omit<Artboard, 'id'>, index: number) => {
@@ -390,6 +352,61 @@ function App() {
 		});
 	};
 
+	// Take selected options in the selected artboard and when this function is called, group the selected elements
+	const createGroup = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObject = canvas.getActiveObject();
+		if (!activeObject || activeObject.type !== 'activeSelection') {
+			return;
+		}
+
+		// Cast activeObject to fabric.ActiveSelection
+		const activeSelection = activeObject as fabric.ActiveSelection;
+
+		const activeObjects = activeSelection.getObjects();
+		const group = new fabric.Group(activeObjects, {
+			left: activeSelection.left,
+			top: activeSelection.top,
+		});
+
+		activeObjects.forEach(object => {
+			canvas.remove(object);
+		});
+
+		canvas.add(group);
+		canvas.renderAll();
+	};
+
+	// ungroup function
+	const ungroup = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObject = canvas.getActiveObject();
+		if (!activeObject || activeObject.type !== 'group') {
+			return;
+		}
+
+		// Cast activeObject to fabric.Group
+		const group = activeObject as fabric.Group;
+
+		// Ungroup the objects
+		const items = group._objects;
+		group._restoreObjectsState();
+		canvas.remove(group);
+		for (let i = 0; i < items.length; i++) {
+			canvas.add(items[i]);
+		}
+
+		canvas.renderAll();
+	};
+
 	const getMultiplierFor4K = (width?: number, height?: number): number => {
 		// Assuming the canvas is not already 4K, calculate the multiplier needed
 		// to scale the current canvas size up to 4K resolution
@@ -450,6 +467,79 @@ function App() {
 		};
 	};
 
+	const zoomFromCenter = (zoom: number) => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const { minZoom, maxZoom } = getMaxMinZoomLevel({
+			width: selectedArtboard?.width || 1,
+			height: selectedArtboard?.height || 1,
+		});
+
+		if (zoom > maxZoom) zoom = maxZoom;
+		if (zoom < minZoom) zoom = minZoom;
+		if (!zoom || isNaN(zoom)) {
+			zoom = minZoom;
+		}
+
+		const center = canvas.getCenter();
+		canvas.zoomToPoint(
+			{
+				x: center.left,
+				y: center.top,
+			},
+			zoom,
+		);
+	};
+
+	const zoomToFit = () => {
+		const canvas = canvasRef.current;
+
+		if (!canvas) {
+			throw new Error('Canvas is not defined');
+		}
+
+		// Canvas width and height depending on if the sidebar is open or not
+		const canvasWidth = showSidebar ? window.innerWidth - 600 : window.innerWidth;
+		const canvasHeight = canvas.getHeight();
+
+		// Artboard width and height
+		const artboardWidth = artboardRef.current?.width;
+		const artboardHeight = artboardRef.current?.height;
+
+		if (!artboardWidth || !artboardHeight) {
+			throw new Error('Artboard width or height is not defined');
+		}
+
+		// Calculate the zoom level based on the canvas width and height with 20% padding
+		const zoom = Math.min((canvasWidth * 0.8) / artboardWidth, (canvasHeight * 0.8) / artboardHeight);
+
+		// const zoom = Math.min(canvasWidth / artboardWidth, canvasHeight / artboardHeight);
+
+		// Zoom to the center of the canvas
+		zoomFromCenter(zoom);
+		centerBoardToCanvas(artboardRef);
+		setZoomLevel(canvasRef.current?.getZoom() || zoom);
+	};
+
+	const zoomIn = () => {
+		const zoom = canvasRef.current?.getZoom();
+		if (zoom) {
+			zoomFromCenter(zoom + 0.1);
+			setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1);
+		}
+	};
+
+	const zoomOut = () => {
+		const zoom = canvasRef.current?.getZoom();
+		if (zoom) {
+			zoomFromCenter(zoom - 0.1);
+			setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1);
+		}
+	};
+
 	// Handle the undo and redo actions to update artboards
 	useEffect(() => {
 		if (!selectedArtboard) {
@@ -494,6 +584,7 @@ function App() {
 				if (!zoom || isNaN(zoom)) {
 					zoom = minZoom;
 				}
+				setZoomLevel(zoom);
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
 			} else {
 				const vpt = canvas.viewportTransform;
@@ -514,9 +605,38 @@ function App() {
 		};
 	}, [selectedArtboard?.height, selectedArtboard?.width]);
 
-	const debug = () => {
-		console.log(canvasRef.current?.toJSON(['data', 'selectable']));
-	};
+	useEffect(() => {
+		if (selectedArtboard) {
+			// Load state if it exists
+			if (selectedArtboard.state) {
+				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
+					canvasRef.current?.renderAll();
+					// change artboard ref
+					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
+					if (artboard) {
+						artboardRef.current = artboard as fabric.Rect;
+						zoomToFit();
+					}
+				});
+			}
+		}
+	}, [selectedArtboard]);
+
+	// Update canvas size when viewport size changes
+	useEffect(() => {
+		const handleResize = () => {
+			canvasRef.current?.setDimensions({
+				width: window.innerWidth,
+				height: window.innerHeight - 60,
+			});
+		};
+
+		window.addEventListener('resize', handleResize);
+
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	}, []);
 
 	useHotkeys([
 		[
@@ -549,14 +669,56 @@ function App() {
 				});
 			},
 		],
+		[
+			'mod+=',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				zoomIn();
+			},
+		],
+		[
+			'mod+-',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				zoomOut();
+			},
+		],
+		[
+			'mod+0',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				resetZoom();
+			},
+		],
+		[
+			'mod+/',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				zoomToFit();
+			},
+		],
+		[
+			'mod+g',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				createGroup();
+			},
+		],
+		[
+			'mod+shift+g',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				ungroup();
+			},
+		],
 	]);
 
 	return (
 		<Box className={classes.root}>
-			<Box className={classes.header}>
+			<Box className={classes.header} px={16}>
 				<Flex gap={16} justify={'center'} align={'center'}>
-					<Flex justify={'center'} align={'center'}>
-						<img src="/logo.png" alt="logo" width={64} height={64} />
+					<Flex justify={'center'} align={'center'} mih={64}>
+						{/* <img src="/logo.png" alt="logo" width={64} height={64} /> */}
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
 					<AddMenu artboardRef={artboardRef} selectedArtboard={selectedArtboard} canvasRef={canvasRef} />
@@ -568,75 +730,23 @@ function App() {
 					/>
 				</Flex>
 				<Group>
-					<ColorSpaceSwitch recreateCanvas={recreateCanvas} />
-					<Tooltip label="Undo">
-						<ActionIcon
-							disabled={!undoable}
-							color="violet"
-							variant="subtle"
-							onClick={() => {
-								dispatch(undo());
-							}}
-						>
-							<IconArrowBackUp size={16} />
+					<SettingsMenu
+						recreateCanvas={recreateCanvas}
+						canvasRef={canvasRef}
+						setShowSidebar={setShowSidebar}
+					/>
+					<Tooltip label="Save" openDelay={500}>
+						<ActionIcon onClick={saveArtboardChanges} size={20}>
+							<IconDeviceFloppy />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label="Redo">
-						<ActionIcon
-							color="violet"
-							variant="subtle"
-							onClick={() => {
-								dispatch(redo());
-							}}
-							disabled={!redoable}
-						>
-							<IconArrowForwardUp size={16} />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Log State">
-						<ActionIcon color="violet" variant="subtle" onClick={debug}>
-							<IconBug size={16} />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Toggle Sidebar">
-						<ActionIcon
-							color="violet"
-							variant="subtle"
-							onClick={() => {
-								setShowSidebar(!showSidebar);
-								canvasRef.current?.setDimensions({
-									width: window.innerWidth,
-									height: window.innerHeight - 60,
-								});
-							}}
-						>
-							{showSidebar ? <IconEye size={20} /> : <IconEyeOff size={20} />}
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="toggle Light/Dark Mode">
-						<ActionIcon
-							color={darkMode ? 'yellow' : 'blue'}
-							onClick={() => toggleColorScheme()}
-							title="Toggle color scheme"
-						>
-							{darkMode ? <IconSun size={16} /> : <IconMoonStars size={16} />}
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Save">
-						<ActionIcon color="violet" variant="subtle" onClick={saveArtboardChanges}>
-							<IconDeviceFloppy size={20} />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Reset zoom">
-						<ActionIcon
-							onClick={() => {
-								resetZoom();
-							}}
-							title="Reset zoom"
-						>
-							<IconBoxModel2 size={16} />
-						</ActionIcon>
-					</Tooltip>
+					<ZoomMenu
+						zoom={zoomLevel}
+						zoomIn={zoomIn}
+						zoomOut={zoomOut}
+						zoomReset={resetZoom}
+						zoomToFit={zoomToFit}
+					/>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
 						Export artboard
 					</Button>
@@ -656,14 +766,14 @@ function App() {
 				{showSidebar ? (
 					<Box className={classes.left}>
 						<Stack spacing={0}>
-							<Flex sx={{ padding: '0.5rem' }} align={'center'} justify={'space-between'}>
-								<Flex align={'center'}>
+							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
+								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<Text weight={500} size={'sm'}>
 										Artboards ({artboards.length})
 									</Text>
-									<Tooltip label="Create new artboard">
-										<ActionIcon onClick={open}>
-											<IconFilePlus size={20} />
+									<Tooltip label="Create new artboard" openDelay={500}>
+										<ActionIcon onClick={open} color="violet" size={16}>
+											<IconPlus />
 										</ActionIcon>
 									</Tooltip>
 								</Flex>
@@ -694,8 +804,8 @@ function App() {
 							</Group>
 						</Stack>
 
-						<Stack spacing={16}>
-							<Text size={'sm'} weight={600} color="gray">
+						<Stack spacing={16} sx={{ padding: '0.5rem 1rem' }}>
+							<Text weight={500} size={'sm'}>
 								Layers
 							</Text>
 							<Stack spacing={8}>
@@ -808,7 +918,7 @@ const useStyles = createStyles(theme => ({
 		justifyContent: 'space-between',
 	},
 	logo: {
-		fontSize: theme.fontSizes.xl,
+		fontSize: theme.fontSizes.md,
 		fontWeight: 700,
 		color: theme.colors.violet[7],
 	},
@@ -851,13 +961,12 @@ const useStyles = createStyles(theme => ({
 	artboardButton: {
 		cursor: 'pointer',
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		border: `1px solid ${theme.colors.gray[3]}`,
 		padding: '0.5rem 1rem',
 		transition: 'background-color 100ms ease',
 		height: 40,
 		width: '100%',
 		'&:hover': {
-			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[1],
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
 		},
 	},
 }));

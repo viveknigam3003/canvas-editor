@@ -1,31 +1,19 @@
-import { Box, Button, Group, Modal, Stack, Radio, Tooltip } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { useModalStyles, useQueryParam } from '../hooks';
+import { Button, Group, Modal, Radio, Stack, Text } from '@mantine/core';
 import { useState } from 'react';
+import { useModalStyles, useQueryParam } from '../hooks';
 
-const ColorSpaceSwitch = ({ recreateCanvas }: any) => {
-	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
-
+const ColorSpaceSwitch = ({ open, onClose, recreateCanvas }: any) => {
+	// const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
 	const { classes: modalClasses } = useModalStyles();
 	const [colorSpaceQuery, setColorSpaceQuery] = useQueryParam('colorSpace', 'srgb');
 	const [colorSpace, setColorSpace] = useState(() => colorSpaceQuery);
-	const getDisplayValue = () => {
-		if (colorSpaceQuery === 'display-p3') {
-			return 'P3';
-		}
-		return 'SRGB';
-	};
+
 	return (
-		<Box>
-			<Tooltip label="change color space">
-				<Button variant="gradient" onClick={openColorSpaceModal}>
-					{getDisplayValue()}
-				</Button>
-			</Tooltip>
+		<>
 			<Modal
-				opened={colorSpaceModalOpened}
+				opened={open}
 				onClose={() => {
-					closeColorSpaceModal();
+					onClose();
 				}}
 				title="Color Space"
 				classNames={{
@@ -37,17 +25,22 @@ const ColorSpaceSwitch = ({ recreateCanvas }: any) => {
 					<Radio.Group
 						name="color-space"
 						value={colorSpace}
-						label="Choose a color space"
+						label="Preferred color profile"
 						onChange={value => {
 							setColorSpace(value);
 						}}
 					>
 						<Group mt="xs">
-							<Radio value="display-p3" label="P3" />
 							<Radio value="srgb" label="sRGB" />
+							<Radio value="display-p3" label="Display P3" />
 						</Group>
 					</Radio.Group>
-					<Group grow>
+					<Text size={14} className={modalClasses.subtext}>
+						{colorSpace === 'display-p3'
+							? "Best for Apple devices, Display P3 has a broader color spectrum—but isn't recommended for web design."
+							: 'sRGB is best when designing for a variety of devices, but has a smaller color spectrum than Display P3.'}
+					</Text>
+					<Stack align="center" spacing={4}>
 						<Button
 							size="sm"
 							fullWidth
@@ -55,16 +48,18 @@ const ColorSpaceSwitch = ({ recreateCanvas }: any) => {
 							onClick={() => {
 								setColorSpaceQuery(colorSpace);
 								recreateCanvas();
-								closeColorSpaceModal();
+								onClose();
 							}}
 						>
-							Ok
+							Apply color space
 						</Button>
-					</Group>
-					This will reload the page
+						<Text size={14} className={modalClasses.subtext}>
+							Applying the color space will reload the page.
+						</Text>
+					</Stack>
 				</Stack>
 			</Modal>
-		</Box>
+		</>
 	);
 };
 

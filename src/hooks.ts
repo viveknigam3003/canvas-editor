@@ -9,11 +9,14 @@ export const useModalStyles = createStyles(theme => ({
 	title: {
 		fontWeight: 700,
 		fontSize: 18,
-		color: theme.colors.gray[8],
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[1] : theme.colors.gray[8],
 	},
 	label: {
 		color: theme.colors.gray[7],
 		paddingBottom: '0.25rem',
+	},
+	subtext: {
+		color: theme.colors.gray[6],
 	},
 }));
 
@@ -51,3 +54,9 @@ export const useQueryParam = (key: string, defaultVal: string): [string, (val: s
 
 	return [query, updateUrl];
 };
+
+export const useMenuStyles = createStyles(() => ({
+	item: {
+		fontSize: 12,
+	},
+}));
