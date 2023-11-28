@@ -123,39 +123,6 @@ function App() {
 		window.location.reload();
 	};
 
-	useEffect(() => {
-		if (selectedArtboard) {
-			// Load state if it exists
-			if (selectedArtboard.state) {
-				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
-					canvasRef.current?.renderAll();
-					// change artboard ref
-					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
-					if (artboard) {
-						artboardRef.current = artboard as fabric.Rect;
-						centerBoardToCanvas(artboardRef);
-					}
-				});
-			}
-		}
-	}, [selectedArtboard]);
-
-	// Update canvas size when viewport size changes
-	useEffect(() => {
-		const handleResize = () => {
-			canvasRef.current?.setDimensions({
-				width: window.innerWidth,
-				height: window.innerHeight - 60,
-			});
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
-
 	const resetZoom = () => {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
@@ -637,6 +604,39 @@ function App() {
 			canvas.off('mouse:wheel', handlePan);
 		};
 	}, [selectedArtboard?.height, selectedArtboard?.width]);
+
+	useEffect(() => {
+		if (selectedArtboard) {
+			// Load state if it exists
+			if (selectedArtboard.state) {
+				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
+					canvasRef.current?.renderAll();
+					// change artboard ref
+					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
+					if (artboard) {
+						artboardRef.current = artboard as fabric.Rect;
+						zoomToFit();
+					}
+				});
+			}
+		}
+	}, [selectedArtboard]);
+
+	// Update canvas size when viewport size changes
+	useEffect(() => {
+		const handleResize = () => {
+			canvasRef.current?.setDimensions({
+				width: window.innerWidth,
+				height: window.innerHeight - 60,
+			});
+		};
+
+		window.addEventListener('resize', handleResize);
+
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	}, []);
 
 	useHotkeys([
 		[
