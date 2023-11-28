@@ -676,22 +676,6 @@ function App() {
 				resetZoom();
 			},
 		],
-		[
-			'mod+g',
-			e => {
-				console.log('grouping');
-				e.preventDefault();
-				createGroup();
-			},
-		],
-		[
-			'mod+shift+g',
-			e => {
-				console.log('ungrouping');
-				e.preventDefault();
-				ungroup();
-			},
-		],
 	]);
 
 	return (
