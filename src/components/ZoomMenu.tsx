@@ -1,5 +1,5 @@
 import { Box, Button, Menu, Text } from '@mantine/core';
-import { IconZoomIn, IconZoomOut, IconZoomReset } from '@tabler/icons-react';
+import { IconFocusCentered, IconZoomIn, IconZoomOut, IconZoomReset } from '@tabler/icons-react';
 import React from 'react';
 import { useMenuStyles } from '../hooks';
 import { getModKey } from '../modules/utils/keyboard';
@@ -21,9 +21,13 @@ interface Props {
 	 * Zoom value setter
 	 */
 	zoomReset: () => void;
+	/**
+	 * Zoom value setter
+	 */
+	zoomToFit: () => void;
 }
 
-const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset }) => {
+const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit }) => {
 	const { classes } = useMenuStyles();
 	const zoomPercentage = Math.round(zoom * 100);
 
@@ -63,6 +67,16 @@ const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset }) => {
 						onClick={() => zoomReset()}
 					>
 						Reset zoom
+					</Menu.Item>
+					<Menu.Divider />
+					<Menu.Item
+						className={classes.item}
+						icon={<IconFocusCentered size={14} />}
+						closeMenuOnClick={false}
+						rightSection={<Text size={11}>{getModKey()} /</Text>}
+						onClick={() => zoomToFit()}
+					>
+						Zoom to fit canvas
 					</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>

@@ -527,6 +527,36 @@ function App() {
 		);
 	};
 
+	const zoomToFit = () => {
+		const canvas = canvasRef.current;
+
+		if (!canvas) {
+			throw new Error('Canvas is not defined');
+		}
+
+		// Canvas width and height depending on if the sidebar is open or not
+		const canvasWidth = showSidebar ? window.innerWidth - 600 : window.innerWidth;
+		const canvasHeight = canvas.getHeight();
+
+		// Artboard width and height
+		const artboardWidth = artboardRef.current?.width;
+		const artboardHeight = artboardRef.current?.height;
+
+		if (!artboardWidth || !artboardHeight) {
+			throw new Error('Artboard width or height is not defined');
+		}
+
+		// Calculate the zoom level based on the canvas width and height with 20% padding
+		const zoom = Math.min((canvasWidth * 0.8) / artboardWidth, (canvasHeight * 0.8) / artboardHeight);
+
+		// const zoom = Math.min(canvasWidth / artboardWidth, canvasHeight / artboardHeight);
+
+		// Zoom to the center of the canvas
+		zoomFromCenter(zoom);
+		centerBoardToCanvas(artboardRef);
+		setZoomLevel(canvasRef.current?.getZoom() || zoom);
+	};
+
 	const zoomIn = () => {
 		const zoom = canvasRef.current?.getZoom();
 		if (zoom) {
@@ -661,6 +691,13 @@ function App() {
 			},
 		],
 		[
+			'mod+/',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				zoomToFit();
+			},
+		],
+		[
 			'mod+g',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
@@ -703,7 +740,13 @@ function App() {
 							<IconDeviceFloppy />
 						</ActionIcon>
 					</Tooltip>
-					<ZoomMenu zoom={zoomLevel} zoomIn={zoomIn} zoomOut={zoomOut} zoomReset={resetZoom} />
+					<ZoomMenu
+						zoom={zoomLevel}
+						zoomIn={zoomIn}
+						zoomOut={zoomOut}
+						zoomReset={resetZoom}
+						zoomToFit={zoomToFit}
+					/>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
 						Export artboard
 					</Button>
