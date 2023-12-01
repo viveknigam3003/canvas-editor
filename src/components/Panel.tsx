@@ -21,24 +21,51 @@ type PanelProps = {
 	currentSelectedElement: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 };
+
+// function to get extreme points of a fabric object
+const getExtremePoints = (object: fabric.Object) => {
+	const { aCoords } = object;
+	if (!aCoords) throw new Error('Invalid object while finding extreme points');
+	const { tl, tr, bl, br } = aCoords;
+	const left = Math.min(tl.x, tr.x, bl.x, br.x);
+	const top = Math.min(tl.y, tr.y, bl.y, br.y);
+	const right = Math.max(tl.x, tr.x, bl.x, br.x);
+	const bottom = Math.max(tl.y, tr.y, bl.y, br.y);
+	console.log(aCoords, object);
+	return {
+		left,
+		top,
+		right,
+		bottom,
+	};
+};
+
 //TODO: fix center logic and types
 const alignElementToRect =
 	(currentSelectedElement: fabric.Object[], targetRect: fabric.Rect, position: string, canvas: fabric.Canvas) =>
 	() => {
+		console.log('aligning', getExtremePoints(currentSelectedElement[0]));
 		switch (position) {
 			case 'left':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.left || !element.left) throw new Error('Invalid target rect in left align');
 					element.set({
-						left: targetRect.left,
+						left: targetRect.left + (element.left - getExtremePoints(element).left),
 					});
 				});
 				break;
 			case 'center':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.left || !element.left || !targetRect.width)
+						throw new Error('Invalid target rect in center align');
+					const artboardCenter = targetRect.left + (targetRect.width + targetRect.left - targetRect.left) / 2;
+					const elementCenter =
+						getExtremePoints(element).left +
+						(getExtremePoints(element).right - getExtremePoints(element).left) / 2;
 					element.set({
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 						//@ts-ignore
-						left: (targetRect.width - element.width * element.scaleX) / 2,
+						left: element.left + (artboardCenter - elementCenter),
 					});
 				});
 
@@ -48,23 +75,31 @@ const alignElementToRect =
 					element.set({
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 						//@ts-ignore
-						left: targetRect.left + targetRect.width - element.width * element.scaleX,
+						left: element.left + (targetRect.left + targetRect.width) - getExtremePoints(element).right,
 					});
 				});
 				break;
 			case 'top':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.top || !element.top || !targetRect.width)
+						throw new Error('Invalid target rect in top align');
 					element.set({
-						top: targetRect.top,
+						top: targetRect.top + (element.top - getExtremePoints(element).top),
 					});
 				});
 				break;
 			case 'middle':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.top || !element.top || !targetRect.height)
+						throw new Error('Invalid target rect in middle align');
+					const artboardCenter = targetRect.top + (targetRect.height + targetRect.top - targetRect.top) / 2;
+					const elementCenter =
+						getExtremePoints(element).top +
+						(getExtremePoints(element).bottom - getExtremePoints(element).top) / 2;
 					element.set({
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 						//@ts-ignore
-						top: (targetRect.top + targetRect.height - element.height * element.scaleY) / 2,
+						top: element.top + (artboardCenter - elementCenter),
 					});
 				});
 				break;
@@ -73,7 +108,7 @@ const alignElementToRect =
 					element.set({
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 						//@ts-ignore
-						top: targetRect.top + targetRect.height - element.height * element.scaleY,
+						top: element.top + (targetRect.top + targetRect.height) - getExtremePoints(element).bottom,
 					});
 				});
 				break;
