@@ -9,6 +9,8 @@ import {
 import { IconLayoutAlignLeft } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useHotkeys } from '@mantine/hooks';
+import { Tooltip } from '@mantine/core';
+import { getAltKey } from '../modules/utils/keyboard';
 
 type Font = {
 	family: string;
@@ -172,36 +174,48 @@ const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelPr
 		<Stack>
 			<Box>Alignment</Box>
 			<Flex gap={16}>
-				<ActionIcon
-					onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas)}
-				>
-					<IconLayoutAlignLeft />
-				</ActionIcon>
-				<ActionIcon
-					onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas)}
-				>
-					<IconLayoutAlignMiddle />{' '}
-				</ActionIcon>
-				<ActionIcon
-					onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas)}
-				>
-					<IconLayoutAlignRight />
-				</ActionIcon>
-				<ActionIcon
-					onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas)}
-				>
-					<IconLayoutAlignTop />
-				</ActionIcon>
-				<ActionIcon
-					onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas)}
-				>
-					<IconLayoutAlignCenter />
-				</ActionIcon>
-				<ActionIcon
-					onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas)}
-				>
-					<IconLayoutAlignBottom />
-				</ActionIcon>
+				<Tooltip label={`Align Left (${getAltKey()} + A)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas)}
+					>
+						<IconLayoutAlignLeft />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Center (${getAltKey()} + H)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas)}
+					>
+						<IconLayoutAlignMiddle />{' '}
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Right (${getAltKey()} + D)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas)}
+					>
+						<IconLayoutAlignRight />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Top (${getAltKey()} + W)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas)}
+					>
+						<IconLayoutAlignTop />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Middle (${getAltKey()} + V)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas)}
+					>
+						<IconLayoutAlignCenter />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Bottom (${getAltKey()} + S)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas)}
+					>
+						<IconLayoutAlignBottom />
+					</ActionIcon>
+				</Tooltip>
 			</Flex>
 		</Stack>
 	);
