@@ -25,6 +25,7 @@ type PanelProps = {
 // function to get extreme points of a fabric object
 const getExtremePoints = (object: fabric.Object) => {
 	const { aCoords } = object;
+	if (!aCoords) throw new Error('Invalid object while finding extreme points');
 	const { tl, tr, bl, br } = aCoords;
 	const left = Math.min(tl.x, tr.x, bl.x, br.x);
 	const top = Math.min(tl.y, tr.y, bl.y, br.y);
@@ -47,6 +48,7 @@ const alignElementToRect =
 		switch (position) {
 			case 'left':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.left || !element.left) throw new Error('Invalid target rect in left align');
 					element.set({
 						left: targetRect.left + (element.left - getExtremePoints(element).left),
 					});
@@ -54,6 +56,8 @@ const alignElementToRect =
 				break;
 			case 'center':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.left || !element.left || !targetRect.width)
+						throw new Error('Invalid target rect in center align');
 					const artboardCenter = targetRect.left + (targetRect.width + targetRect.left - targetRect.left) / 2;
 					const elementCenter =
 						getExtremePoints(element).left +
@@ -68,7 +72,6 @@ const alignElementToRect =
 				break;
 			case 'right':
 				currentSelectedElement.forEach(element => {
-					console.log('right', targetRect.left);
 					element.set({
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 						//@ts-ignore
@@ -78,6 +81,8 @@ const alignElementToRect =
 				break;
 			case 'top':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.top || !element.top || !targetRect.width)
+						throw new Error('Invalid target rect in top align');
 					element.set({
 						top: targetRect.top + (element.top - getExtremePoints(element).top),
 					});
@@ -85,6 +90,8 @@ const alignElementToRect =
 				break;
 			case 'middle':
 				currentSelectedElement.forEach(element => {
+					if (!targetRect.top || !element.top || !targetRect.height)
+						throw new Error('Invalid target rect in middle align');
 					const artboardCenter = targetRect.top + (targetRect.height + targetRect.top - targetRect.top) / 2;
 					const elementCenter =
 						getExtremePoints(element).top +
