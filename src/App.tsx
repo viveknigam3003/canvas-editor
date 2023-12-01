@@ -127,39 +127,6 @@ function App() {
 		window.location.reload();
 	};
 
-	useEffect(() => {
-		if (selectedArtboard) {
-			// Load state if it exists
-			if (selectedArtboard.state) {
-				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
-					canvasRef.current?.renderAll();
-					// change artboard ref
-					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
-					if (artboard) {
-						artboardRef.current = artboard as fabric.Rect;
-						centerBoardToCanvas(artboardRef);
-					}
-				});
-			}
-		}
-	}, [selectedArtboard]);
-
-	// Update canvas size when viewport size changes
-	useEffect(() => {
-		const handleResize = () => {
-			canvasRef.current?.setDimensions({
-				width: window.innerWidth,
-				height: window.innerHeight - 60,
-			});
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
-
 	const resetZoom = () => {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
@@ -531,6 +498,36 @@ function App() {
 		);
 	};
 
+	const zoomToFit = () => {
+		const canvas = canvasRef.current;
+
+		if (!canvas) {
+			throw new Error('Canvas is not defined');
+		}
+
+		// Canvas width and height depending on if the sidebar is open or not
+		const canvasWidth = showSidebar ? window.innerWidth - 600 : window.innerWidth;
+		const canvasHeight = canvas.getHeight();
+
+		// Artboard width and height
+		const artboardWidth = artboardRef.current?.width;
+		const artboardHeight = artboardRef.current?.height;
+
+		if (!artboardWidth || !artboardHeight) {
+			throw new Error('Artboard width or height is not defined');
+		}
+
+		// Calculate the zoom level based on the canvas width and height with 20% padding
+		const zoom = Math.min((canvasWidth * 0.8) / artboardWidth, (canvasHeight * 0.8) / artboardHeight);
+
+		// const zoom = Math.min(canvasWidth / artboardWidth, canvasHeight / artboardHeight);
+
+		// Zoom to the center of the canvas
+		zoomFromCenter(zoom);
+		centerBoardToCanvas(artboardRef);
+		setZoomLevel(canvasRef.current?.getZoom() || zoom);
+	};
+
 	const zoomIn = () => {
 		const zoom = canvasRef.current?.getZoom();
 		if (zoom) {
@@ -612,6 +609,39 @@ function App() {
 		};
 	}, [selectedArtboard?.height, selectedArtboard?.width]);
 
+	useEffect(() => {
+		if (selectedArtboard) {
+			// Load state if it exists
+			if (selectedArtboard.state) {
+				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
+					canvasRef.current?.renderAll();
+					// change artboard ref
+					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
+					if (artboard) {
+						artboardRef.current = artboard as fabric.Rect;
+						zoomToFit();
+					}
+				});
+			}
+		}
+	}, [selectedArtboard]);
+
+	// Update canvas size when viewport size changes
+	useEffect(() => {
+		const handleResize = () => {
+			canvasRef.current?.setDimensions({
+				width: window.innerWidth,
+				height: window.innerHeight - 60,
+			});
+		};
+
+		window.addEventListener('resize', handleResize);
+
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	}, []);
+
 	useHotkeys([
 		[
 			'mod+shift+z',
@@ -665,6 +695,13 @@ function App() {
 			},
 		],
 		[
+			'mod+/',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				zoomToFit();
+			},
+		],
+		[
 			'mod+g',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
@@ -707,7 +744,13 @@ function App() {
 							<IconDeviceFloppy />
 						</ActionIcon>
 					</Tooltip>
-					<ZoomMenu zoom={zoomLevel} zoomIn={zoomIn} zoomOut={zoomOut} zoomReset={resetZoom} />
+					<ZoomMenu
+						zoom={zoomLevel}
+						zoomIn={zoomIn}
+						zoomOut={zoomOut}
+						zoomReset={resetZoom}
+						zoomToFit={zoomToFit}
+					/>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
 						Export artboard
 					</Button>

@@ -51,7 +51,7 @@ const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSideb
 				debug();
 			},
 		],
-		['mod+/', toggleUI],
+		['mod+.', toggleUI],
 		[
 			'alt+L',
 			(event: KeyboardEvent) => {
@@ -79,7 +79,7 @@ const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSideb
 					<Menu.Item
 						icon={<IconLayoutSidebarLeftCollapse size={14} />}
 						className={classes.item}
-						rightSection={<Text size={11}>{getModKey()} + /</Text>}
+						rightSection={<Text size={11}>{getModKey()} + .</Text>}
 						onClick={() => toggleUI()}
 					>
 						Show/hide UI
