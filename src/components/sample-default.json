@@ -1,0 +1,26 @@
+[
+	{
+		"id": 1,
+		"parent": 0,
+		"droppable": true,
+		"text": "Group"
+	},
+	{
+		"id": 2,
+		"parent": 1,
+		"text": "Image",
+		"data": {
+			"fileType": "csv",
+			"fileSize": "0.5MB"
+		}
+	},
+	{
+		"id": 3,
+		"parent": 1,
+		"text": "Text",
+		"data": {
+			"fileType": "text",
+			"fileSize": "4.8MB"
+		}
+	}
+]

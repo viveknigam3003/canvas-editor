@@ -4,6 +4,8 @@ import { IconLayersSubtract, IconLetterT, IconPhoto, IconSquare } from '@tabler/
 import { fabric } from 'fabric';
 import { Artboard } from '../types';
 import ImageModal from './ImageModal';
+import { updateActiveArtboardLayers } from '../modules/app/actions';
+import { useDispatch } from 'react-redux';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -13,6 +15,7 @@ type AddMenuProps = {
 
 export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: AddMenuProps) {
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
+	const dispatch = useDispatch();
 	const addText = () => {
 		if (!selectedArtboard) {
 			return;
@@ -30,17 +33,21 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 		// calculate the center of the artboard
 		const centerX = left + width / 2;
 		const centerY = top + height / 2;
-		const text = new fabric.Textbox('Edit this text', {
+		const text = new fabric.Textbox('', {
 			left: centerX,
 			top: centerY,
 			fontFamily: 'Inter',
 			fontSize: 20,
 			width: width / 10,
+			data: {
+				displayText: 'Text',
+			},
 		});
 		canvasRef.current?.add(text);
 		canvasRef.current?.setActiveObject(text);
 		text.enterEditing();
 		text.selectAll();
+		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable']).objects || []));
 	};
 
 	useHotkeys([
