@@ -8,6 +8,9 @@ import {
 } from '@tabler/icons-react';
 import { IconLayoutAlignLeft } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
+import { useHotkeys } from '@mantine/hooks';
+import { Tooltip } from '@mantine/core';
+import { getAltKey } from '../modules/utils/keyboard';
 
 type Font = {
 	family: string;
@@ -40,109 +43,179 @@ const getExtremePoints = (object: fabric.Object) => {
 	};
 };
 
-//TODO: fix center logic and types
-const alignElementToRect =
-	(currentSelectedElement: fabric.Object[], targetRect: fabric.Rect, position: string, canvas: fabric.Canvas) =>
-	() => {
-		console.log('aligning', getExtremePoints(currentSelectedElement[0]));
-		switch (position) {
-			case 'left':
-				currentSelectedElement.forEach(element => {
-					if (!targetRect.left || !element.left) throw new Error('Invalid target rect in left align');
-					element.set({
-						left: targetRect.left + (element.left - getExtremePoints(element).left),
-					});
+const alignElementToRect = (
+	currentSelectedElement: fabric.Object[],
+	targetRect: fabric.Rect,
+	position: string,
+	canvas: fabric.Canvas,
+) => {
+	console.log('aligning', getExtremePoints(currentSelectedElement[0]));
+	switch (position) {
+		case 'left':
+			currentSelectedElement.forEach(element => {
+				if (!targetRect.left || !element.left) throw new Error('Invalid target rect in left align');
+				element.set({
+					left: targetRect.left + (element.left - getExtremePoints(element).left),
 				});
-				break;
-			case 'center':
-				currentSelectedElement.forEach(element => {
-					if (!targetRect.left || !element.left || !targetRect.width)
-						throw new Error('Invalid target rect in center align');
-					const artboardCenter = targetRect.left + (targetRect.width + targetRect.left - targetRect.left) / 2;
-					const elementCenter =
-						getExtremePoints(element).left +
-						(getExtremePoints(element).right - getExtremePoints(element).left) / 2;
-					element.set({
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						//@ts-ignore
-						left: element.left + (artboardCenter - elementCenter),
-					});
+			});
+			break;
+		case 'center':
+			currentSelectedElement.forEach(element => {
+				if (!targetRect.left || !element.left || !targetRect.width)
+					throw new Error('Invalid target rect in center align');
+				const artboardCenter = targetRect.left + (targetRect.width + targetRect.left - targetRect.left) / 2;
+				const elementCenter =
+					getExtremePoints(element).left +
+					(getExtremePoints(element).right - getExtremePoints(element).left) / 2;
+				element.set({
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-ignore
+					left: element.left + (artboardCenter - elementCenter),
 				});
+			});
 
-				break;
-			case 'right':
-				currentSelectedElement.forEach(element => {
-					element.set({
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						//@ts-ignore
-						left: element.left + (targetRect.left + targetRect.width) - getExtremePoints(element).right,
-					});
+			break;
+		case 'right':
+			currentSelectedElement.forEach(element => {
+				element.set({
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-ignore
+					left: element.left + (targetRect.left + targetRect.width) - getExtremePoints(element).right,
 				});
-				break;
-			case 'top':
-				currentSelectedElement.forEach(element => {
-					if (!targetRect.top || !element.top || !targetRect.width)
-						throw new Error('Invalid target rect in top align');
-					element.set({
-						top: targetRect.top + (element.top - getExtremePoints(element).top),
-					});
+			});
+			break;
+		case 'top':
+			currentSelectedElement.forEach(element => {
+				if (!targetRect.top || !element.top || !targetRect.width)
+					throw new Error('Invalid target rect in top align');
+				element.set({
+					top: targetRect.top + (element.top - getExtremePoints(element).top),
 				});
-				break;
-			case 'middle':
-				currentSelectedElement.forEach(element => {
-					if (!targetRect.top || !element.top || !targetRect.height)
-						throw new Error('Invalid target rect in middle align');
-					const artboardCenter = targetRect.top + (targetRect.height + targetRect.top - targetRect.top) / 2;
-					const elementCenter =
-						getExtremePoints(element).top +
-						(getExtremePoints(element).bottom - getExtremePoints(element).top) / 2;
-					element.set({
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						//@ts-ignore
-						top: element.top + (artboardCenter - elementCenter),
-					});
+			});
+			break;
+		case 'middle':
+			currentSelectedElement.forEach(element => {
+				if (!targetRect.top || !element.top || !targetRect.height)
+					throw new Error('Invalid target rect in middle align');
+				const artboardCenter = targetRect.top + (targetRect.height + targetRect.top - targetRect.top) / 2;
+				const elementCenter =
+					getExtremePoints(element).top +
+					(getExtremePoints(element).bottom - getExtremePoints(element).top) / 2;
+				element.set({
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-ignore
+					top: element.top + (artboardCenter - elementCenter),
 				});
-				break;
-			case 'bottom':
-				currentSelectedElement.forEach(element => {
-					element.set({
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						//@ts-ignore
-						top: element.top + (targetRect.top + targetRect.height) - getExtremePoints(element).bottom,
-					});
+			});
+			break;
+		case 'bottom':
+			currentSelectedElement.forEach(element => {
+				element.set({
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-ignore
+					top: element.top + (targetRect.top + targetRect.height) - getExtremePoints(element).bottom,
 				});
-				break;
-			default:
-				console.error('Invalid position:', position);
-		}
+			});
+			break;
+		default:
+			console.error('Invalid position:', position);
+	}
 
-		canvas.requestRenderAll();
-	};
+	canvas.requestRenderAll();
+};
 const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
 	//TODO: fix this
 	const castedArtboardRef = artboardRef.current as fabric.Rect;
+	useHotkeys([
+		[
+			'alt+a',
+			e => {
+				e.preventDefault();
+				alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas);
+			},
+		],
+		[
+			'alt+d',
+			e => {
+				e.preventDefault();
+				alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas);
+			},
+		],
+		[
+			'alt+h',
+			e => {
+				e.preventDefault();
+				alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas);
+			},
+		],
+		[
+			'alt+w',
+			e => {
+				e.preventDefault();
+				alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas);
+			},
+		],
+		[
+			'alt+s',
+			e => {
+				e.preventDefault();
+				alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas);
+			},
+		],
+		[
+			'alt+v',
+			e => {
+				e.preventDefault();
+				alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas);
+			},
+		],
+	]);
 	return (
 		<Stack>
 			<Box>Alignment</Box>
 			<Flex gap={16}>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas)}>
-					<IconLayoutAlignLeft />
-				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas)}>
-					<IconLayoutAlignMiddle />{' '}
-				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas)}>
-					<IconLayoutAlignRight />
-				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas)}>
-					<IconLayoutAlignTop />
-				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas)}>
-					<IconLayoutAlignCenter />
-				</ActionIcon>
-				<ActionIcon onClick={alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas)}>
-					<IconLayoutAlignBottom />
-				</ActionIcon>
+				<Tooltip label={`Align Left (${getAltKey()} + A)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas)}
+					>
+						<IconLayoutAlignLeft />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Center (${getAltKey()} + H)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas)}
+					>
+						<IconLayoutAlignMiddle />{' '}
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Right (${getAltKey()} + D)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas)}
+					>
+						<IconLayoutAlignRight />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Top (${getAltKey()} + W)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas)}
+					>
+						<IconLayoutAlignTop />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Middle (${getAltKey()} + V)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas)}
+					>
+						<IconLayoutAlignCenter />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label={`Align Bottom (${getAltKey()} + S)`}>
+					<ActionIcon
+						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas)}
+					>
+						<IconLayoutAlignBottom />
+					</ActionIcon>
+				</Tooltip>
 			</Flex>
 		</Stack>
 	);
