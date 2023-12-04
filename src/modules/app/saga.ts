@@ -30,6 +30,7 @@ function* initStateSaga() {
 	yield put(
 		initState({
 			artboards,
+			selectedArtboard: artboards[0] ?? null,
 		}),
 	);
 
@@ -46,11 +47,6 @@ function* initStateSaga() {
 		key: 'app.artboards',
 		diff,
 	};
-
-	// Set selected artboard to the first artboard
-	if (artboards && artboards.length > 0) {
-		yield put(setSelectedArtboard(artboards[0]));
-	}
 	yield put(updateStateHistory([delta]));
 	yield put(updatePointer(0));
 }
@@ -63,17 +59,16 @@ function* setArtboardsSaga(action: Action) {
 	const previousState: string = yield call([localStorage, 'getItem'], 'artboards');
 	const nextState: Artboard[] = action.payload;
 
-	yield recordChanges({
-		previousState: JSON.parse(previousState),
-		nextState,
-		action,
-		key: 'app.artboards',
-	});
-
 	const serializedState = JSON.stringify(nextState);
 	yield call([localStorage, 'setItem'], 'artboards', serializedState);
 	// Save the difference between the current state and the previous state in history redux
 	yield put(updateArtboards(action.payload));
+	yield recordChanges({
+		previousState: JSON.parse(previousState),
+		nextState,
+		action: updateArtboards(action.payload),
+		key: 'app.artboards',
+	});
 }
 
 function* setSelectedArtboardSaga(action: Action) {
@@ -84,14 +79,13 @@ function* setSelectedArtboardSaga(action: Action) {
 	const previousState: Artboard = yield select((state: RootState) => state.app.selectedArtboard);
 	const nextState: Artboard = action.payload;
 
+	yield put(updateSelectedArtboard(action.payload));
 	yield recordChanges({
 		previousState,
 		nextState,
-		action,
+		action: updateSelectedArtboard(action.payload),
 		key: 'app.selectedArtboard',
 	});
-
-	yield put(updateSelectedArtboard(action.payload));
 }
 
 function* applicationSaga() {

@@ -115,7 +115,7 @@ function App() {
 
 	useEffect(() => {
 		dispatch(updateActiveArtboardLayers(selectedArtboard?.state?.objects || []));
-	}, [selectedArtboard?.state?.objects]);
+	}, [selectedArtboard, dispatch]);
 
 	const recreateCanvas = () => {
 		//reload window
@@ -552,6 +552,11 @@ function App() {
 		const json = currentArtboardState.state;
 		canvasRef.current?.loadFromJSON(json, () => {
 			canvasRef.current?.renderAll();
+			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
+			if (artboard) {
+				artboardRef.current = artboard as fabric.Rect;
+				zoomToFit();
+			}
 		});
 	}, [selectedArtboard, artboards]);
 
@@ -601,23 +606,6 @@ function App() {
 			canvas.off('mouse:wheel', handlePan);
 		};
 	}, [selectedArtboard?.height, selectedArtboard?.width]);
-
-	useEffect(() => {
-		if (selectedArtboard) {
-			// Load state if it exists
-			if (selectedArtboard.state) {
-				canvasRef.current?.loadFromJSON(selectedArtboard.state, () => {
-					canvasRef.current?.renderAll();
-					// change artboard ref
-					const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
-					if (artboard) {
-						artboardRef.current = artboard as fabric.Rect;
-						zoomToFit();
-					}
-				});
-			}
-		}
-	}, [selectedArtboard]);
 
 	// Update canvas size when viewport size changes
 	useEffect(() => {
