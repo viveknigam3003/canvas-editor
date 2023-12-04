@@ -1,7 +1,7 @@
 import React from 'react';
 import { NodeModel } from '@minoru/react-dnd-treeview';
 
-const Placeholder: React.FC<{ node: NodeModel; depth: number }> = ({ node, depth }) => {
+const Placeholder: React.FC<{ node: NodeModel; depth: number }> = ({ depth }) => {
 	return (
 		<div
 			style={{

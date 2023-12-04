@@ -51,7 +51,6 @@ function App() {
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const layers = useSelector((state: RootState) => state.app.activeArtboardLayers);
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
 		initialValues: {
 			name: '',
@@ -810,7 +809,7 @@ function App() {
 
 						<Stack spacing={16} sx={{ padding: '0.5rem 1rem' }}>
 							<Stack spacing={8}>
-								<LayerList />
+								<LayerList canvas={canvasRef.current} />
 							</Stack>
 						</Stack>
 					</Box>
