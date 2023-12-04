@@ -2,7 +2,6 @@ import React from 'react';
 import { getDescendants, NodeModel } from '@minoru/react-dnd-treeview';
 import NodeIcon from './NodeIcon';
 import { createStyles } from '@mantine/core';
-import { IconPhoto } from '@mantine/core';
 
 const TREE_X_OFFSET = 22;
 

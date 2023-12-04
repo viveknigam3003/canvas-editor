@@ -37,7 +37,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 	const [treeData, setTreeData] = React.useState<NodeModel[]>([]);
 
 	const updateFabricCanvas = (canvas: any, newObjects: any[]) => {
-		console.log('Updating canvas', newObjects);
+		console.log('Updating canvas', newObjects, canvas);
 		// let rect;
 		// // Remove all objects that are not rectangles
 		// canvas.getObjects().forEach((object: any) => {
