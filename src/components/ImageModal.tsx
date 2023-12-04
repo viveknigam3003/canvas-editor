@@ -5,6 +5,8 @@ import { fabric } from 'fabric';
 import { Tabs, FileInput } from '@mantine/core';
 import { IconPhoto, IconSettings, IconUpload, IconLinkPlus } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
+import { updateActiveArtboardLayers } from '../modules/app/actions';
+import { useDispatch } from 'react-redux';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
@@ -21,6 +23,7 @@ const ImageModal = ({
 	canvasRef,
 	artboardRef,
 }: ImageModalProps) => {
+	const dispatch = useDispatch();
 	const getImageScale = (image: fabric.Image): number => {
 		// Calculate the scale needed to fit the image inside the artboard with 20% padding
 		const artboardWidth = artboardRef.current?.width;
@@ -97,6 +100,7 @@ const ImageModal = ({
 				canvasRef.current?.add(img);
 				canvasRef.current?.setActiveObject(img);
 				imageForm.reset();
+				dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable']).objects || []));
 				closeImageModal();
 			},
 			{
