@@ -16,6 +16,7 @@ import Node from './Folders/Node';
 import Placeholder from './Folders/Placeholder';
 import useTreeOpenHandler from './Folders/useTreeOpenHandler';
 import { convertFabricObjectsToLayers, convertLayersToFabricObjects } from '../utils';
+import { fabric } from 'fabric';
 
 const reorderArray = (array: NodeModel[], sourceIndex: number, targetIndex: number) => {
 	const newArray = [...array];
@@ -24,13 +25,90 @@ const reorderArray = (array: NodeModel[], sourceIndex: number, targetIndex: numb
 	return newArray;
 };
 
+type LayerListProp = {
+	canvas: fabric.Canvas | null;
+};
 // Component for all layers
-export default function LayerList() {
+export default function LayerList({ canvas }: LayerListProp) {
 	// Import layers data from redux
 	const { classes } = useStyles();
 	const layers = useSelector((state: RootState) => state.app.activeArtboardLayers);
 	const { ref, getPipeHeight, toggle } = useTreeOpenHandler();
 	const [treeData, setTreeData] = React.useState<NodeModel[]>([]);
+
+	const updateFabricCanvas = (canvas: any, newObjects: any[]) => {
+		console.log('Updating canvas', newObjects);
+		// let rect;
+		// // Remove all objects that are not rectangles
+		// canvas.getObjects().forEach((object: any) => {
+		// 	if (object?.data?.type !== 'artboard') canvas.remove(object);
+		// });
+
+		// // Add new objects to the canvas
+		// newObjects.forEach(object => {
+		// 	let fabricObject;
+		// 	switch (object.type) {
+		// 		case 'rect':
+		// 			fabricObject = new fabric.Rect(object);
+		// 			break;
+		// 		case 'textbox':
+		// 			fabricObject = new fabric.Textbox(object.text, object);
+		// 			break;
+		// 		case 'group':
+		// 			// eslint-disable-next-line no-case-declarations
+		// 			const groupObjects = object.objects
+		// 				.map((obj: any) => {
+		// 					switch (obj.type) {
+		// 						case 'rect':
+		// 							return new fabric.Rect({
+		// 								...obj,
+		// 								left: obj.left - object.left,
+		// 								top: obj.top - object.top,
+		// 							});
+		// 						case 'textbox':
+		// 							return new fabric.Textbox(obj.text, {
+		// 								...obj,
+		// 								left: obj.left - object.left,
+		// 								top: obj.top - object.top,
+		// 							});
+		// 						case 'image':
+		// 							fabric.Image.fromURL(object.url, img => {
+		// 								img.set(object);
+		// 								canvas.add(img);
+		// 							});
+		// 							return;
+		// 						default:
+		// 							console.error(`Unsupported object type: ${obj.type}`);
+		// 							return null;
+		// 					}
+		// 				})
+		// 				.filter((obj: any) => obj !== null);
+		// 			fabricObject = new fabric.Group(groupObjects, object);
+		// 			break;
+		// 		case 'image':
+		// 			fabric.Image.fromURL(object.url, img => {
+		// 				img.set(object);
+		// 				canvas.add(img);
+		// 			});
+		// 			return;
+		// 		// Add more cases as needed...
+		// 		default:
+		// 			console.error(`Unsupported object type: ${object.type}`);
+		// 			return;
+		// 	}
+
+		// 	// Add the object to the canvas
+		// 	canvas.add(fabricObject);
+		// });
+
+		// // Send the rectangle to the back
+		// if (rect) {
+		// 	canvas.sendToBack(rect);
+		// }
+
+		// // Render the canvas
+		// canvas.requestRenderAll();
+	};
 
 	useEffect(() => {
 		console.log('Layers changed');
@@ -69,7 +147,8 @@ export default function LayerList() {
 			});
 		}
 		console.log('Just tree Data 3', treeData);
-		convertLayersToFabricObjects(newTree);
+		const newCanvasObject = convertLayersToFabricObjects(newTree);
+		updateFabricCanvas(canvas, newCanvasObject);
 	};
 	console.log(treeData, 'treeData');
 	return (
@@ -90,7 +169,7 @@ export default function LayerList() {
 						insertDroppableFirst={false}
 						enableAnimateExpand={true}
 						onDrop={handleDrop}
-						canDrop={() => true}
+						canDrop={() => false}
 						dropTargetOffset={5}
 						placeholderRender={(node, { depth }) => <Placeholder node={node} depth={depth} />}
 						render={(node, { depth, isOpen, isDropTarget }) => (
