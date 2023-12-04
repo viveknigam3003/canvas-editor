@@ -34,7 +34,7 @@ import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
 
 const generateId = () => {
-	return Math.random().toString(36).substr(2, 9);
+	return Math.random().toString(36).substring(2, 9);
 };
 
 store.dispatch(appStart());
@@ -82,12 +82,6 @@ function App() {
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
-
-	useEffect(() => {
-		if (artboards?.[0]) {
-			setSelectedArtboard(artboards?.[0]);
-		}
-	}, []);
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
@@ -148,9 +142,6 @@ function App() {
 		const zoom = canvas.getZoom();
 		let panX = 0;
 		let panY = 0;
-
-		console.log('object width is: ' + artboard.width);
-		console.log(' object.getScaledWidth.x is: ' + artboard.getScaledWidth());
 
 		// WORKS - setViewportTransform
 		if (artboard.aCoords) {

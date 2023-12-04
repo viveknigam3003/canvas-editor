@@ -1,5 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { initState, updateArtboards, setSelectedArtboard } from './actions';
+import { initState, updateArtboards, updateSelectedArtboard } from './actions';
 import { Artboard } from '../../types';
 
 export interface ApplicationState {
@@ -7,7 +7,7 @@ export interface ApplicationState {
 	selectedArtboard: Artboard | null;
 }
 
-const initialState: ApplicationState = {
+export const initialState: ApplicationState = {
 	selectedArtboard: null,
 	artboards: [],
 };
@@ -15,12 +15,15 @@ const initialState: ApplicationState = {
 const appReducer = createReducer(initialState, builder => {
 	return builder
 		.addCase(initState, (state, action) => {
-			state.artboards = action.payload;
+			// Set the initial state of the application for all the keys in the payload
+			Object.keys(action.payload).forEach((key: string) => {
+				(state as any)[key] = action.payload[key as keyof ApplicationState];
+			});
 		})
 		.addCase(updateArtboards, (state, action) => {
 			state.artboards = action.payload;
 		})
-		.addCase(setSelectedArtboard, (state, action) => {
+		.addCase(updateSelectedArtboard, (state, action) => {
 			state.selectedArtboard = action.payload;
 		});
 });

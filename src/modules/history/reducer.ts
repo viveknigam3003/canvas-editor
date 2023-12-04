@@ -1,11 +1,12 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { setRedoable, setUndoable, updatePointer, updateStateHistory } from './actions';
 import deepDiff from 'deep-diff';
-import { Artboard } from '../../types';
+import { ApplicationState } from '../app/reducer';
+import { setRedoable, setUndoable, updatePointer, updateStateHistory } from './actions';
 
 export interface Delta {
 	actionType: string;
-	diff: deepDiff.Diff<Artboard[], any>[];
+	diff: deepDiff.Diff<ApplicationState, any>[];
+	key: string;
 }
 
 interface HistoryState {
