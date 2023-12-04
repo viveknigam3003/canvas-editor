@@ -27,11 +27,12 @@ import Panel from './components/Panel';
 import SettingsMenu from './components/SettingsMenu';
 import ZoomMenu from './components/ZoomMenu';
 import { useModalStyles, useQueryParam } from './hooks';
-import { appStart, setArtboards } from './modules/app/actions';
+import { appStart, setArtboards, updateActiveArtboardLayers } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
+import LayerList from './components/LayerList';
 
 const generateId = () => {
 	return Math.random().toString(36).substr(2, 9);
@@ -91,7 +92,6 @@ function App() {
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
-
 	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
 			// create a canvas with clientWidth and clientHeight
@@ -100,7 +100,6 @@ function App() {
 			backgroundColor: '#e9ecef',
 			colorSpace: colorSpace as colorSpaceType,
 		});
-
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
 			setCurrentSelectedElement(event.selected as fabric.Object[]);
@@ -116,6 +115,10 @@ function App() {
 			canvasRef.current?.dispose();
 		};
 	}, []);
+
+	useEffect(() => {
+		dispatch(updateActiveArtboardLayers(selectedArtboard?.state?.objects || []));
+	}, [selectedArtboard?.state?.objects]);
 
 	const recreateCanvas = () => {
 		//reload window
@@ -805,13 +808,8 @@ function App() {
 						</Stack>
 
 						<Stack spacing={16} sx={{ padding: '0.5rem 1rem' }}>
-							<Text weight={500} size={'sm'}>
-								Layers
-							</Text>
 							<Stack spacing={8}>
-								{selectedArtboard?.state?.objects?.map((x: fabric.Object, index: number) => (
-									<Text key={index}>{x.type}</Text>
-								))}
+								<LayerList canvas={canvasRef.current} />
 							</Stack>
 						</Stack>
 					</Box>
