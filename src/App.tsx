@@ -12,6 +12,7 @@ import {
 	TextInput,
 	Tooltip,
 	createStyles,
+	useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
@@ -45,6 +46,7 @@ function App() {
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
 
+	const theme = useMantineTheme();
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
@@ -86,6 +88,7 @@ function App() {
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
+
 	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
 			// create a canvas with clientWidth and clientHeight
@@ -787,6 +790,15 @@ function App() {
 												key={artboard.id}
 												className={classes.artboardButton}
 												onClick={() => updateSelectedArtboard(artboard)}
+												align="center"
+												style={{
+													backgroundColor:
+														selectedArtboard?.id === artboard.id
+															? theme.colorScheme === 'dark'
+																? theme.colors.dark[6]
+																: theme.colors.violet[1]
+															: 'transparent',
+												}}
 											>
 												<Text size={14}>{artboard.name}</Text>
 												<Text size={12} color="gray">

@@ -11,6 +11,10 @@ export function convertFabricObjectsToLayers(objects: { [key: string]: any }) {
 	const layers: layer[] = [];
 
 	function processObject(object: any, parentId: number) {
+		if (!object) {
+			return;
+		}
+
 		if (object.type === 'rect') {
 			return;
 		}

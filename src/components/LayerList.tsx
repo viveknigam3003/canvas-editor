@@ -111,7 +111,6 @@ export default function LayerList({ canvas }: LayerListProp) {
 	};
 
 	useEffect(() => {
-		console.log('Layers changed');
 		if (layers.length === 0) return;
 		const newTreeData = convertFabricObjectsToLayers(layers) as NodeModel[];
 		if (treeData !== newTreeData) setTreeData(newTreeData);
@@ -129,7 +128,6 @@ export default function LayerList({ canvas }: LayerListProp) {
 				return output;
 			});
 		}
-		console.log('Just tree Data 1', newTree);
 
 		if (start?.parent !== dropTargetId && start && typeof destinationIndex === 'number') {
 			if (
@@ -142,15 +140,13 @@ export default function LayerList({ canvas }: LayerListProp) {
 				const output = reorderArray(treeData, treeData.indexOf(start), destinationIndex);
 				const movedElement = output.find(el => el.id === dragSourceId);
 				if (movedElement) movedElement.parent = dropTargetId;
-				console.log('Just tree Data 2', output);
 				return output;
 			});
 		}
-		console.log('Just tree Data 3', treeData);
 		const newCanvasObject = convertLayersToFabricObjects(newTree);
 		updateFabricCanvas(canvas, newCanvasObject);
 	};
-	console.log(treeData, 'treeData');
+
 	return (
 		<div>
 			Layers ({layers.length - 1})

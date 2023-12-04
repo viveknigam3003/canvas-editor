@@ -49,7 +49,7 @@ const alignElementToRect = (
 	position: string,
 	canvas: fabric.Canvas,
 ) => {
-	console.log('aligning', getExtremePoints(currentSelectedElement[0]));
+	console.debug('aligning', getExtremePoints(currentSelectedElement[0]));
 	switch (position) {
 		case 'left':
 			currentSelectedElement.forEach(element => {

@@ -111,8 +111,6 @@ const Node: React.FC<{
 		onClick(node.id);
 	};
 
-	console.log('Nodess', node);
-
 	return (
 		<div
 			className={`${classes.nodeWrapper} tree-node ${node.droppable && isDropTarget ? classes.dropTarget : ''}`}
