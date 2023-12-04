@@ -2,21 +2,25 @@ import { Action } from '@reduxjs/toolkit';
 import deepDiff from 'deep-diff';
 import { put, select, takeEvery } from 'redux-saga/effects';
 import { RootState } from '../../store/rootReducer';
-import { Artboard } from '../../types';
-import { setArtboards, updateArtboards } from '../app/actions';
+import { ApplicationState } from '../app/reducer';
 import { redo, setRedoable, setUndoable, undo, updatePointer, updateStateHistory } from './actions';
 import { Delta } from './reducer';
 
-export function* observeStateChanges(action: Action) {
-	if (!setArtboards.match(action)) {
-		return;
-	}
+export function* recordChanges({
+	previousState,
+	nextState,
+	action,
+	key,
+}: {
+	previousState: any;
+	nextState: any;
+	action: Action;
+	key: string;
+}) {
+	console.debug('previousState', previousState);
+	console.debug('nextState', nextState);
 
-	// Whenever setArtboards is dispatched, save the difference between the current state and the previous state in history redux
-	const previousState: Array<Artboard> = yield select((state: RootState) => state.app.artboards);
-
-	const currentState: Array<Artboard> = action.payload;
-	const diff = deepDiff.diff(previousState, currentState);
+	const diff = deepDiff.diff(previousState, nextState);
 
 	if (!diff) {
 		console.debug('no diff');
@@ -25,7 +29,8 @@ export function* observeStateChanges(action: Action) {
 
 	console.debug('Diff found', diff);
 	const delta: Delta = {
-		actionType: setArtboards.type,
+		actionType: action.type,
+		key,
 		diff,
 	};
 
@@ -57,7 +62,7 @@ export function* observeStateChanges(action: Action) {
 	}
 }
 
-function getReverseDiff(diff: Array<deepDiff.Diff<Artboard[], Artboard[]>>) {
+function getReverseDiff(diff: Array<deepDiff.Diff<ApplicationState, ApplicationState>>) {
 	if (!diff || diff.length === 0) {
 		return diff;
 	}
@@ -115,21 +120,31 @@ function* undoSaga() {
 		return;
 	}
 
-	const artboards: Artboard[] = yield select((state: RootState) => state.app.artboards);
-	const artboardCopy: Artboard[] = JSON.parse(JSON.stringify(artboards));
 	const deltas: Array<Delta> = yield select((state: RootState) => state.history.deltas);
 	const currentIndex: number = yield select((state: RootState) => state.history.currentIndex);
-
 	// Take the item at the currentIndex pointer and apply the inverse of the diff to the current state
 	const delta = deltas[currentIndex];
+
+	const keys = delta.key.split('.');
+	// If the key is app.artboards, then we need select state.app.artboards
+	const state: ApplicationState = yield select((state: RootState) => {
+		let currentState: any = state;
+		for (const key of keys) {
+			currentState = currentState[key as keyof ApplicationState];
+		}
+
+		return currentState;
+	});
+	const stateCopy: ApplicationState = JSON.parse(JSON.stringify(state));
+
 	const reverseDiff = getReverseDiff(delta.diff);
 
 	// Apply the reverseDiff to the current state
 	for (const d of reverseDiff) {
-		deepDiff.applyChange(artboardCopy, true, d);
+		deepDiff.applyChange(stateCopy, true, d);
 	}
 
-	yield put(updateArtboards(artboardCopy));
+	yield put({ type: delta.actionType, payload: stateCopy });
 	yield put(updatePointer(Math.max(currentIndex - 1, 0)));
 
 	// Set undoable flag based on if the user can undo or not
@@ -157,15 +172,24 @@ function* redoSaga() {
 
 	// Take the item at the currentIndex pointer and apply the diff to the current state
 	const delta = deltas[currentIndex + 1];
-	const artboards: Artboard[] = yield select((state: RootState) => state.app.artboards);
-	const artboardCopy: Artboard[] = JSON.parse(JSON.stringify(artboards));
+	const keys = delta.key.split('.');
+	// If the key is app.artboards, then we need select state.app.artboards
+	const state: ApplicationState = yield select((state: RootState) => {
+		let currentState: any = state;
+		for (const key of keys) {
+			currentState = currentState[key as keyof ApplicationState];
+		}
+
+		return currentState;
+	});
+	const stateCopy: ApplicationState = JSON.parse(JSON.stringify(state));
 
 	// Apply the diff to the current state
 	for (const d of delta.diff) {
-		deepDiff.applyChange(artboardCopy, true, d);
+		deepDiff.applyChange(stateCopy, true, d);
 	}
 
-	yield put(updateArtboards(artboardCopy));
+	yield put({ type: delta.actionType, payload: stateCopy });
 	yield put(updatePointer(Math.min(currentIndex + 1, deltas.length - 1)));
 
 	const newPointer = Math.min(currentIndex + 1, deltas.length - 1);
@@ -180,7 +204,7 @@ function* redoSaga() {
 }
 
 function* historySaga() {
-	yield takeEvery(setArtboards.type, observeStateChanges);
+	// yield takeEvery([setArtboards.type, setSelectedArtboard.type], observeStateChanges);
 	yield takeEvery(undo.type, undoSaga);
 	yield takeEvery(redo.type, redoSaga);
 }

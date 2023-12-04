@@ -22,20 +22,20 @@ import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AddMenu from './components/AddMenu';
+import LayerList from './components/LayerList';
 import MiscMenu from './components/MiscMenu';
 import Panel from './components/Panel';
 import SettingsMenu from './components/SettingsMenu';
 import ZoomMenu from './components/ZoomMenu';
 import { useModalStyles, useQueryParam } from './hooks';
-import { appStart, setArtboards, updateActiveArtboardLayers } from './modules/app/actions';
+import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
-import LayerList from './components/LayerList';
 
 const generateId = () => {
-	return Math.random().toString(36).substr(2, 9);
+	return Math.random().toString(36).substring(2, 9);
 };
 
 store.dispatch(appStart());
@@ -43,6 +43,8 @@ store.dispatch(appStart());
 function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
+	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
+
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
@@ -75,20 +77,12 @@ function App() {
 			return errors;
 		},
 	});
-
-	const [selectedArtboard, setSelectedArtboard] = useState<Artboard | null>(null);
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const artboardRef = useRef<fabric.Rect | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
-
-	useEffect(() => {
-		if (artboards?.[0]) {
-			setSelectedArtboard(artboards?.[0]);
-		}
-	}, []);
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
@@ -152,9 +146,6 @@ function App() {
 		let panX = 0;
 		let panY = 0;
 
-		console.log('object width is: ' + artboard.width);
-		console.log(' object.getScaledWidth.x is: ' + artboard.getScaledWidth());
-
 		// WORKS - setViewportTransform
 		if (artboard.aCoords) {
 			panX = (canvas.getWidth() / zoom / 2 - artboard.aCoords.tl.x - objWidth / 2) * zoom;
@@ -209,7 +200,7 @@ function App() {
 		}
 		const id = generateId();
 		const newArtboard: Artboard = { ...artboard, id };
-		setSelectedArtboard(newArtboard);
+		dispatch(setSelectedArtboard(newArtboard));
 
 		canvasRef.current?.clear();
 		const artboardRect = new fabric.Rect({
@@ -254,7 +245,7 @@ function App() {
 		const updatedArtboards = [...artboards, ...allArtboards];
 		dispatch(setArtboards(updatedArtboards));
 		newArtboardForm.reset();
-		setSelectedArtboard(allArtboards[0]);
+		dispatch(setSelectedArtboard(allArtboards[0]));
 		setIsCreatingArtboards(false);
 		close();
 	};
@@ -266,7 +257,7 @@ function App() {
 
 		// clear the canvas of selected artboard
 		canvasRef.current?.clear();
-		setSelectedArtboard(artboard);
+		dispatch(setSelectedArtboard(artboard));
 	};
 
 	const exportAllArtboards = async () => {
