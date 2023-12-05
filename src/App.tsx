@@ -85,6 +85,7 @@ function App() {
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
+	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
@@ -555,10 +556,17 @@ function App() {
 			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
-				zoomToFit();
 			}
 		});
 	}, [selectedArtboard, artboards]);
+
+	useEffect(() => {
+		if (!selectedArtboard) {
+			return;
+		}
+
+		zoomToFit();
+	}, [selectedArtboard]);
 
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
@@ -623,6 +631,42 @@ function App() {
 		};
 	}, []);
 
+	useEffect(() => {
+		const canvas = canvasRef.current;
+
+		if (!canvas) {
+			return;
+		}
+
+		// set hasUnsavedChanges to true with 2000ms debounce
+		let timeout: NodeJS.Timeout;
+
+		const handleCanvasObjectModification = () => {
+			console.log('Object modified');
+			timeout = setTimeout(() => {
+				setHasUnsavedChanges(true);
+				console.log('Marked changes');
+			}, 2000);
+		};
+
+		canvas.on('object:modified', handleCanvasObjectModification);
+
+		return () => {
+			canvas.off('object:modified', handleCanvasObjectModification);
+			clearTimeout(timeout);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!hasUnsavedChanges) {
+			return;
+		}
+
+		saveArtboardChanges();
+		setHasUnsavedChanges(false);
+		console.log('Saved changes');
+	}, [hasUnsavedChanges]);
+
 	useHotkeys([
 		[
 			'mod+shift+z',
@@ -647,7 +691,7 @@ function App() {
 				saveArtboardChanges();
 				notifications.show({
 					title: 'Changes saved',
-					message: 'Artboard changes saved successfully',
+					message: 'Phoenix Editor automatically saves your changes',
 					icon: <IconCircleCheck size={20} />,
 					color: 'green',
 					autoClose: 1500,

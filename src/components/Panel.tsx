@@ -262,7 +262,7 @@ const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 							document.head.appendChild(styleElement);
 							console.log('first', currentSelectedElement?.[0]);
 							(currentSelectedElement?.[0] as fabric.Text)?.set('fontFamily', font.family);
-							canvas.requestRenderAll();
+							canvas.renderAll();
 						})
 						.catch(error => console.error('Error loading font:', error));
 				}}
