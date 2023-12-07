@@ -34,6 +34,7 @@ import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
+import FontFaceObserver from 'fontfaceobserver';
 
 const generateId = () => {
 	return Math.random().toString(36).substring(2, 9);
@@ -551,7 +552,38 @@ function App() {
 		}
 
 		const json = currentArtboardState.state;
-		canvasRef.current?.loadFromJSON(json, () => {
+		canvasRef.current?.loadFromJSON(json, async () => {
+			// create a style sheet
+			const artboardTexts = canvasRef.current?.getObjects().filter(item => item.type === 'textbox');
+			// take all texts and then loop over. Read data property inside and get font from it
+			const fontPromises = artboardTexts?.map(item => {
+				const textItem = item as fabric.Text;
+				if (
+					textItem.data &&
+					typeof textItem.data.font === 'string' &&
+					typeof textItem.fontFamily === 'string'
+				) {
+					const font = textItem.data.font;
+					console.log('font', font, textItem.fontFamily);
+					const style = document.createElement('style');
+
+					style.appendChild(document.createTextNode(font));
+					document.head.appendChild(style);
+
+					const observer = new FontFaceObserver(textItem.fontFamily || '');
+
+					// load the font
+					return observer.load().catch(err => {
+						console.log('Font is not available', err);
+					});
+				}
+			});
+
+			// Wait for all the fonts to load
+			if (fontPromises) {
+				await Promise.all(fontPromises);
+			}
+
 			canvasRef.current?.renderAll();
 			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
 			if (artboard) {

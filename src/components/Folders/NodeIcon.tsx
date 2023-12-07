@@ -30,11 +30,11 @@ const NodeIcon: React.FC<{ type: any }> = ({ type }) => {
 				width="16"
 				height="16"
 				viewBox="0 0 24 24"
-				stroke-width="2"
+				strokeWidth="2"
 				stroke="#6F7E8C"
 				fill="none"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none" />
 				<path d="M15 8h.01" />
@@ -50,11 +50,11 @@ const NodeIcon: React.FC<{ type: any }> = ({ type }) => {
 				width="24"
 				height="24"
 				viewBox="0 0 24 24"
-				stroke-width="2"
+				strokeWidth="2"
 				stroke="#6F7E8C"
 				fill="none"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none" />
 				<path d="M10 8h4" />
