@@ -553,6 +553,10 @@ function App() {
 
 		const json = currentArtboardState.state;
 		canvasRef.current?.loadFromJSON(json, async () => {
+			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
+			if (artboard) {
+				artboardRef.current = artboard as fabric.Rect;
+			}
 			// create a style sheet
 			const artboardTexts = canvasRef.current?.getObjects().filter(item => item.type === 'textbox');
 			// take all texts and then loop over. Read data property inside and get font from it
@@ -585,10 +589,6 @@ function App() {
 			}
 
 			canvasRef.current?.renderAll();
-			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
-			if (artboard) {
-				artboardRef.current = artboard as fabric.Rect;
-			}
 		});
 	}, [selectedArtboard, artboards]);
 
