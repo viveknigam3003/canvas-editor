@@ -149,7 +149,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 
 	return (
 		<div>
-			Layers ({layers.length - 1})
+			Layers ({layers.length > 0 ? layers.length - 1 : 0})
 			<DndProvider backend={MultiBackend} options={getBackendOptions()}>
 				<div className={classes.wrapper}>
 					<Tree

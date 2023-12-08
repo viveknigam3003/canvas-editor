@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useHotkeys } from '@mantine/hooks';
 import { Tooltip } from '@mantine/core';
 import { getAltKey } from '../modules/utils/keyboard';
+import CustomFont from './CustomFont';
 
 type Font = {
 	family: string;
@@ -239,6 +240,7 @@ const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 	return (
 		<Stack spacing={16}>
 			<Box>Font Family</Box>
+			<CustomFont onLoad={() => {}} canvas={canvas} currentSelectedElement={currentSelectedElement[0]} />
 			<Select
 				searchable
 				value={value}
