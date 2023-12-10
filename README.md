@@ -1,27 +1,15 @@
-# React + TypeScript + Vite
+# Phoenix design editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Phoenix editor is a Figma-like canvas based design editor which can help you build 2D-graphic based designs with ease. It's build using fabric.js (canvas) and React + TypeScript.
+It's still in a nascent phase where we're experimenting with features. Currently it supports some powerful features not limited to
 
-Currently, two official plugins are available:
-
--   [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
--   [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
--   Configure the top-level `parserOptions` property like this:
-
-```js
-   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-   },
-```
-
--   Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
--   Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
--   Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+* Single and multiple artboard editing
+* Multiple undo-redos
+* Autosave states
+* Google fonts + custom fonts
+* Exporting the artboards as PNG
+* Nested layers and groups
+* Two-finger pinch-zoom-pan
+* Powerful keyboard shortcuts for accessibility
+* Dark mode
+* Multiple color space canvas - sRGB and Display-P3
