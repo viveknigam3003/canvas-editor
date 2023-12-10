@@ -13,3 +13,12 @@ It's still in a nascent phase where we're experimenting with features. Currently
 * Powerful keyboard shortcuts for accessibility
 * Dark mode
 * Multiple color space canvas - sRGB and Display-P3
+
+## Upcoming features
+* Rearranging of layers & groups
+* Improved autosave logic
+* Word/letter styling
+* Snapping guides
+* Rulers and markers
+* Filters and styling
+* Image editing
