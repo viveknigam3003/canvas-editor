@@ -51,6 +51,7 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
+	const [autosaveChanges, setAutoSaveChanges] = useState(false);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -664,6 +665,10 @@ function App() {
 	}, []);
 
 	useEffect(() => {
+		if (!autosaveChanges) {
+			return;
+		}
+
 		const canvas = canvasRef.current;
 
 		if (!canvas) {
@@ -687,7 +692,7 @@ function App() {
 			canvas.off('object:modified', handleCanvasObjectModification);
 			clearTimeout(timeout);
 		};
-	}, []);
+	}, [autosaveChanges]);
 
 	useEffect(() => {
 		if (!hasUnsavedChanges) {
@@ -795,6 +800,8 @@ function App() {
 						recreateCanvas={recreateCanvas}
 						canvasRef={canvasRef}
 						setShowSidebar={setShowSidebar}
+						autosaveChanges={autosaveChanges}
+						setAutoSaveChanges={setAutoSaveChanges}
 					/>
 					<Tooltip label="Save" openDelay={500}>
 						<ActionIcon onClick={saveArtboardChanges} size={20}>

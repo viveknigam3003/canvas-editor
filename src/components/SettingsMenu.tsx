@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Menu, Text, Tooltip, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Box, Checkbox, Menu, Text, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
@@ -17,9 +17,17 @@ interface Props {
 	canvasRef: React.RefObject<fabric.Canvas>;
 	recreateCanvas: () => void;
 	setShowSidebar: React.Dispatch<React.SetStateAction<boolean>>;
+	autosaveChanges: boolean;
+	setAutoSaveChanges: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSidebar }) => {
+const SettingsMenu: React.FC<Props> = ({
+	recreateCanvas,
+	canvasRef,
+	setShowSidebar,
+	autosaveChanges,
+	setAutoSaveChanges,
+}) => {
 	const { classes } = useMenuStyles();
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
@@ -83,6 +91,20 @@ const SettingsMenu: React.FC<Props> = ({ recreateCanvas, canvasRef, setShowSideb
 						onClick={() => toggleUI()}
 					>
 						Show/hide UI
+					</Menu.Item>
+					<Menu.Item className={classes.item} closeMenuOnClick={false}>
+						<Checkbox
+							size={'xs'}
+							checked={autosaveChanges}
+							onChange={() => setAutoSaveChanges(c => !c)}
+							label="Autosave changes"
+							color="green"
+							styles={{
+								label: {
+									paddingLeft: '0.5rem',
+								},
+							}}
+						/>
 					</Menu.Item>
 					<Menu.Divider />
 					<Menu.Item
