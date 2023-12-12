@@ -48,7 +48,7 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-	const [autosaveChanges, setAutoSaveChanges] = useState(true);
+	const [autosaveChanges, setAutoSaveChanges] = useState(false);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -579,7 +579,6 @@ function App() {
 		}
 
 		const json = currentArtboardState.state;
-		const currentSelected = canvasRef.current?.getActiveObjects();
 		canvasRef.current?.loadFromJSON(json, async () => {
 			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
 			if (artboard) {
@@ -616,14 +615,7 @@ function App() {
 				await Promise.all(fontPromises);
 			}
 
-			if (currentSelected?.length) {
-				const selection = new fabric.ActiveSelection(currentSelected, {
-					canvas,
-				});
-				setCurrentSelectedElement(selection._objects);
-				canvas.setActiveObject(selection);
-			}
-			canvasRef.current?.renderAll();
+			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
 
