@@ -20,6 +20,7 @@ import { notifications } from '@mantine/notifications';
 import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
+import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AddMenu from './components/AddMenu';
@@ -34,7 +35,6 @@ import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
-import FontFaceObserver from 'fontfaceobserver';
 import { generateId } from './utils';
 
 store.dispatch(appStart());
@@ -591,7 +591,7 @@ function App() {
 					typeof textItem.fontFamily === 'string'
 				) {
 					const font = textItem.data.font;
-					console.log('font', font, textItem.fontFamily);
+					console.debug('font', font, textItem.fontFamily);
 					const style = document.createElement('style');
 
 					style.appendChild(document.createTextNode(font));
@@ -937,6 +937,7 @@ function App() {
 						required
 						classNames={{ label: modalClasses.label }}
 						{...newArtboardForm.getInputProps('name')}
+						data-autofocus
 					/>
 					<Group grow>
 						<NumberInput
