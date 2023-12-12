@@ -136,10 +136,6 @@ function App() {
 		dispatch(updateActiveArtboardLayers(selectedArtboard?.state?.objects || []));
 	}, [selectedArtboard, dispatch]);
 
-	useEffect(() => {
-		console.log('Current selected element', currentSelectedElement);
-	}, [currentSelectedElement]);
-
 	const recreateCanvas = () => {
 		//reload window
 		saveArtboardChanges();

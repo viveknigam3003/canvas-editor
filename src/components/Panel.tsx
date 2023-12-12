@@ -235,13 +235,22 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 	}, []);
 	const artboardWidth = artboardRef.current?.width ?? 100;
 	const artboardHeight = artboardRef.current?.height ?? 100;
-	const shadow = (currentSelectedElement?.[0] as fabric.Text)?.shadow as fabric.Shadow;
 	const [shadowValues, setShadowValues] = useState({
-		offsetX: shadow?.offsetX || 0,
-		offsetY: shadow?.offsetY || 0,
-		blur: shadow?.blur || 0,
-		color: shadow?.color || '#000000',
+		offsetX: 0,
+		offsetY: 0,
+		blur: 0,
+		color: '#000000',
 	});
+
+	useEffect(() => {
+		const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
+		setShadowValues({
+			offsetX: shadow?.offsetX || 0,
+			offsetY: shadow?.offsetY || 0,
+			blur: shadow?.blur || 0,
+			color: shadow?.color || '#000000',
+		});
+	}, [currentSelectedElement]);
 
 	return (
 		<Stack spacing={16}>
@@ -385,13 +394,22 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 const ImagePanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
 	const artboardWidth = artboardRef.current?.width ?? 100;
 	const artboardHeight = artboardRef.current?.height ?? 100;
-	const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
 	const [shadowValues, setShadowValues] = useState({
-		offsetX: shadow?.offsetX || 0,
-		offsetY: shadow?.offsetY || 0,
-		blur: shadow?.blur || 0,
-		color: shadow?.color || '#000000',
+		offsetX: 0,
+		offsetY: 0,
+		blur: 0,
+		color: '#000000',
 	});
+
+	useEffect(() => {
+		const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
+		setShadowValues({
+			offsetX: shadow?.offsetX || 0,
+			offsetY: shadow?.offsetY || 0,
+			blur: shadow?.blur || 0,
+			color: shadow?.color || '#000000',
+		});
+	}, [currentSelectedElement]);
 
 	return (
 		<Stack>
@@ -462,9 +480,14 @@ const ImagePanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps)
 };
 
 const Panel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+	useEffect(() => {
+		console.log('currentSelectedElement', currentSelectedElement);
+	}, [currentSelectedElement]);
+
 	if (!currentSelectedElement || currentSelectedElement?.length !== 1) {
 		return null;
 	}
+
 	return (
 		<Stack>
 			<AlignmentPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
