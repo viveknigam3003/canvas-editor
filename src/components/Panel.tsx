@@ -277,9 +277,8 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 							const styleElement = document.createElement('style');
 							styleElement.appendChild(document.createTextNode(fontFaceRule));
 							document.head.appendChild(styleElement);
-							console.log('first', currentSelectedElement?.[0]);
 							(currentSelectedElement?.[0] as fabric.Text)?.set('fontFamily', font.family);
-							canvas.renderAll();
+							canvas.requestRenderAll();
 						})
 						.catch(error => console.error('Error loading font:', error));
 				}}
@@ -310,7 +309,6 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 									const styleElement = document.createElement('style');
 									styleElement.appendChild(document.createTextNode(fontFaceRule));
 									document.head.appendChild(styleElement);
-									console.log('first', currentSelectedElement?.[0]);
 									(currentSelectedElement?.[0] as fabric.Text)?.set('fontWeight', e as string);
 									canvas.requestRenderAll();
 								})
@@ -480,10 +478,6 @@ const ImagePanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps)
 };
 
 const Panel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
-	useEffect(() => {
-		console.log('currentSelectedElement', currentSelectedElement);
-	}, [currentSelectedElement]);
-
 	if (!currentSelectedElement || currentSelectedElement?.length !== 1) {
 		return null;
 	}
