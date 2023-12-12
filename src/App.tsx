@@ -48,7 +48,7 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-	const [autosaveChanges, setAutoSaveChanges] = useState(false);
+	const [autosaveChanges, setAutoSaveChanges] = useState(true);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -102,7 +102,24 @@ function App() {
 			setCurrentSelectedElement(event.selected as fabric.Object[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
-			setCurrentSelectedElement(event.selected as fabric.Object[]);
+			setCurrentSelectedElement(arr => {
+				if (!arr) {
+					return null;
+				}
+				// Once the selection is updated, if there is an element in the array, return it
+				if (event.selected && event.selected.length > 0) {
+					// Add the element to the array if it is not already in the array
+					return [...arr, ...event.selected];
+				}
+
+				if (event.deselected && event.deselected.length > 0) {
+					// Remove the element from the array if it is already in the array
+					return arr.filter(item => !event.deselected?.includes(item));
+				}
+
+				return arr;
+				// Else if the element is in the desected array, remove it
+			});
 		});
 		canvasRef.current?.on('selection:cleared', function () {
 			setCurrentSelectedElement(null);
@@ -116,6 +133,10 @@ function App() {
 	useEffect(() => {
 		dispatch(updateActiveArtboardLayers(selectedArtboard?.state?.objects || []));
 	}, [selectedArtboard, dispatch]);
+
+	useEffect(() => {
+		console.log('Current selected element', currentSelectedElement);
+	}, [currentSelectedElement]);
 
 	const recreateCanvas = () => {
 		//reload window
@@ -549,7 +570,14 @@ function App() {
 			return;
 		}
 
+		const canvas = canvasRef.current;
+
+		if (!canvas) {
+			return;
+		}
+
 		const json = currentArtboardState.state;
+		const currentSelected = canvasRef.current?.getActiveObjects();
 		canvasRef.current?.loadFromJSON(json, async () => {
 			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
 			if (artboard) {
@@ -586,17 +614,16 @@ function App() {
 				await Promise.all(fontPromises);
 			}
 
+			if (currentSelected?.length) {
+				const selection = new fabric.ActiveSelection(currentSelected, {
+					canvas,
+				});
+				setCurrentSelectedElement(selection._objects);
+				canvas.setActiveObject(selection);
+			}
 			canvasRef.current?.renderAll();
 		});
 	}, [selectedArtboard, artboards]);
-
-	useEffect(() => {
-		if (!selectedArtboard) {
-			return;
-		}
-
-		zoomToFit();
-	}, [selectedArtboard]);
 
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
@@ -698,7 +725,6 @@ function App() {
 
 		saveArtboardChanges();
 		setHasUnsavedChanges(false);
-		console.log('Saved changes');
 	}, [hasUnsavedChanges]);
 
 	useHotkeys([
@@ -706,6 +732,7 @@ function App() {
 			'mod+shift+z',
 			() => {
 				if (redoable) {
+					canvasRef.current?.discardActiveObject();
 					dispatch(redo());
 				}
 			},
@@ -714,6 +741,7 @@ function App() {
 			'mod+z',
 			() => {
 				if (undoable) {
+					canvasRef.current?.discardActiveObject();
 					dispatch(undo());
 				}
 			},

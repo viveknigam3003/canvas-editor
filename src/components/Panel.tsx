@@ -1,15 +1,14 @@
-import { ActionIcon, Box, Flex, Select, Stack } from '@mantine/core';
+import { ActionIcon, Box, ColorInput, Flex, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
+import { useHotkeys } from '@mantine/hooks';
 import {
 	IconLayoutAlignBottom,
 	IconLayoutAlignCenter,
+	IconLayoutAlignLeft,
 	IconLayoutAlignMiddle,
 	IconLayoutAlignRight,
 	IconLayoutAlignTop,
 } from '@tabler/icons-react';
-import { IconLayoutAlignLeft } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { useHotkeys } from '@mantine/hooks';
-import { Tooltip } from '@mantine/core';
 import { getAltKey } from '../modules/utils/keyboard';
 import CustomFont from './CustomFont';
 
@@ -50,7 +49,6 @@ const alignElementToRect = (
 	position: string,
 	canvas: fabric.Canvas,
 ) => {
-	console.debug('aligning', getExtremePoints(currentSelectedElement[0]));
 	switch (position) {
 		case 'left':
 			currentSelectedElement.forEach(element => {
@@ -231,7 +229,6 @@ const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 		fetch('/fonts.json')
 			.then(response => response.json())
 			.then(fonts => {
-				console.log(fonts);
 				setFontList(fonts.items);
 			})
 			.catch(error => console.error(error));
@@ -308,6 +305,132 @@ const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 					/>
 				</Box>
 			)}
+			<Stack>
+				<Box>Shadow</Box>
+				<Group spacing={8} grow>
+					<NumberInput
+						label="X"
+						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.offsetX || 0}
+						onChange={e => {
+							(currentSelectedElement?.[0] as fabric.Text)?.set(
+								'shadow',
+								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { offsetX: e }),
+							);
+							canvas.renderAll();
+						}}
+						min={-100}
+						max={100}
+						step={1}
+					/>
+					<NumberInput
+						label="Y"
+						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.offsetY || 0}
+						onChange={e => {
+							(currentSelectedElement?.[0] as fabric.Text)?.set(
+								'shadow',
+								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { offsetY: e }),
+							);
+							canvas.renderAll();
+						}}
+						min={-100}
+						max={100}
+						step={1}
+					/>
+				</Group>
+				<Group spacing={8} grow>
+					<NumberInput
+						label="Blur"
+						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.blur || 0}
+						onChange={e => {
+							(currentSelectedElement?.[0] as fabric.Text)?.set(
+								'shadow',
+								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { blur: e }),
+							);
+							canvas.renderAll();
+						}}
+						min={0}
+						max={100}
+						step={1}
+					/>
+					<ColorInput
+						label="Color"
+						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.color}
+						onChange={e => {
+							(currentSelectedElement?.[0] as fabric.Text)?.set(
+								'shadow',
+								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { color: e }),
+							);
+							canvas.renderAll();
+						}}
+					/>
+				</Group>
+			</Stack>
+		</Stack>
+	);
+};
+
+const ImagePanel = ({ canvas, currentSelectedElement }: PanelProps) => {
+	return (
+		<Stack>
+			<Box>Shadow</Box>
+			<Group spacing={8} grow>
+				<NumberInput
+					label="X"
+					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.offsetX || 0}
+					onChange={e => {
+						(currentSelectedElement?.[0] as fabric.Image)?.set(
+							'shadow',
+							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { offsetX: e }),
+						);
+						canvas.renderAll();
+					}}
+					min={-100}
+					max={100}
+					step={1}
+				/>
+				<NumberInput
+					label="Y"
+					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.offsetY || 0}
+					onChange={e => {
+						(currentSelectedElement?.[0] as fabric.Image)?.set(
+							'shadow',
+							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { offsetY: e }),
+						);
+						canvas.renderAll();
+					}}
+					min={-100}
+					max={100}
+					step={1}
+				/>
+			</Group>
+			<Group spacing={8} grow>
+				<NumberInput
+					label="Blur"
+					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.blur || 0}
+					onChange={e => {
+						(currentSelectedElement?.[0] as fabric.Image)?.set(
+							'shadow',
+							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { blur: e }),
+						);
+						canvas.renderAll();
+					}}
+					min={0}
+					max={100}
+					step={1}
+				/>
+				<ColorInput
+					label="Color"
+					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.color}
+					onChange={e => {
+						(currentSelectedElement?.[0] as fabric.Image)?.set(
+							'shadow',
+							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { color: e }),
+						);
+						canvas.renderAll();
+					}}
+					format="rgba"
+				/>
+			</Group>
 		</Stack>
 	);
 };
@@ -316,12 +439,14 @@ const Panel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
 	if (!currentSelectedElement || currentSelectedElement?.length !== 1) {
 		return null;
 	}
-	console.log(currentSelectedElement);
 	return (
 		<Stack>
 			<AlignmentPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
 			{currentSelectedElement?.[0]?.type === 'textbox' && (
 				<TextPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
+			)}
+			{currentSelectedElement?.[0]?.type === 'image' && (
+				<ImagePanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
 			)}
 		</Stack>
 	);
