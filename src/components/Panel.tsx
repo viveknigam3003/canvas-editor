@@ -220,7 +220,7 @@ const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelPr
 	);
 };
 
-const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
+const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
 	const [fontList, setFontList] = useState<Font[]>([]);
 	const [value, setValue] = useState('');
 	const [fontWeight, setFontWeight] = useState('regular');
@@ -233,6 +233,15 @@ const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 			})
 			.catch(error => console.error(error));
 	}, []);
+	const artboardWidth = artboardRef.current?.width ?? 100;
+	const artboardHeight = artboardRef.current?.height ?? 100;
+	const shadow = (currentSelectedElement?.[0] as fabric.Text)?.shadow as fabric.Shadow;
+	const [shadowValues, setShadowValues] = useState({
+		offsetX: shadow?.offsetX || 0,
+		offsetY: shadow?.offsetY || 0,
+		blur: shadow?.blur || 0,
+		color: shadow?.color || '#000000',
+	});
 
 	return (
 		<Stack spacing={16}>
@@ -310,127 +319,144 @@ const TextPanel = ({ canvas, currentSelectedElement }: PanelProps) => {
 				<Group spacing={8} grow>
 					<NumberInput
 						label="X"
-						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.offsetX || 0}
+						value={shadowValues.offsetX}
 						onChange={e => {
 							(currentSelectedElement?.[0] as fabric.Text)?.set(
 								'shadow',
 								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { offsetX: e }),
 							);
-							canvas.renderAll();
+							setShadowValues(prev => ({ ...prev, offsetX: e as number }));
+							canvas.requestRenderAll();
 						}}
-						min={-100}
-						max={100}
+						min={-artboardWidth}
+						max={artboardWidth}
 						step={1}
 					/>
 					<NumberInput
 						label="Y"
-						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.offsetY || 0}
+						value={shadowValues.offsetY}
 						onChange={e => {
 							(currentSelectedElement?.[0] as fabric.Text)?.set(
 								'shadow',
 								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { offsetY: e }),
 							);
-							canvas.renderAll();
+							setShadowValues(prev => ({ ...prev, offsetY: e as number }));
+							canvas.requestRenderAll();
 						}}
-						min={-100}
-						max={100}
+						min={-artboardHeight}
+						max={artboardHeight}
 						step={1}
 					/>
 				</Group>
-				<Group spacing={8} grow>
-					<NumberInput
-						label="Blur"
-						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.blur || 0}
-						onChange={e => {
-							(currentSelectedElement?.[0] as fabric.Text)?.set(
-								'shadow',
-								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { blur: e }),
-							);
-							canvas.renderAll();
-						}}
-						min={0}
-						max={100}
-						step={1}
-					/>
-					<ColorInput
-						label="Color"
-						value={((currentSelectedElement?.[0] as fabric.Text).shadow as fabric.Shadow)?.color}
-						onChange={e => {
-							(currentSelectedElement?.[0] as fabric.Text)?.set(
-								'shadow',
-								Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { color: e }),
-							);
-							canvas.renderAll();
-						}}
-					/>
-				</Group>
+				<NumberInput
+					label="Blur"
+					value={shadowValues.blur}
+					onChange={e => {
+						(currentSelectedElement?.[0] as fabric.Text)?.set(
+							'shadow',
+							Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { blur: e }),
+						);
+						setShadowValues(prev => ({ ...prev, blur: e as number }));
+						canvas.requestRenderAll();
+					}}
+					min={0}
+					max={250}
+					step={0.1}
+					precision={1}
+				/>
+				<ColorInput
+					label="Color"
+					value={shadowValues.color}
+					onChange={e => {
+						(currentSelectedElement?.[0] as fabric.Text)?.set(
+							'shadow',
+							Object.assign({}, (currentSelectedElement?.[0] as fabric.Text).shadow, { color: e }),
+						);
+						setShadowValues(prev => ({ ...prev, color: e as string }));
+						canvas.requestRenderAll();
+					}}
+					format="hexa"
+				/>
 			</Stack>
 		</Stack>
 	);
 };
 
-const ImagePanel = ({ canvas, currentSelectedElement }: PanelProps) => {
+const ImagePanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+	const artboardWidth = artboardRef.current?.width ?? 100;
+	const artboardHeight = artboardRef.current?.height ?? 100;
+	const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
+	const [shadowValues, setShadowValues] = useState({
+		offsetX: shadow?.offsetX || 0,
+		offsetY: shadow?.offsetY || 0,
+		blur: shadow?.blur || 0,
+		color: shadow?.color || '#000000',
+	});
+
 	return (
 		<Stack>
 			<Box>Shadow</Box>
 			<Group spacing={8} grow>
 				<NumberInput
 					label="X"
-					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.offsetX || 0}
+					value={shadowValues.offsetX}
 					onChange={e => {
 						(currentSelectedElement?.[0] as fabric.Image)?.set(
 							'shadow',
 							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { offsetX: e }),
 						);
-						canvas.renderAll();
+						setShadowValues(prev => ({ ...prev, offsetX: e as number }));
+						canvas.requestRenderAll();
 					}}
-					min={-100}
-					max={100}
+					min={-artboardWidth}
+					max={artboardWidth}
 					step={1}
 				/>
 				<NumberInput
 					label="Y"
-					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.offsetY || 0}
+					value={shadowValues.offsetY}
 					onChange={e => {
 						(currentSelectedElement?.[0] as fabric.Image)?.set(
 							'shadow',
 							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { offsetY: e }),
 						);
-						canvas.renderAll();
+						setShadowValues(prev => ({ ...prev, offsetY: e as number }));
+						canvas.requestRenderAll();
 					}}
-					min={-100}
-					max={100}
+					min={-artboardHeight}
+					max={artboardHeight}
 					step={1}
 				/>
 			</Group>
-			<Group spacing={8} grow>
-				<NumberInput
-					label="Blur"
-					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.blur || 0}
-					onChange={e => {
-						(currentSelectedElement?.[0] as fabric.Image)?.set(
-							'shadow',
-							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { blur: e }),
-						);
-						canvas.renderAll();
-					}}
-					min={0}
-					max={100}
-					step={1}
-				/>
-				<ColorInput
-					label="Color"
-					value={((currentSelectedElement?.[0] as fabric.Image).shadow as fabric.Shadow)?.color}
-					onChange={e => {
-						(currentSelectedElement?.[0] as fabric.Image)?.set(
-							'shadow',
-							Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { color: e }),
-						);
-						canvas.renderAll();
-					}}
-					format="rgba"
-				/>
-			</Group>
+			<NumberInput
+				label="Blur"
+				value={shadowValues.blur}
+				onChange={e => {
+					(currentSelectedElement?.[0] as fabric.Image)?.set(
+						'shadow',
+						Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { blur: e }),
+					);
+					setShadowValues(prev => ({ ...prev, blur: e as number }));
+					canvas.requestRenderAll();
+				}}
+				min={0}
+				max={250}
+				precision={1}
+				step={0.1}
+			/>
+			<ColorInput
+				label="Color"
+				value={shadowValues.color}
+				onChange={e => {
+					(currentSelectedElement?.[0] as fabric.Image)?.set(
+						'shadow',
+						Object.assign({}, (currentSelectedElement?.[0] as fabric.Image).shadow, { color: e }),
+					);
+					setShadowValues(prev => ({ ...prev, color: e as string }));
+					canvas.requestRenderAll();
+				}}
+				format="hexa"
+			/>
 		</Stack>
 	);
 };
