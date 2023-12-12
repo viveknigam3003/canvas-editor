@@ -206,7 +206,7 @@ function App() {
 		});
 
 		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(['data', 'selectable']);
+		const json = offScreenCanvas.toJSON(['data', 'selectable', 'reflection']);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
@@ -241,7 +241,7 @@ function App() {
 		canvasRef.current?.add(artboardRect);
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(['data', 'selectable']);
+		const json = canvasRef.current?.toJSON(['data', 'selectable', 'reflection']);
 		const updatedArtboards = [
 			...artboards,
 			{
@@ -329,7 +329,7 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
-		const stateJSON = canvasRef.current?.toJSON(['data', 'selectable']);
+		const stateJSON = canvasRef.current?.toJSON(['data', 'selectable', 'reflection']);
 
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
@@ -345,7 +345,7 @@ function App() {
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(['data', 'selectable']));
+			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(['data', 'selectable', 'reflection']));
 
 			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
 
@@ -440,7 +440,7 @@ function App() {
 			return;
 		}
 
-		const json = canvasRef.current?.toJSON(['data', 'selectable']);
+		const json = canvasRef.current?.toJSON(['data', 'selectable', 'reflection']);
 		const updatedArtboards = artboards.map(item => {
 			if (item.id === selectedArtboard.id) {
 				return {

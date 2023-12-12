@@ -19,6 +19,10 @@ export function convertFabricObjectsToLayers(objects: { [key: string]: any }) {
 			return;
 		}
 
+		if (object.data.type === 'reflection') {
+			return;
+		}
+
 		layers.push({
 			id: ++elementId,
 			parent: parentId,

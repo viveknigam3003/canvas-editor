@@ -1,4 +1,4 @@
-import { ActionIcon, Box, ColorInput, Flex, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Checkbox, ColorInput, Flex, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import {
 	IconLayoutAlignBottom,
@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from 'react';
 import { getAltKey } from '../modules/utils/keyboard';
 import CustomFont from './CustomFont';
+import { PhoenixObject, createReflection, updateReflection } from './Reflection';
 
 type Font = {
 	family: string;
@@ -241,6 +242,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 		blur: 0,
 		color: '#000000',
 	});
+	const [reflection, setReflection] = useState(false);
 
 	useEffect(() => {
 		const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
@@ -251,6 +253,37 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 			color: shadow?.color || '#000000',
 		});
 	}, [currentSelectedElement]);
+
+	useEffect(() => {
+		if ((currentSelectedElement?.[0] as PhoenixObject).reflection) {
+			setReflection(true);
+		}
+	}, [currentSelectedElement]);
+
+	useEffect(() => {
+		if (reflection) {
+			currentSelectedElement?.[0].on('moving', () => {
+				console.log('moving');
+				updateReflection(currentSelectedElement?.[0], canvas);
+			});
+
+			currentSelectedElement?.[0].on('scaling', () => {
+				console.log('scaling');
+				updateReflection(currentSelectedElement?.[0], canvas);
+			});
+
+			currentSelectedElement?.[0].on('rotating', () => {
+				console.log('rotating');
+				updateReflection(currentSelectedElement?.[0], canvas);
+			});
+		}
+
+		return () => {
+			currentSelectedElement?.[0].off('moving');
+			currentSelectedElement?.[0].off('scaling');
+			currentSelectedElement?.[0].off('rotating');
+		};
+	}, [currentSelectedElement, canvas, reflection]);
 
 	return (
 		<Stack spacing={16}>
@@ -383,6 +416,31 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 						canvas.requestRenderAll();
 					}}
 					format="hexa"
+				/>
+			</Stack>
+			<Stack>
+				<Checkbox
+					label="Reflection"
+					checked={reflection}
+					onChange={e => {
+						setReflection(e.currentTarget.checked);
+						console.log('Checked?', e.currentTarget.checked);
+						if (e.currentTarget.checked) {
+							console.log('Creating reflection', currentSelectedElement?.[0]);
+							createReflection(currentSelectedElement?.[0] as PhoenixObject, canvas);
+							canvas.requestRenderAll();
+						} else {
+							console.log('Removing reflection', currentSelectedElement?.[0]);
+							// Remove reflection from canvas
+							const reflection = canvas.getObjects().find(object => object.data.type === 'reflection');
+							if (reflection) {
+								canvas.remove(reflection);
+							}
+							// Remove reflection from object
+							(currentSelectedElement?.[0] as PhoenixObject).reflection = null;
+							canvas.requestRenderAll();
+						}
+					}}
 				/>
 			</Stack>
 		</Stack>
