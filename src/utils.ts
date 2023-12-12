@@ -64,3 +64,7 @@ export function convertLayersToFabricObjects(layers: layer[]) {
 	console.log('object', rootObjects);
 	return rootObjects;
 }
+
+export const generateId = () => {
+	return Math.random().toString(36).substring(2, 9);
+};

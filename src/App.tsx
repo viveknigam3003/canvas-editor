@@ -35,10 +35,7 @@ import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
 import FontFaceObserver from 'fontfaceobserver';
-
-const generateId = () => {
-	return Math.random().toString(36).substring(2, 9);
-};
+import { generateId } from './utils';
 
 store.dispatch(appStart());
 

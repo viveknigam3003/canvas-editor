@@ -6,6 +6,7 @@ import { Artboard } from '../types';
 import ImageModal from './ImageModal';
 import { updateActiveArtboardLayers } from '../modules/app/actions';
 import { useDispatch } from 'react-redux';
+import { generateId } from '../utils';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -41,8 +42,10 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 			width: width / 10,
 			data: {
 				displayText: 'Text',
+				id: generateId(),
 			},
 		});
+
 		canvasRef.current?.add(text);
 		canvasRef.current?.setActiveObject(text);
 		text.enterEditing();

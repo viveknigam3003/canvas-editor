@@ -7,6 +7,7 @@ import { IconPhoto, IconSettings, IconUpload, IconLinkPlus } from '@tabler/icons
 import { useForm } from '@mantine/form';
 import { updateActiveArtboardLayers } from '../modules/app/actions';
 import { useDispatch } from 'react-redux';
+import { generateId } from '../utils';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
@@ -95,6 +96,9 @@ const ImageModal = ({
 					top: centerY,
 					scaleX: scale,
 					scaleY: scale,
+					data: {
+						id: generateId(),
+					},
 				});
 
 				canvasRef.current?.add(img);
