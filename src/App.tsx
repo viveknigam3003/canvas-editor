@@ -106,18 +106,20 @@ function App() {
 				if (!arr) {
 					return null;
 				}
-				// Once the selection is updated, if there is an element in the array, return it
-				if (event.selected && event.selected.length > 0) {
-					// Add the element to the array if it is not already in the array
-					return [...arr, ...event.selected];
-				}
 
-				if (event.deselected && event.deselected.length > 0) {
-					// Remove the element from the array if it is already in the array
-					return arr.filter(item => !event.deselected?.includes(item));
-				}
+				if (event.e.shiftKey) {
+					// Once the selection is updated, if there is an element in the array, return it
+					if (event.selected && event.selected.length > 0) {
+						// Add the element to the array if it is not already in the array
+						return [...arr, ...event.selected];
+					}
 
-				return arr;
+					if (event.deselected && event.deselected.length > 0) {
+						// Remove the element from the array if it is already in the array
+						return arr.filter(item => !event.deselected?.includes(item));
+					}
+				}
+				return event.selected as fabric.Object[];
 				// Else if the element is in the desected array, remove it
 			});
 		});
