@@ -36,7 +36,7 @@
 	"devDependencies": {
 		"@types/deep-diff": "^1.0.5",
 		"@types/diff": "^5.0.8",
-		"@types/fabric": "^5.3.5",
+		"@types/fabric": "^5.3.6",
 		"@types/react": "^18.2.15",
 		"@types/react-dom": "^18.2.7",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",

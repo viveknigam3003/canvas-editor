@@ -432,7 +432,13 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 						} else {
 							console.log('Removing reflection', currentSelectedElement?.[0]);
 							// Remove reflection from canvas
-							const reflection = canvas.getObjects().find(object => object.data.type === 'reflection');
+							const reflection = canvas
+								.getObjects()
+								.find(
+									object =>
+										object.data.type === 'reflection' &&
+										object.data.parent === currentSelectedElement?.[0].data.id,
+								);
 							if (reflection) {
 								canvas.remove(reflection);
 							}
