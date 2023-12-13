@@ -36,6 +36,7 @@ import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
 import { generateId } from './utils';
+import { PhoenixObject } from './components/Reflection';
 
 store.dispatch(appStart());
 
@@ -576,6 +577,7 @@ function App() {
 
 		const json = currentArtboardState.state;
 		canvasRef.current?.loadFromJSON(json, async () => {
+			console.log('Loaded from JSON');
 			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
@@ -610,6 +612,17 @@ function App() {
 			if (fontPromises) {
 				await Promise.all(fontPromises);
 			}
+
+			// Attach the reference for reflection object back to the parent object
+			canvasRef.current?.getObjects().forEach((obj: PhoenixObject) => {
+				const reflection = canvasRef.current
+					?.getObjects()
+					.find(item => item.data.type === 'reflection' && item.data.parent === obj.data.id);
+				console.log('reflection found', obj.data.id, reflection);
+				if (reflection) {
+					obj.reflection = reflection;
+				}
+			});
 
 			canvas.requestRenderAll();
 		});

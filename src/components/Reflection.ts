@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import { fabric as Fabric } from 'fabric';
 
 export interface PhoenixObject extends fabric.Object {
 	reflection?: fabric.Object | null;
@@ -18,9 +18,20 @@ export const createReflection = (original: PhoenixObject, canvas: fabric.Canvas)
 				parent: original.data.id,
 			},
 			selectable: false,
+			fill: new Fabric.Gradient({
+				type: 'linear',
+				coords: {
+					x1: 0,
+					y1: 0,
+					x2: 0,
+					y2: reflection.height, // Vertical gradient
+				},
+				colorStops: [
+					{ offset: 0, color: 'rgba(0,0,0,0)' }, // Adjust color and opacity as needed
+					{ offset: 1, color: 'rgba(0,0,0,0.8)' },
+				],
+			}),
 		});
-
-		// Optionally add a gradient or other effects here
 
 		// Add the reflection to the canvas and link it to the original
 		canvas.add(reflection);
@@ -31,10 +42,21 @@ export const createReflection = (original: PhoenixObject, canvas: fabric.Canvas)
 export const updateReflection = (original: PhoenixObject, canvas: fabric.Canvas) => {
 	// Set the reflection's position and angle to match the original
 	if (original.reflection) {
+		const elementTop = original.top!;
+		const elementLeft = original.left!;
+
+		const sin = Math.sin(Fabric.util.degreesToRadians(original.angle!));
+		const cos = Math.cos(Fabric.util.degreesToRadians(original.angle!));
+
+		const height = original.getScaledHeight() * 0.6;
+		const leftAdjustment = height * sin;
+		const topAdjustment = height * cos;
+
+		// Set reflection position
 		original.reflection.set({
-			top: original.top! + original.getScaledHeight() * 0.6,
-			left: original.left,
-			angle: original.angle!,
+			top: elementTop + topAdjustment,
+			left: elementLeft - leftAdjustment,
+			angle: original.angle,
 			scaleX: original.scaleX,
 			scaleY: -original.scaleY!,
 			flipX: original.flipX,

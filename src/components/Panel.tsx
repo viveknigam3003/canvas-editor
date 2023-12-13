@@ -272,8 +272,8 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 				updateReflection(currentSelectedElement?.[0], canvas);
 			});
 
-			currentSelectedElement?.[0].on('rotating', () => {
-				console.log('rotating');
+			currentSelectedElement?.[0].on('rotating', event => {
+				console.log('rotating', event);
 				updateReflection(currentSelectedElement?.[0], canvas);
 			});
 		}
