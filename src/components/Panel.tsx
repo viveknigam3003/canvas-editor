@@ -245,6 +245,23 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 	const [reflection, setReflection] = useState(false);
 
 	useEffect(() => {
+		const element = currentSelectedElement?.[0] as PhoenixObject;
+		const reflection = (currentSelectedElement?.[0] as PhoenixObject).reflection as fabric.Textbox;
+		if (reflection && element.type === 'textbox') {
+			element.on('resizing', () => {
+				reflection.width = element.width;
+				reflection.height = element.height;
+				canvas.requestRenderAll();
+			});
+
+			element.on('changed', () => {
+				reflection.text = (element as fabric.Textbox).text;
+				canvas.requestRenderAll();
+			});
+		}
+	}, [canvas, currentSelectedElement]);
+
+	useEffect(() => {
 		const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
 		setShadowValues({
 			offsetX: shadow?.offsetX || 0,
