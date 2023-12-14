@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store/rootReducer';
+import { RootState } from '../../store/rootReducer';
 
 import { createStyles } from '@mantine/core';
 import {
@@ -15,7 +15,7 @@ import {
 import Node from './Folders/Node';
 import Placeholder from './Folders/Placeholder';
 import useTreeOpenHandler from './Folders/useTreeOpenHandler';
-import { convertFabricObjectsToLayers, convertLayersToFabricObjects } from '../utils';
+import { convertFabricObjectsToLayers, convertLayersToFabricObjects } from './helpers';
 import { fabric } from 'fabric';
 
 const reorderArray = (array: NodeModel[], sourceIndex: number, targetIndex: number) => {

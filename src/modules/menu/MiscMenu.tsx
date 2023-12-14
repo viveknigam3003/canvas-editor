@@ -2,7 +2,8 @@ import { ActionIcon, Group, Tooltip } from '@mantine/core';
 import { IconArtboard } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { useState } from 'react';
-import { Artboard } from '../types';
+import { Artboard } from '../../types';
+import { generateId } from '../../utils';
 
 type MiscMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -11,10 +12,6 @@ type MiscMenuProps = {
 	artboards: Artboard[];
 };
 const RENDER_N = 2500;
-
-const generateId = () => {
-	return Math.random().toString(36).substr(2, 9);
-};
 
 export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 	const [isRendering, setRendering] = useState(false);

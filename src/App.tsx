@@ -23,20 +23,21 @@ import { fabric } from 'fabric';
 import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import AddMenu from './components/AddMenu';
-import LayerList from './components/LayerList';
-import MiscMenu from './components/MiscMenu';
+import AddMenu from './modules/menu/AddMenu';
+import LayerList from './modules/layers/List';
+import MiscMenu from './modules/menu/MiscMenu';
 import Panel from './components/Panel';
-import SettingsMenu from './components/SettingsMenu';
-import ZoomMenu from './components/ZoomMenu';
-import { useModalStyles, useQueryParam } from './hooks';
+import SettingsMenu from './modules/settings';
+import ZoomMenu from './modules/zoom';
+import { useQueryParam } from './hooks';
 import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
 import { generateId } from './utils';
-import { PhoenixObject } from './components/Reflection';
+import { PhoenixObject } from './modules/reflection/helpers';
+import { useModalStyles } from './styles/modal';
 
 store.dispatch(appStart());
 
@@ -315,9 +316,9 @@ function App() {
 	};
 
 	const exportArtboard = () => {
-		const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard')
+		const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')
 			?.left;
-		const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard')?.top;
+		const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')?.top;
 
 		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
 			return;
@@ -578,7 +579,7 @@ function App() {
 		const json = currentArtboardState.state;
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
-			const artboard = canvasRef.current?.getObjects().find(item => item.data.type === 'artboard');
+			const artboard = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard');
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
 			}
@@ -617,8 +618,8 @@ function App() {
 			canvasRef.current?.getObjects().forEach((obj: PhoenixObject) => {
 				const reflection = canvasRef.current
 					?.getObjects()
-					.find(item => item.data.type === 'reflection' && item.data.parent === obj.data.id);
-				console.log('reflection found', obj.data.id, reflection);
+					.find(item => item.data?.type === 'reflection' && item.data.parent === obj.data?.id);
+				console.log('reflection found', obj.data?.id, reflection);
 				if (reflection) {
 					obj.reflection = reflection;
 				}

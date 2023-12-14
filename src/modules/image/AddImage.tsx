@@ -1,13 +1,13 @@
 import { Button, Modal, Stack, TextInput } from '@mantine/core';
-import { Artboard } from '../types';
-import { useModalStyles } from '../hooks';
+import { Artboard } from '../../types';
 import { fabric } from 'fabric';
 import { Tabs, FileInput } from '@mantine/core';
 import { IconPhoto, IconSettings, IconUpload, IconLinkPlus } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
-import { updateActiveArtboardLayers } from '../modules/app/actions';
+import { updateActiveArtboardLayers } from '../../modules/app/actions';
 import { useDispatch } from 'react-redux';
-import { generateId } from '../utils';
+import { generateId } from '../../utils';
+import { useModalStyles } from '../../styles/modal';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
