@@ -245,6 +245,24 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 	const [reflection, setReflection] = useState(false);
 
 	useEffect(() => {
+		const element = currentSelectedElement?.[0] as PhoenixObject;
+		const reflection = (currentSelectedElement?.[0] as PhoenixObject).reflection as fabric.Textbox;
+		if (reflection && element.type === 'textbox') {
+			element.on('resizing', () => {
+				reflection.width = element.width;
+				reflection.height = element.height;
+				updateReflection(element, canvas);
+			});
+
+			element.on('changed', () => {
+				reflection.text = (element as fabric.Textbox).text;
+				canvas.requestRenderAll();
+				updateReflection(element, canvas);
+			});
+		}
+	}, [canvas, currentSelectedElement]);
+
+	useEffect(() => {
 		const shadow = (currentSelectedElement?.[0] as fabric.Image)?.shadow as fabric.Shadow;
 		setShadowValues({
 			offsetX: shadow?.offsetX || 0,
@@ -272,8 +290,8 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 				updateReflection(currentSelectedElement?.[0], canvas);
 			});
 
-			currentSelectedElement?.[0].on('rotating', () => {
-				console.log('rotating');
+			currentSelectedElement?.[0].on('rotating', event => {
+				console.log('rotating', event);
 				updateReflection(currentSelectedElement?.[0], canvas);
 			});
 		}
@@ -432,7 +450,13 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 						} else {
 							console.log('Removing reflection', currentSelectedElement?.[0]);
 							// Remove reflection from canvas
-							const reflection = canvas.getObjects().find(object => object.data.type === 'reflection');
+							const reflection = canvas
+								.getObjects()
+								.find(
+									object =>
+										object.data.type === 'reflection' &&
+										object.data.parent === currentSelectedElement?.[0].data.id,
+								);
 							if (reflection) {
 								canvas.remove(reflection);
 							}
