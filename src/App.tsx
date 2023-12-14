@@ -582,6 +582,8 @@ function App() {
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
 			}
+			zoomToFit();
+
 			// create a style sheet
 			const artboardTexts = canvasRef.current?.getObjects().filter(item => item.type === 'textbox');
 			// take all texts and then loop over. Read data property inside and get font from it
