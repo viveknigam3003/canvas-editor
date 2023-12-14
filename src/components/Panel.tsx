@@ -251,12 +251,13 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 			element.on('resizing', () => {
 				reflection.width = element.width;
 				reflection.height = element.height;
-				canvas.requestRenderAll();
+				updateReflection(element, canvas);
 			});
 
 			element.on('changed', () => {
 				reflection.text = (element as fabric.Textbox).text;
 				canvas.requestRenderAll();
+				updateReflection(element, canvas);
 			});
 		}
 	}, [canvas, currentSelectedElement]);
