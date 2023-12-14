@@ -1,12 +1,17 @@
 import { ActionIcon, Box, Checkbox, ColorInput, Flex, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import {
+	IconBold,
+	IconItalic,
 	IconLayoutAlignBottom,
 	IconLayoutAlignCenter,
 	IconLayoutAlignLeft,
 	IconLayoutAlignMiddle,
 	IconLayoutAlignRight,
 	IconLayoutAlignTop,
+	IconSubscript,
+	IconSuperscript,
+	IconUnderline,
 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { getAltKey } from '../modules/utils/keyboard';
@@ -285,6 +290,44 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 		};
 	}, [currentSelectedElement, canvas, reflection]);
 
+	const toggleBold = () => {
+		const textElement = currentSelectedElement?.[0] as fabric.Text;
+		if (textElement.fontWeight === 'bold') {
+			textElement.set({ fontWeight: 'normal' });
+		} else {
+			textElement.set({ fontWeight: 'bold' });
+		}
+		canvas.requestRenderAll();
+	};
+	const toggleItalic = () => {
+		const textElement = currentSelectedElement?.[0] as fabric.Text;
+		if (textElement.fontStyle === 'italic') {
+			textElement.set({ fontStyle: 'normal' });
+		} else {
+			textElement.set({ fontStyle: 'italic' });
+		}
+		canvas.requestRenderAll();
+	};
+	const toggleUndeline = () => {
+		const textElement = currentSelectedElement?.[0] as fabric.Text;
+		if (textElement.underline) {
+			textElement.set({ underline: false });
+		} else {
+			textElement.set({ underline: true });
+		}
+		canvas.requestRenderAll();
+	};
+	const toggleSuperscript = () => {
+		const textElement = currentSelectedElement?.[0] as fabric.Textbox;
+		const start = textElement.selectionStart;
+		const end = textElement.selectionEnd;
+		const selectedStyles = textElement.getSelectionStyles(start, end);
+		const selectedText = textElement?.text?.slice(start, end);
+
+		console.log('Selected text:', selectedText);
+		console.log('Selected styles:', selectedStyles);
+	};
+
 	return (
 		<Stack spacing={16}>
 			<Box>Font Family</Box>
@@ -354,6 +397,42 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 					/>
 				</Box>
 			)}
+			<Stack>
+				<Box>Font Styling</Box>
+				<div style={{ display: 'flex', justifyContent: 'space-around' }}>
+					<ActionIcon
+						onClick={() => {
+							toggleBold();
+						}}
+					>
+						<IconBold size={20} />
+					</ActionIcon>
+					<ActionIcon
+						onClick={() => {
+							toggleItalic();
+						}}
+					>
+						<IconItalic size={20} />
+					</ActionIcon>
+					<ActionIcon
+						onClick={() => {
+							toggleUndeline();
+						}}
+					>
+						<IconUnderline size={20} />
+					</ActionIcon>
+					<ActionIcon
+						onClick={() => {
+							toggleSuperscript();
+						}}
+					>
+						<IconSuperscript size={20} />
+					</ActionIcon>
+					<ActionIcon>
+						<IconSubscript size={20} />
+					</ActionIcon>
+				</div>
+			</Stack>
 			<Stack>
 				<Box>Shadow</Box>
 				<Group spacing={8} grow>
