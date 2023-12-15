@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PhoenixObject, createReflection, updateReflection } from '../reflection/helpers';
+import { SmartObject, createReflection, updateReflection } from '../reflection/helpers';
 import { Checkbox } from '@mantine/core';
 
 interface ReflectionProps {
@@ -11,7 +11,7 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 	const [reflection, setReflection] = useState(false);
 
 	useEffect(() => {
-		if ((currentSelectedElements?.[0] as PhoenixObject).reflection) {
+		if ((currentSelectedElements?.[0] as SmartObject).reflection) {
 			setReflection(true);
 		} else {
 			setReflection(false);
@@ -19,8 +19,8 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 	}, [currentSelectedElements]);
 
 	useEffect(() => {
-		const element = currentSelectedElements?.[0] as PhoenixObject;
-		const reflection = (currentSelectedElements?.[0] as PhoenixObject).reflection as fabric.Textbox;
+		const element = currentSelectedElements?.[0] as SmartObject;
+		const reflection = (currentSelectedElements?.[0] as SmartObject).reflection as fabric.Textbox;
 		if (reflection && element.type === 'textbox') {
 			element.on('resizing', () => {
 				reflection.width = element.width;
@@ -69,7 +69,7 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 				console.log('Checked?', e.currentTarget.checked);
 				if (e.currentTarget.checked) {
 					console.log('Creating reflection', currentSelectedElements?.[0]);
-					createReflection(currentSelectedElements?.[0] as PhoenixObject, canvas);
+					createReflection(currentSelectedElements?.[0] as SmartObject, canvas);
 					canvas.requestRenderAll();
 				} else {
 					console.log('Removing reflection', currentSelectedElements?.[0]);
@@ -85,7 +85,7 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 						canvas.remove(reflection);
 					}
 					// Remove reflection from object
-					(currentSelectedElements?.[0] as PhoenixObject).reflection = null;
+					(currentSelectedElements?.[0] as SmartObject).reflection = null;
 					canvas.requestRenderAll();
 				}
 			}}

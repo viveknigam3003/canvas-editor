@@ -36,7 +36,7 @@ import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType } from './types';
 import { generateId } from './utils';
-import { PhoenixObject } from './modules/reflection/helpers';
+import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 
 store.dispatch(appStart());
@@ -617,7 +617,7 @@ function App() {
 			}
 
 			// Attach the reference for reflection object back to the parent object
-			canvasRef.current?.getObjects().forEach((obj: PhoenixObject) => {
+			canvasRef.current?.getObjects().forEach((obj: SmartObject) => {
 				const reflection = canvasRef.current
 					?.getObjects()
 					.find(item => item.data?.type === 'reflection' && item.data.parent === obj.data?.id);
