@@ -8,11 +8,11 @@ import { Font } from './types';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
-	currentSelectedElement: fabric.Object[];
+	currentSelectedElements: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
 	const [fontList, setFontList] = useState<Font[]>([]);
 	const [value, setValue] = useState('');
 	const [fontWeight, setFontWeight] = useState('regular');
@@ -28,7 +28,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 	}, []);
 
 	const toggleBold = () => {
-		const textElement = currentSelectedElement?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement.fontWeight === 'bold') {
 			textElement.set({ fontWeight: 'normal' });
 		} else {
@@ -37,7 +37,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 		canvas.requestRenderAll();
 	};
 	const toggleItalic = () => {
-		const textElement = currentSelectedElement?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement.fontStyle === 'italic') {
 			textElement.set({ fontStyle: 'normal' });
 		} else {
@@ -46,7 +46,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 		canvas.requestRenderAll();
 	};
 	const toggleUndeline = () => {
-		const textElement = currentSelectedElement?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement.underline) {
 			textElement.set({ underline: false });
 		} else {
@@ -55,7 +55,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 		canvas.requestRenderAll();
 	};
 	const toggleSuperscript = () => {
-		const textElement = currentSelectedElement?.[0] as fabric.Textbox;
+		const textElement = currentSelectedElements?.[0] as fabric.Textbox;
 		const start = textElement.selectionStart;
 		const end = textElement.selectionEnd;
 		const selectedStyles = textElement.getSelectionStyles(start, end);
@@ -68,7 +68,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 	return (
 		<Stack spacing={16}>
 			<Box>Font Family</Box>
-			<CustomFont onLoad={() => {}} canvas={canvas} currentSelectedElement={currentSelectedElement[0]} />
+			<CustomFont onLoad={() => {}} canvas={canvas} currentSelectedElements={currentSelectedElements} />
 			<Select
 				searchable
 				value={value}
@@ -90,7 +90,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 							const styleElement = document.createElement('style');
 							styleElement.appendChild(document.createTextNode(fontFaceRule));
 							document.head.appendChild(styleElement);
-							(currentSelectedElement?.[0] as fabric.Text)?.set('fontFamily', font.family);
+							(currentSelectedElements?.[0] as fabric.Text)?.set('fontFamily', font.family);
 							canvas.requestRenderAll();
 						})
 						.catch(error => console.error('Error loading font:', error));
@@ -122,7 +122,7 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 									const styleElement = document.createElement('style');
 									styleElement.appendChild(document.createTextNode(fontFaceRule));
 									document.head.appendChild(styleElement);
-									(currentSelectedElement?.[0] as fabric.Text)?.set('fontWeight', e as string);
+									(currentSelectedElements?.[0] as fabric.Text)?.set('fontWeight', e as string);
 									canvas.requestRenderAll();
 								})
 								.catch(error => console.error('Error loading font:', error));
@@ -172,10 +172,10 @@ const TextPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) 
 			</Stack>
 			<Stack>
 				<Box>Shadow</Box>
-				<Shadow canvas={canvas} currentSelectedElement={currentSelectedElement[0]} artboardRef={artboardRef} />
+				<Shadow canvas={canvas} currentSelectedElements={currentSelectedElements} artboardRef={artboardRef} />
 			</Stack>
 			<Stack>
-				<Reflection canvas={canvas} currentSelectedElement={currentSelectedElement} />
+				<Reflection canvas={canvas} currentSelectedElements={currentSelectedElements} />
 			</Stack>
 		</Stack>
 	);
