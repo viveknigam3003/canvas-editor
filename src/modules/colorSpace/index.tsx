@@ -1,6 +1,7 @@
 import { Button, Group, Modal, Radio, Stack, Text } from '@mantine/core';
 import { useState } from 'react';
-import { useModalStyles, useQueryParam } from '../hooks';
+import { useQueryParam } from './hooks';
+import { useModalStyles } from '../../styles/modal';
 
 const ColorSpaceSwitch = ({ open, onClose, recreateCanvas }: any) => {
 	// const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();

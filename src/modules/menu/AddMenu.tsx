@@ -2,11 +2,11 @@ import { ActionIcon, Group, Tooltip } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { IconLayersSubtract, IconLetterT, IconPhoto, IconSquare } from '@tabler/icons-react';
 import { fabric } from 'fabric';
-import { Artboard } from '../types';
-import ImageModal from './ImageModal';
-import { updateActiveArtboardLayers } from '../modules/app/actions';
+import { Artboard } from '../../types';
+import ImageModal from '../image/AddImage';
+import { updateActiveArtboardLayers } from '../app/actions';
 import { useDispatch } from 'react-redux';
-import { generateId } from '../utils';
+import { generateId } from '../../utils';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;

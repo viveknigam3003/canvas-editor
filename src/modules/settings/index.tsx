@@ -9,9 +9,9 @@ import {
 	IconSettings,
 	IconSun,
 } from '@tabler/icons-react';
-import { useMenuStyles } from '../hooks';
-import { getAltKey, getModKey } from '../modules/utils/keyboard';
-import ColorSpaceSwitch from './ColorSpaceSwitch';
+import { getAltKey, getModKey } from '../../modules/utils/keyboard';
+import ColorSpaceSwitch from '../../modules/colorSpace';
+import { useMenuStyles } from '../../styles/menu';
 
 interface Props {
 	canvasRef: React.RefObject<fabric.Canvas>;

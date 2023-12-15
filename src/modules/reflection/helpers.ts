@@ -1,13 +1,13 @@
 import { fabric as Fabric } from 'fabric';
 
-export interface PhoenixObject extends fabric.Object {
+export interface SmartObject extends fabric.Object {
 	reflection?: fabric.Object | null;
 }
 
-export const createReflection = (original: PhoenixObject, canvas: fabric.Canvas) => {
+export const createReflection = (original: SmartObject, canvas: fabric.Canvas) => {
 	// Clone the original object to create the reflection
-	original.clone((cloned: PhoenixObject) => {
-		const reflection: PhoenixObject = cloned;
+	original.clone((cloned: SmartObject) => {
+		const reflection: SmartObject = cloned;
 		reflection.set({
 			// Set reflection properties
 			top: original.top! + original.getScaledHeight(),
@@ -42,7 +42,7 @@ export const createReflection = (original: PhoenixObject, canvas: fabric.Canvas)
 	});
 };
 
-export const updateReflection = (original: PhoenixObject, canvas: fabric.Canvas) => {
+export const updateReflection = (original: SmartObject, canvas: fabric.Canvas) => {
 	// Set the reflection's position and angle to match the original
 	if (original.reflection) {
 		const elementTop = original.top!;

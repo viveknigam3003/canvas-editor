@@ -1,8 +1,8 @@
 import { Box, Button, Menu, Text } from '@mantine/core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut, IconZoomReset } from '@tabler/icons-react';
 import React from 'react';
-import { useMenuStyles } from '../hooks';
-import { getModKey } from '../modules/utils/keyboard';
+import { getModKey } from '../../modules/utils/keyboard';
+import { useMenuStyles } from '../../styles/menu';
 
 interface Props {
 	/**

@@ -4,12 +4,12 @@ import FontFaceObserver from 'fontfaceobserver';
 
 interface CustomFontProps {
 	onLoad: () => void;
-	currentSelectedElement: fabric.Object;
+	currentSelectedElements: fabric.Object[];
 	canvas: fabric.Canvas;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelectedElement }) => {
+const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelectedElements }) => {
 	const [name, setName] = useState('');
 	const [url, setUrl] = useState('');
 	const [modalOpen, setModalOpen] = useState(false);
@@ -39,9 +39,9 @@ const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelected
 			() => {
 				console.log('Font is available');
 				// set font family of canvas text
-				console.log('first', currentSelectedElement);
-				if (currentSelectedElement && currentSelectedElement) {
-					const textElement = currentSelectedElement as fabric.Text;
+				console.log('first', currentSelectedElements);
+				if (currentSelectedElements && currentSelectedElements) {
+					const textElement = currentSelectedElements?.[0] as fabric.Text;
 					textElement.set({ fontFamily: name, data: { ...textElement.data, font: fontFaceRule } });
 					canvas.renderAll();
 				}
