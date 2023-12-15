@@ -33,7 +33,7 @@ const SettingsMenu: React.FC<Props> = ({
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
 
 	const debug = () => {
-		console.log(canvasRef.current?.toJSON(['data', 'selectable', 'reflection']));
+		console.log(canvasRef.current?.toJSON(['data', 'selectable', 'effects']));
 		notifications.show({
 			icon: <IconBug size={14} />,
 			title: 'Logged state',
