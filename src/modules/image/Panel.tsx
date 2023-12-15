@@ -3,15 +3,15 @@ import Shadow from '../shadow';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
-	currentSelectedElement: fabric.Object[];
+	currentSelectedElements: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const ImagePanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+const ImagePanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
 	return (
 		<Stack>
 			<Box>Shadow</Box>
-			<Shadow currentSelectedElement={currentSelectedElement?.[0]} canvas={canvas} artboardRef={artboardRef} />
+			<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} artboardRef={artboardRef} />
 		</Stack>
 	);
 };

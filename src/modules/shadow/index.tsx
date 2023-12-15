@@ -2,12 +2,12 @@ import { Box, ColorInput, Group, NumberInput } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 
 interface ShadowProps {
-	currentSelectedElement: fabric.Object;
+	currentSelectedElements: fabric.Object[];
 	canvas: fabric.Canvas;
 	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const Shadow: React.FC<ShadowProps> = ({ currentSelectedElement, canvas, artboardRef }) => {
+const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas, artboardRef }) => {
 	const artboardWidth = artboardRef.current?.width ?? 100;
 	const artboardHeight = artboardRef.current?.height ?? 100;
 	const [shadowValues, setShadowValues] = useState({
@@ -18,14 +18,14 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElement, canvas, artboar
 	});
 
 	useEffect(() => {
-		const shadow = currentSelectedElement?.shadow as fabric.Shadow;
+		const shadow = currentSelectedElements?.[0]?.shadow as fabric.Shadow;
 		setShadowValues({
 			offsetX: shadow?.offsetX || 0,
 			offsetY: shadow?.offsetY || 0,
 			blur: shadow?.blur || 0,
 			color: shadow?.color || '#000000',
 		});
-	}, [currentSelectedElement]);
+	}, [currentSelectedElements]);
 
 	return (
 		<Box>
@@ -34,9 +34,9 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElement, canvas, artboar
 					label="X"
 					value={shadowValues.offsetX}
 					onChange={e => {
-						currentSelectedElement.set(
+						currentSelectedElements?.[0].set(
 							'shadow',
-							Object.assign({}, currentSelectedElement.shadow, { offsetX: e }),
+							Object.assign({}, currentSelectedElements?.[0].shadow, { offsetX: e }),
 						);
 						setShadowValues(prev => ({ ...prev, offsetX: e as number }));
 						canvas.requestRenderAll();
@@ -49,9 +49,9 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElement, canvas, artboar
 					label="Y"
 					value={shadowValues.offsetY}
 					onChange={e => {
-						currentSelectedElement.set(
+						currentSelectedElements?.[0].set(
 							'shadow',
-							Object.assign({}, currentSelectedElement.shadow, { offsetY: e }),
+							Object.assign({}, currentSelectedElements?.[0].shadow, { offsetY: e }),
 						);
 						setShadowValues(prev => ({ ...prev, offsetY: e as number }));
 						canvas.requestRenderAll();
@@ -65,7 +65,10 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElement, canvas, artboar
 				label="Blur"
 				value={shadowValues.blur}
 				onChange={e => {
-					currentSelectedElement.set('shadow', Object.assign({}, currentSelectedElement.shadow, { blur: e }));
+					currentSelectedElements?.[0].set(
+						'shadow',
+						Object.assign({}, currentSelectedElements?.[0].shadow, { blur: e }),
+					);
 					setShadowValues(prev => ({ ...prev, blur: e as number }));
 					canvas.requestRenderAll();
 				}}
@@ -78,9 +81,9 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElement, canvas, artboar
 				label="Color"
 				value={shadowValues.color}
 				onChange={e => {
-					currentSelectedElement.set(
+					currentSelectedElements?.[0].set(
 						'shadow',
-						Object.assign({}, currentSelectedElement.shadow, { color: e }),
+						Object.assign({}, currentSelectedElements?.[0].shadow, { color: e }),
 					);
 					setShadowValues(prev => ({ ...prev, color: e as string }));
 					canvas.requestRenderAll();

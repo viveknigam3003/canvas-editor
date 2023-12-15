@@ -52,7 +52,7 @@ function App() {
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
 	const [autosaveChanges, setAutoSaveChanges] = useState(false);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
-	const [currentSelectedElement, setCurrentSelectedElement] = useState<fabric.Object[] | null>(null);
+	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
@@ -101,10 +101,10 @@ function App() {
 		});
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
-			setCurrentSelectedElement(event.selected as fabric.Object[]);
+			setCurrentSelectedElements(event.selected as fabric.Object[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
-			setCurrentSelectedElement(arr => {
+			setCurrentSelectedElements(arr => {
 				if (!arr) {
 					return null;
 				}
@@ -126,7 +126,7 @@ function App() {
 			});
 		});
 		canvasRef.current?.on('selection:cleared', function () {
-			setCurrentSelectedElement(null);
+			setCurrentSelectedElements(null);
 		});
 
 		return () => {
@@ -924,11 +924,11 @@ function App() {
 				</Center>
 				{showSidebar ? (
 					<Box className={classes.right}>
-						{canvasRef.current && currentSelectedElement && (
+						{canvasRef.current && currentSelectedElements && (
 							<Panel
 								artboardRef={artboardRef}
 								canvas={canvasRef.current}
-								currentSelectedElement={currentSelectedElement}
+								currentSelectedElements={currentSelectedElements}
 							/>
 						)}
 					</Box>

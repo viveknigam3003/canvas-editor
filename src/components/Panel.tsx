@@ -5,23 +5,35 @@ import TextPanel from '../modules/text/Panel';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
-	currentSelectedElement: fabric.Object[];
+	currentSelectedElements: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 };
 
-const Panel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
-	if (!currentSelectedElement || currentSelectedElement?.length !== 1) {
+const Panel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
+	if (!currentSelectedElements || currentSelectedElements?.length !== 1) {
 		return null;
 	}
 
 	return (
 		<Stack>
-			<AlignmentPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
-			{currentSelectedElement?.[0]?.type === 'textbox' && (
-				<TextPanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
+			<AlignmentPanel
+				artboardRef={artboardRef}
+				canvas={canvas}
+				currentSelectedElements={currentSelectedElements}
+			/>
+			{currentSelectedElements?.[0]?.type === 'textbox' && (
+				<TextPanel
+					artboardRef={artboardRef}
+					canvas={canvas}
+					currentSelectedElements={currentSelectedElements}
+				/>
 			)}
-			{currentSelectedElement?.[0]?.type === 'image' && (
-				<ImagePanel artboardRef={artboardRef} canvas={canvas} currentSelectedElement={currentSelectedElement} />
+			{currentSelectedElements?.[0]?.type === 'image' && (
+				<ImagePanel
+					artboardRef={artboardRef}
+					canvas={canvas}
+					currentSelectedElements={currentSelectedElements}
+				/>
 			)}
 		</Stack>
 	);

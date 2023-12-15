@@ -13,11 +13,11 @@ import { alignElementToRect } from './helpers';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
-	currentSelectedElement: fabric.Object[];
+	currentSelectedElements: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 };
 
-const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelProps) => {
+const AlignmentPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
 	//TODO: fix this
 	const castedArtboardRef = artboardRef.current as fabric.Rect;
 	useHotkeys([
@@ -25,87 +25,88 @@ const AlignmentPanel = ({ canvas, currentSelectedElement, artboardRef }: PanelPr
 			'alt+a',
 			e => {
 				e.preventDefault();
-				alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas);
+				alignElementToRect(currentSelectedElements, castedArtboardRef, 'left', canvas);
 			},
 		],
 		[
 			'alt+d',
 			e => {
 				e.preventDefault();
-				alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas);
+				alignElementToRect(currentSelectedElements, castedArtboardRef, 'right', canvas);
 			},
 		],
 		[
 			'alt+h',
 			e => {
 				e.preventDefault();
-				alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas);
+				alignElementToRect(currentSelectedElements, castedArtboardRef, 'center', canvas);
 			},
 		],
 		[
 			'alt+w',
 			e => {
 				e.preventDefault();
-				alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas);
+				alignElementToRect(currentSelectedElements, castedArtboardRef, 'top', canvas);
 			},
 		],
 		[
 			'alt+s',
 			e => {
 				e.preventDefault();
-				alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas);
+				alignElementToRect(currentSelectedElements, castedArtboardRef, 'bottom', canvas);
 			},
 		],
 		[
 			'alt+v',
 			e => {
 				e.preventDefault();
-				alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas);
+				alignElementToRect(currentSelectedElements, castedArtboardRef, 'middle', canvas);
 			},
 		],
 	]);
+
 	return (
 		<Stack>
 			<Box>Alignment</Box>
 			<Flex gap={16}>
 				<Tooltip label={`Align Left (${getAltKey()} + A)`}>
 					<ActionIcon
-						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'left', canvas)}
+						onClick={() => alignElementToRect(currentSelectedElements, castedArtboardRef, 'left', canvas)}
 					>
 						<IconLayoutAlignLeft />
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label={`Align Center (${getAltKey()} + H)`}>
 					<ActionIcon
-						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'center', canvas)}
+						onClick={() => alignElementToRect(currentSelectedElements, castedArtboardRef, 'center', canvas)}
 					>
 						<IconLayoutAlignMiddle />{' '}
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label={`Align Right (${getAltKey()} + D)`}>
 					<ActionIcon
-						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'right', canvas)}
+						onClick={() => alignElementToRect(currentSelectedElements, castedArtboardRef, 'right', canvas)}
 					>
 						<IconLayoutAlignRight />
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label={`Align Top (${getAltKey()} + W)`}>
 					<ActionIcon
-						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'top', canvas)}
+						onClick={() => alignElementToRect(currentSelectedElements, castedArtboardRef, 'top', canvas)}
 					>
 						<IconLayoutAlignTop />
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label={`Align Middle (${getAltKey()} + V)`}>
 					<ActionIcon
-						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'middle', canvas)}
+						onClick={() => alignElementToRect(currentSelectedElements, castedArtboardRef, 'middle', canvas)}
 					>
 						<IconLayoutAlignCenter />
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label={`Align Bottom (${getAltKey()} + S)`}>
 					<ActionIcon
-						onClick={() => alignElementToRect(currentSelectedElement, castedArtboardRef, 'bottom', canvas)}
+						onClick={() => alignElementToRect(currentSelectedElements, castedArtboardRef, 'bottom', canvas)}
 					>
 						<IconLayoutAlignBottom />
 					</ActionIcon>

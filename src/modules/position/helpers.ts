@@ -16,14 +16,14 @@ export const getExtremePoints = (object: fabric.Object) => {
 };
 
 export const alignElementToRect = (
-	currentSelectedElement: fabric.Object[],
+	currentSelectedElements: fabric.Object[],
 	targetRect: fabric.Rect,
 	position: string,
 	canvas: fabric.Canvas,
 ) => {
 	switch (position) {
 		case 'left':
-			currentSelectedElement.forEach(element => {
+			currentSelectedElements.forEach(element => {
 				if (!targetRect.left || !element.left) throw new Error('Invalid target rect in left align');
 				element.set({
 					left: targetRect.left + (element.left - getExtremePoints(element).left),
@@ -31,7 +31,7 @@ export const alignElementToRect = (
 			});
 			break;
 		case 'center':
-			currentSelectedElement.forEach(element => {
+			currentSelectedElements.forEach(element => {
 				if (!targetRect.left || !element.left || !targetRect.width)
 					throw new Error('Invalid target rect in center align');
 				const artboardCenter = targetRect.left + (targetRect.width + targetRect.left - targetRect.left) / 2;
@@ -47,7 +47,7 @@ export const alignElementToRect = (
 
 			break;
 		case 'right':
-			currentSelectedElement.forEach(element => {
+			currentSelectedElements.forEach(element => {
 				element.set({
 					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 					//@ts-ignore
@@ -56,7 +56,7 @@ export const alignElementToRect = (
 			});
 			break;
 		case 'top':
-			currentSelectedElement.forEach(element => {
+			currentSelectedElements.forEach(element => {
 				if (!targetRect.top || !element.top || !targetRect.width)
 					throw new Error('Invalid target rect in top align');
 				element.set({
@@ -65,7 +65,7 @@ export const alignElementToRect = (
 			});
 			break;
 		case 'middle':
-			currentSelectedElement.forEach(element => {
+			currentSelectedElements.forEach(element => {
 				if (!targetRect.top || !element.top || !targetRect.height)
 					throw new Error('Invalid target rect in middle align');
 				const artboardCenter = targetRect.top + (targetRect.height + targetRect.top - targetRect.top) / 2;
@@ -80,7 +80,7 @@ export const alignElementToRect = (
 			});
 			break;
 		case 'bottom':
-			currentSelectedElement.forEach(element => {
+			currentSelectedElements.forEach(element => {
 				element.set({
 					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 					//@ts-ignore
