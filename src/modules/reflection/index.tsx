@@ -62,7 +62,7 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 	}, [currentSelectedElements, canvas, reflection]);
 	return (
 		<Checkbox
-			label="Apply reflection"
+			label="Show reflection"
 			checked={reflection}
 			onChange={e => {
 				setReflection(e.currentTarget.checked);

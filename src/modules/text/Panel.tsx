@@ -1,10 +1,11 @@
-import { ActionIcon, Box, Select, Stack } from '@mantine/core';
+import { ActionIcon, Box, Divider, Select, Stack } from '@mantine/core';
 import { IconBold, IconItalic, IconSubscript, IconSuperscript, IconUnderline } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Reflection from '../reflection';
 import Shadow from '../shadow';
 import CustomFont from './CustomFont';
 import { Font } from './types';
+import SectionTitle from '../../components/SectionTitle';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
@@ -67,7 +68,7 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 
 	return (
 		<Stack spacing={16}>
-			<Box>Font Family</Box>
+			<SectionTitle>Font Family</SectionTitle>
 			<CustomFont onLoad={() => {}} canvas={canvas} currentSelectedElements={currentSelectedElements} />
 			<Select
 				searchable
@@ -102,7 +103,7 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 			/>
 			{currentFont && (
 				<Box>
-					<Box>Font Weight</Box>
+					<SectionTitle>Font Weight</SectionTitle>
 
 					<Select
 						value={fontWeight}
@@ -134,8 +135,9 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 					/>
 				</Box>
 			)}
+			<Divider />
 			<Stack>
-				<Box>Font Styling</Box>
+				<SectionTitle>Font Styling</SectionTitle>
 				<div style={{ display: 'flex', justifyContent: 'space-around' }}>
 					<ActionIcon
 						onClick={() => {
@@ -170,11 +172,14 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 					</ActionIcon>
 				</div>
 			</Stack>
+			<Divider />
 			<Stack>
-				<Box>Shadow</Box>
+				<SectionTitle>Shadow</SectionTitle>
 				<Shadow canvas={canvas} currentSelectedElements={currentSelectedElements} artboardRef={artboardRef} />
 			</Stack>
+			<Divider />
 			<Stack>
+				<SectionTitle>Reflection</SectionTitle>
 				<Reflection canvas={canvas} currentSelectedElements={currentSelectedElements} />
 			</Stack>
 		</Stack>

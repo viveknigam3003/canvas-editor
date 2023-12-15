@@ -1,4 +1,5 @@
-import { Box, Stack } from '@mantine/core';
+import { Stack } from '@mantine/core';
+import SectionTitle from '../../components/SectionTitle';
 import Shadow from '../shadow';
 
 interface PanelProps {
@@ -10,7 +11,7 @@ interface PanelProps {
 const ImagePanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
 	return (
 		<Stack>
-			<Box>Shadow</Box>
+			<SectionTitle>Shadow</SectionTitle>
 			<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} artboardRef={artboardRef} />
 		</Stack>
 	);

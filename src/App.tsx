@@ -38,6 +38,7 @@ import { Artboard, colorSpaceType } from './types';
 import { generateId } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
+import SectionTitle from './components/SectionTitle';
 
 store.dispatch(appStart());
 
@@ -867,9 +868,7 @@ function App() {
 						<Stack spacing={0}>
 							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
-									<Text weight={500} size={'sm'}>
-										Artboards ({artboards.length})
-									</Text>
+									<SectionTitle>Artboards ({artboards.length})</SectionTitle>
 									<Tooltip label="Create new artboard" openDelay={500}>
 										<ActionIcon onClick={open} color="violet" size={16}>
 											<IconPlus />

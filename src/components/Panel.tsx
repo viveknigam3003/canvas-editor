@@ -1,4 +1,4 @@
-import { Stack } from '@mantine/core';
+import { Divider, Stack } from '@mantine/core';
 import ImagePanel from '../modules/image/Panel';
 import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
@@ -21,6 +21,7 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => 
 				canvas={canvas}
 				currentSelectedElements={currentSelectedElements}
 			/>
+			<Divider />
 			{currentSelectedElements?.[0]?.type === 'textbox' && (
 				<TextPanel
 					artboardRef={artboardRef}

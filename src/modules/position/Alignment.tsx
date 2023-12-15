@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Flex, Stack, Tooltip } from '@mantine/core';
+import { ActionIcon, Flex, Stack, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import {
 	IconLayoutAlignBottom,
@@ -8,6 +8,7 @@ import {
 	IconLayoutAlignRight,
 	IconLayoutAlignTop,
 } from '@tabler/icons-react';
+import SectionTitle from '../../components/SectionTitle';
 import { getAltKey } from '../../modules/utils/keyboard';
 import { alignElementToRect } from './helpers';
 
@@ -67,7 +68,7 @@ const AlignmentPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelP
 
 	return (
 		<Stack>
-			<Box>Alignment</Box>
+			<SectionTitle>Alignment</SectionTitle>
 			<Flex gap={16}>
 				<Tooltip label={`Align Left (${getAltKey()} + A)`}>
 					<ActionIcon

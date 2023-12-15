@@ -17,6 +17,7 @@ import Placeholder from './Folders/Placeholder';
 import useTreeOpenHandler from './Folders/useTreeOpenHandler';
 import { convertFabricObjectsToLayers, convertLayersToFabricObjects } from './helpers';
 import { fabric } from 'fabric';
+import SectionTitle from '../../components/SectionTitle';
 
 const reorderArray = (array: NodeModel[], sourceIndex: number, targetIndex: number) => {
 	const newArray = [...array];
@@ -149,7 +150,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 
 	return (
 		<div>
-			Layers ({treeData.length})
+			<SectionTitle>Layers ({treeData.length})</SectionTitle>
 			<DndProvider backend={MultiBackend} options={getBackendOptions()}>
 				<div className={classes.wrapper}>
 					<Tree
