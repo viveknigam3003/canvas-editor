@@ -114,7 +114,10 @@ export default function LayerList({ canvas }: LayerListProp) {
 	useEffect(() => {
 		if (layers.length === 0) return;
 		const newTreeData = convertFabricObjectsToLayers(layers) as NodeModel[];
-		if (treeData !== newTreeData) setTreeData(newTreeData);
+		setTreeData(prev => {
+			if (JSON.stringify(prev) === JSON.stringify(newTreeData)) return prev;
+			return newTreeData;
+		});
 	}, [layers]);
 
 	const handleDrop = (newTree: NodeModel[], e: DropOptions) => {
