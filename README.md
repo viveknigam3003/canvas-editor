@@ -13,6 +13,7 @@ It's still in a nascent phase where we're experimenting with features. Currently
 * Powerful keyboard shortcuts for accessibility
 * Dark mode
 * Multiple color space canvas - sRGB and Display-P3
+* Filters and styling - like reflection and shadows
 
 ## Upcoming features
 * Rearranging of layers & groups
@@ -20,5 +21,4 @@ It's still in a nascent phase where we're experimenting with features. Currently
 * Word/letter styling
 * Snapping guides
 * Rulers and markers
-* Filters and styling
 * Image editing
