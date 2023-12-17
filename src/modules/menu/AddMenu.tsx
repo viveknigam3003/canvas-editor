@@ -51,7 +51,7 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 		text.enterEditing();
 		text.selectAll();
 		dispatch(
-			updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'reflection']).objects || []),
+			updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
 		);
 	};
 

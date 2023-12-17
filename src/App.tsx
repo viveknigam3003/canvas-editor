@@ -209,7 +209,7 @@ function App() {
 		});
 
 		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(['data', 'selectable', 'reflection']);
+		const json = offScreenCanvas.toJSON(['data', 'selectable', 'effects']);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
@@ -244,7 +244,7 @@ function App() {
 		canvasRef.current?.add(artboardRect);
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(['data', 'selectable', 'reflection']);
+		const json = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
 		const updatedArtboards = [
 			...artboards,
 			{
@@ -332,7 +332,7 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
-		const stateJSON = canvasRef.current?.toJSON(['data', 'selectable', 'reflection']);
+		const stateJSON = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
 
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
@@ -348,7 +348,7 @@ function App() {
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(['data', 'selectable', 'reflection']));
+			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(['data', 'selectable', 'effects']));
 
 			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
 
@@ -443,7 +443,7 @@ function App() {
 			return;
 		}
 
-		const json = canvasRef.current?.toJSON(['data', 'selectable', 'reflection']);
+		const json = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
 		const updatedArtboards = artboards.map(item => {
 			if (item.id === selectedArtboard.id) {
 				return {
@@ -618,13 +618,18 @@ function App() {
 			}
 
 			// Attach the reference for reflection object back to the parent object
-			canvasRef.current?.getObjects().forEach((obj: SmartObject) => {
+			(canvasRef.current?.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
 				const reflection = canvasRef.current
 					?.getObjects()
 					.find(item => item.data?.type === 'reflection' && item.data.parent === obj.data?.id);
-				console.log('reflection found', obj.data?.id, reflection);
+				const reflectionOverlay = canvasRef.current?.getObjects().find(item => {
+					return item.data?.type === 'reflectionOverlay' && item.data.parent === obj.data?.id;
+				});
 				if (reflection) {
-					obj.reflection = reflection;
+					obj.effects.reflection = reflection;
+				}
+				if (reflectionOverlay) {
+					obj.effects.reflectionOverlay = reflectionOverlay;
 				}
 			});
 

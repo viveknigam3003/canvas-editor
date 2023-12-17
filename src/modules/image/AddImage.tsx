@@ -99,12 +99,17 @@ const ImageModal = ({
 					data: {
 						id: generateId(),
 					},
+					name: 'My Image',
 				});
 
 				canvasRef.current?.add(img);
 				canvasRef.current?.setActiveObject(img);
 				imageForm.reset();
-				dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable']).objects || []));
+				dispatch(
+					updateActiveArtboardLayers(
+						canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || [],
+					),
+				);
 				closeImageModal();
 			},
 			{
@@ -176,9 +181,7 @@ const ImageModal = ({
 									const reader = new FileReader();
 									reader.onload = function (f: ProgressEvent<FileReader>) {
 										const data = f?.target?.result as string;
-										fabric.Image.fromURL(data, function (img) {
-											canvasRef.current?.add(img);
-										});
+										addImageFromUrl(data);
 									};
 									reader.readAsDataURL(file);
 								});
