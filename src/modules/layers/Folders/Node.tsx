@@ -39,6 +39,7 @@ const useStyles = createStyles(() => ({
 		},
 	},
 	labelGridItem: {
+		fontSize: '14px',
 		paddingInlineStart: '8px',
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
@@ -111,13 +112,49 @@ const Node: React.FC<{
 		onClick(node.id);
 	};
 
+	const getNodeType = (node: NodeModel) => {
+		if (node.droppable) {
+			if ((node.data as fabric.Object)?.data?.type === 'clipGroup') {
+				return 'clipGroup';
+			}
+			if (isOpen) {
+				return 'folder-open';
+			}
+			return 'folder';
+		}
+		return node.text;
+	};
+
+	const getNodeText = (node: NodeModel) => {
+		switch (node.text) {
+			case 'image':
+				return 'Image';
+			case 'textbox':
+				if ((node.data as fabric.Object)?.data?.displayText) {
+					return (node.data as fabric.Object)?.data?.displayText;
+				}
+
+				return 'Text';
+			case 'group':
+				if ((node.data as fabric.Object)?.data?.type === 'clipGroup') {
+					return 'Mask group';
+				}
+
+				return 'Group';
+			case 'path':
+				return 'Shape';
+			default:
+				return node.text;
+		}
+	};
+
 	return (
 		<div
 			className={`${classes.nodeWrapper} tree-node ${node.droppable && isDropTarget ? classes.dropTarget : ''}`}
 			style={{ marginInlineStart: indent }}
 			onClick={handleToggle}
 		>
-			<NodeIcon type={node.droppable ? (isOpen ? 'folder-open' : 'folder') : node.text} />
+			<NodeIcon type={getNodeType(node)} />
 			<div className={classes.pipeX} style={{ width: depth > 0 ? TREE_X_OFFSET - 9 : 0 }} />
 			{getDescendants(treeData, node.parent)[0].id === node.id && (
 				<div
@@ -127,7 +164,7 @@ const Node: React.FC<{
 					}}
 				/>
 			)}
-			<div className={classes.labelGridItem}>{node.text}</div>
+			<div className={classes.labelGridItem}>{getNodeText(node)}</div>
 			<div className={`${classes.expandIconWrapper}}`}>
 				{node.droppable && (
 					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

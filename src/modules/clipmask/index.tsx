@@ -2,6 +2,7 @@ import { Button, Stack, Text, useMantineTheme } from '@mantine/core';
 import { fabric as Fabric } from 'fabric';
 import React from 'react';
 import SectionTitle from '../../components/SectionTitle';
+import { generateId } from '../../utils';
 
 interface ClipMaskProps {
 	canvas: fabric.Canvas;
@@ -22,6 +23,10 @@ const ClipMask: React.FC<ClipMaskProps> = ({ currentSelectedElements, canvas }) 
 		// Create a group with the mask and the contents
 		const clipGroup = new Fabric.Group([mask, ...contents], {
 			subTargetCheck: true,
+			data: {
+				id: generateId(),
+				type: 'clipGroup',
+			},
 		});
 
 		// Set the clip path
