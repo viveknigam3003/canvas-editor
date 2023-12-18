@@ -1,4 +1,4 @@
-import { Box, Button } from '@mantine/core';
+import { Button, Stack, Text, useMantineTheme } from '@mantine/core';
 import { fabric as Fabric } from 'fabric';
 import React from 'react';
 import SectionTitle from '../../components/SectionTitle';
@@ -9,6 +9,7 @@ interface ClipMaskProps {
 }
 
 const ClipMask: React.FC<ClipMaskProps> = ({ currentSelectedElements, canvas }) => {
+	const theme = useMantineTheme();
 	const createClipGroup = () => {
 		const selectedObjects = currentSelectedElements;
 
@@ -21,8 +22,6 @@ const ClipMask: React.FC<ClipMaskProps> = ({ currentSelectedElements, canvas }) 
 		// Create a group with the mask and the contents
 		const clipGroup = new Fabric.Group([mask, ...contents], {
 			subTargetCheck: true,
-			left: currentSelectedElements[0].left,
-			top: currentSelectedElements[0].top,
 		});
 
 		// Set the clip path
@@ -36,10 +35,13 @@ const ClipMask: React.FC<ClipMaskProps> = ({ currentSelectedElements, canvas }) 
 	};
 
 	return (
-		<Box>
+		<Stack>
 			<SectionTitle>Clipping mask</SectionTitle>
 			<Button onClick={createClipGroup}>Create clip mask</Button>
-		</Box>
+			<Text size={'xs'} color={theme.colors.gray[6]}>
+				First select the mask, then the elements to create a clipping mask group
+			</Text>
+		</Stack>
 	);
 };
 
