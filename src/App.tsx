@@ -39,6 +39,7 @@ import { generateId } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
+import { JSON_ALLOWED_KEYS } from './constants';
 
 store.dispatch(appStart());
 
@@ -88,7 +89,14 @@ function App() {
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
+	const guidesRef = useRef<any>({
+		left: null,
+		top: null,
+		right: null,
+		bottom: null,
+		centerX: null,
+		centerY: null,
+	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
 
@@ -110,7 +118,7 @@ function App() {
 					return null;
 				}
 
-				if (event.e.shiftKey) {
+				if (event?.e?.shiftKey) {
 					// Once the selection is updated, if there is an element in the array, return it
 					if (event.selected && event.selected.length > 0) {
 						// Add the element to the array if it is not already in the array
@@ -128,6 +136,209 @@ function App() {
 		});
 		canvasRef.current?.on('selection:cleared', function () {
 			setCurrentSelectedElements(null);
+		});
+
+		// Function to snap an object around other objects
+		function snapToObject(target, objects, guidesRef) {
+			const snapDistance = 2; // Adjust this value to set the snapping distance
+			let left = false;
+			let right = false;
+			let top = false;
+			let bottom = false;
+			let centerX = false;
+			let centerY = false;
+			console.log(target);
+			objects.forEach(function (obj) {
+				if (obj === target) return;
+
+				// Snap to the top edge
+				if (Math.abs(target.top - obj.top - obj.getScaledHeight()) < snapDistance) {
+					target.set({ top: obj.top + obj.getScaledHeight() });
+					top = true;
+				}
+				if (Math.abs(target.top - obj.top) < snapDistance) {
+					target.set({ top: obj.top });
+					top = true;
+				}
+
+				if (Math.abs(target.top - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
+					top = true;
+					target.set({ top: obj.top + obj.getScaledHeight() / 2 });
+				}
+				// if (Math.abs(target.top - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
+				// 	target.set({ top: obj.top + obj.getScaledHeight() / 2 });
+				// 	top = true;
+				// }
+
+				// Snap to the bottom edge
+				if (Math.abs(target.top + target.getScaledHeight() - obj.top) < snapDistance) {
+					target.set({ top: obj.top - target.getScaledHeight() });
+					bottom = true;
+				}
+
+				if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight()) < snapDistance) {
+					target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() });
+					bottom = true;
+				}
+
+				if (
+					Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight() / 2) < snapDistance
+				) {
+					bottom = true;
+					target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() });
+				}
+
+				// if (
+				// 	Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight() / 2) < snapDistance
+				// ) {
+				// 	target.set({ top: obj.top - target.getScaledHeight() / 2 });
+				// 	bottom = true;
+				// }
+
+				// Snap to the left edge
+				if (Math.abs(target.left - obj.left - obj.getScaledWidth()) < snapDistance) {
+					left = true;
+					target.set({ left: obj.left + obj.getScaledWidth() });
+				}
+				if (Math.abs(target.left - obj.left) < snapDistance) {
+					left = true;
+					target.set({ left: obj.left });
+				}
+				if (Math.abs(target.left - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
+					left = true;
+					target.set({ left: obj.left + obj.getScaledWidth() / 2 });
+				}
+				// Snap to the right edge
+				if (Math.abs(target.left + target.getScaledWidth() - obj.left) < snapDistance) {
+					target.set({ left: obj.left - target.getScaledWidth() });
+					right = true;
+				}
+
+				if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth()) < snapDistance) {
+					target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() });
+					right = true;
+				}
+
+				if (
+					Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth() / 2) < snapDistance
+				) {
+					right = true;
+					target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() });
+				}
+				// write snap for target center with object left center and right side
+				// Snap to the center horizontally
+				if (
+					Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth() / 2) <
+					snapDistance
+				) {
+					target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() / 2 });
+					centerX = true;
+				}
+				// snap target center with object left
+				if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left) < snapDistance) {
+					target.set({ left: obj.left - target.getScaledWidth() / 2 });
+					centerX = true;
+				}
+				//snap target center with object right
+				if (
+					Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth()) < snapDistance
+				) {
+					target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() / 2 });
+					centerX = true;
+				}
+
+				// Snap to the center vertically
+				if (
+					Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight() / 2) <
+					snapDistance
+				) {
+					target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() / 2 });
+					centerY = true;
+				}
+				// snap target center with object top
+				if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top) < snapDistance) {
+					target.set({ top: obj.top - target.getScaledHeight() / 2 });
+					centerY = true;
+				}
+
+				// snap target center with object bottom
+				if (
+					Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight()) < snapDistance
+				) {
+					target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() / 2 });
+					centerY = true;
+				}
+
+				if (left) {
+					guidesRef.current.left.set({ opacity: 1, left: target.left });
+				} else {
+					guidesRef.current.left.set({ opacity: 0, left: target.left });
+				}
+
+				if (right) {
+					guidesRef.current.right.set({ opacity: 1, left: target.left + target.getScaledWidth() });
+				} else {
+					guidesRef.current.right.set({ opacity: 0 });
+				}
+
+				if (top) {
+					guidesRef.current.top.set({ opacity: 1, top: target.top });
+				} else {
+					guidesRef.current.top.set({ opacity: 0 });
+				}
+
+				if (bottom) {
+					guidesRef.current.bottom.set({ opacity: 1, top: target.top + target.getScaledHeight() });
+				} else {
+					guidesRef.current.bottom.set({ opacity: 0 });
+				}
+				console.log(centerX, 'center');
+				if (centerX) {
+					guidesRef.current.centerX.set({ opacity: 1, left: target.left + target.getScaledWidth() / 2 });
+				} else {
+					guidesRef.current.centerX.set({ opacity: 0 });
+				}
+				if (centerY) {
+					guidesRef.current.centerY.set({ opacity: 1, top: target.top + target.getScaledHeight() / 2 });
+				} else {
+					guidesRef.current.centerY.set({ opacity: 0 });
+				}
+				canvasRef.current?.renderAll();
+			});
+		}
+		// Add objects to the canvas
+		const rect1 = new fabric.Rect({
+			left: 50,
+			top: 50,
+			width: 100,
+			height: 100,
+			fill: 'red',
+		});
+		const rect2 = new fabric.Rect({
+			left: 200,
+			top: 200,
+			width: 120,
+			height: 100,
+			fill: 'blue',
+		});
+		for (let index = 0; index < 10; index++) {
+			canvasRef.current?.add(
+				new fabric.Rect({
+					left: Math.random() * 1000,
+					top: Math.random() * 1000,
+					width: Math.random() * 100,
+					height: Math.random() * 100,
+					fill: 'blue',
+				}),
+			);
+		}
+
+		canvasRef.current.add(rect1, rect2);
+
+		// Event listener for object moving
+		canvasRef.current.on('object:moving', function (options) {
+			const target = options.target;
+			snapToObject(target, canvasRef.current?.getObjects().filter(x => !x?.isSnappingLine), guidesRef);
 		});
 
 		return () => {
@@ -209,7 +420,7 @@ function App() {
 		});
 
 		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(['data', 'selectable', 'effects']);
+		const json = offScreenCanvas.toJSON(JSON_ALLOWED_KEYS);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
@@ -244,14 +455,18 @@ function App() {
 		canvasRef.current?.add(artboardRect);
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
+		const json = canvasRef.current?.toJSON(JSON_ALLOWED_KEYS);
 		const updatedArtboards = [
 			...artboards,
 			{
 				...newArtboard,
-				state: json,
+				state: {
+					...json,
+					objects: json?.objects.filter((item: any) => !item?.isSnappingLine),
+				},
 			},
 		];
+		console.log(updatedArtboards);
 		dispatch(setArtboards(updatedArtboards));
 		newArtboardForm.reset();
 		close();
@@ -332,7 +547,7 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
-		const stateJSON = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
+		const stateJSON = canvasRef.current?.toJSON(JSON_ALLOWED_KEYS);
 
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
@@ -348,7 +563,7 @@ function App() {
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(['data', 'selectable', 'effects']));
+			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(JSON_ALLOWED_KEYS));
 
 			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
 
@@ -443,16 +658,21 @@ function App() {
 			return;
 		}
 
-		const json = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
+		const json = canvasRef.current?.toJSON(JSON_ALLOWED_KEYS);
 		const updatedArtboards = artboards.map(item => {
 			if (item.id === selectedArtboard.id) {
 				return {
 					...item,
-					state: json,
+					state: {
+						...json,
+						objects: json?.objects.filter((item: any) => !item?.isSnappingLine),
+					},
 				};
 			}
 			return item;
 		});
+		console.log('first', updatedArtboards);
+
 		dispatch(setArtboards(updatedArtboards));
 	};
 
@@ -632,7 +852,90 @@ function App() {
 					obj.effects.reflectionOverlay = reflectionOverlay;
 				}
 			});
+			if (!guidesRef?.current?.left) {
+				guidesRef.current = {
+					// left: new fabric.Line([0, 0, 0, 0], {}),
+					left: new fabric.Line([0, artboardRef?.current?.width, 0, 0], {
+						opacity: 1,
+						top: artboardRef?.current?.top,
+						evented: false,
+						selectable: false,
+						hasControls: false,
+						hasBorders: false,
+						stroke: 'green',
+						strokeWidth: 2,
+						isSnappingLine: true,
+					}),
+					top: new fabric.Line([0, 0, artboardRef?.current?.height, 0], {
+						evented: false,
+						opacity: 1,
+						left: artboardRef?.current?.left,
+						selectable: false,
+						hasControls: false,
+						hasBorders: false,
+						stroke: 'red',
+						strokeWidth: 2,
+						isSnappingLine: true,
+					}),
+					right: new fabric.Line([0, artboardRef?.current?.width, 0, 0], {
+						opacity: 1,
+						top: artboardRef?.current?.top,
+						evented: false,
+						hasControls: false,
+						hasBorders: false,
+						selectable: false,
+						stroke: 'red',
+						strokeWidth: 2,
+						isSnappingLine: true,
+					}),
+					bottom: new fabric.Line([0, 0, artboardRef?.current?.width, 0], {
+						evented: false,
+						left: artboardRef?.current?.left,
+						selectable: false,
+						hasControls: false,
+						hasBorders: false,
+						opacity: 1,
+						stroke: 'red',
+						strokeWidth: 2,
+						isSnappingLine: true,
+					}),
+					centerX: new fabric.Line([0, artboardRef?.current?.height, 0, 0], {
+						evented: false,
+						selectable: false,
+						top: artboardRef?.current?.top,
+						hasControls: false,
+						hasBorders: false,
+						opacity: 1,
+						stroke: 'orange',
+						strokeWidth: 2,
+						isSnappingLine: true,
+					}),
+					centerY: new fabric.Line([0, 0, artboardRef?.current?.height, 0], {
+						evented: false,
+						selectable: false,
+						hasControls: false,
+						hasBorders: false,
+						left: artboardRef?.current?.left,
+						opacity: 1,
+						stroke: 'purple',
+						strokeWidth: 2,
+						isSnappingLine: true,
+					}),
+				};
 
+				canvasRef.current?.add(
+					guidesRef.current.left,
+					guidesRef.current.top,
+					guidesRef.current.right,
+					guidesRef.current.bottom,
+					guidesRef.current.centerX,
+					guidesRef.current.centerY,
+				);
+			}
+
+			console.count('called');
+			// canvas1?.add(new fabric.Rect({ left: 0, top: 0, width: 100, height: 100, fill: 'red' }));
+			canvasRef.current?.requestRenderAll();
 			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
