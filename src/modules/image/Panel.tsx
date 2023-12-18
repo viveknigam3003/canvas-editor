@@ -1,6 +1,7 @@
-import { Stack } from '@mantine/core';
+import { Divider, Stack } from '@mantine/core';
 import SectionTitle from '../../components/SectionTitle';
 import Shadow from '../shadow';
+import Reflection from '../reflection';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
@@ -11,8 +12,15 @@ interface PanelProps {
 const ImagePanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
 	return (
 		<Stack>
-			<SectionTitle>Shadow</SectionTitle>
-			<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} artboardRef={artboardRef} />
+			<Stack>
+				<SectionTitle>Shadow</SectionTitle>
+				<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} artboardRef={artboardRef} />
+			</Stack>
+			<Divider />
+			<Stack>
+				<SectionTitle>Reflection</SectionTitle>
+				<Reflection currentSelectedElements={currentSelectedElements} canvas={canvas} />
+			</Stack>
 		</Stack>
 	);
 };
