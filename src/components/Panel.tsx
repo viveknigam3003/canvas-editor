@@ -2,6 +2,7 @@ import { Divider, Stack } from '@mantine/core';
 import ImagePanel from '../modules/image/Panel';
 import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
+import ClipMask from '../modules/clipmask';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -10,32 +11,39 @@ type PanelProps = {
 };
 
 const Panel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
-	if (!currentSelectedElements || currentSelectedElements?.length !== 1) {
+	if (!currentSelectedElements.length) {
 		return null;
 	}
 
 	return (
 		<Stack>
-			<AlignmentPanel
-				artboardRef={artboardRef}
-				canvas={canvas}
-				currentSelectedElements={currentSelectedElements}
-			/>
-			<Divider />
-			{currentSelectedElements?.[0]?.type === 'textbox' && (
-				<TextPanel
-					artboardRef={artboardRef}
-					canvas={canvas}
-					currentSelectedElements={currentSelectedElements}
-				/>
+			{currentSelectedElements.length === 1 && (
+				<>
+					<AlignmentPanel
+						artboardRef={artboardRef}
+						canvas={canvas}
+						currentSelectedElements={currentSelectedElements}
+					/>
+					<Divider />
+					{currentSelectedElements?.[0]?.type === 'textbox' && (
+						<TextPanel
+							artboardRef={artboardRef}
+							canvas={canvas}
+							currentSelectedElements={currentSelectedElements}
+						/>
+					)}
+					{currentSelectedElements?.[0]?.type === 'image' && (
+						<ImagePanel
+							artboardRef={artboardRef}
+							canvas={canvas}
+							currentSelectedElements={currentSelectedElements}
+						/>
+					)}
+				</>
 			)}
-			{currentSelectedElements?.[0]?.type === 'image' && (
-				<ImagePanel
-					artboardRef={artboardRef}
-					canvas={canvas}
-					currentSelectedElements={currentSelectedElements}
-				/>
-			)}
+			{currentSelectedElements.length > 1 ? (
+				<ClipMask currentSelectedElements={currentSelectedElements} canvas={canvas} />
+			) : null}
 		</Stack>
 	);
 };
