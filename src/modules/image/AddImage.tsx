@@ -8,6 +8,7 @@ import { updateActiveArtboardLayers } from '../../modules/app/actions';
 import { useDispatch } from 'react-redux';
 import { generateId } from '../../utils';
 import { useModalStyles } from '../../styles/modal';
+import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
@@ -105,11 +106,7 @@ const ImageModal = ({
 				canvasRef.current?.add(img);
 				canvasRef.current?.setActiveObject(img);
 				imageForm.reset();
-				dispatch(
-					updateActiveArtboardLayers(
-						canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || [],
-					),
-				);
+				dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 				closeImageModal();
 			},
 			{

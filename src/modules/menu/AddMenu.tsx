@@ -7,6 +7,7 @@ import ImageModal from '../image/AddImage';
 import { updateActiveArtboardLayers } from '../app/actions';
 import { useDispatch } from 'react-redux';
 import { generateId } from '../../utils';
+import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -50,9 +51,7 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 		canvasRef.current?.setActiveObject(text);
 		text.enterEditing();
 		text.selectAll();
-		dispatch(
-			updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
-		);
+		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 	};
 
 	useHotkeys([

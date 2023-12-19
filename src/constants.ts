@@ -1,1 +1,1 @@
-export const JSON_ALLOWED_KEYS = ['data', 'selectable', 'effects', 'isSnappingLine'];
+export const FABRIC_JSON_ALLOWED_KEYS = ['data', 'selectable', 'effects', 'isSnappingLine'];

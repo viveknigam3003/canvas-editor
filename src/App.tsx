@@ -39,7 +39,7 @@ import { generateId } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
-import { JSON_ALLOWED_KEYS } from './constants';
+import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { createSnappingLines, snapToObject } from './modules/snapping';
 
 store.dispatch(appStart());
@@ -246,7 +246,7 @@ function App() {
 		});
 
 		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(JSON_ALLOWED_KEYS);
+		const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
@@ -281,7 +281,7 @@ function App() {
 		canvasRef.current?.add(artboardRect);
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(JSON_ALLOWED_KEYS);
+		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		const updatedArtboards = [
 			...artboards,
 			{
@@ -373,7 +373,7 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
-		const stateJSON = canvasRef.current?.toJSON(JSON_ALLOWED_KEYS);
+		const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
@@ -389,7 +389,7 @@ function App() {
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(JSON_ALLOWED_KEYS));
+			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
 
 			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
 
@@ -484,7 +484,7 @@ function App() {
 			return;
 		}
 
-		const json = canvasRef.current?.toJSON(JSON_ALLOWED_KEYS);
+		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		const updatedArtboards = artboards.map(item => {
 			if (item.id === selectedArtboard.id) {
 				return {
