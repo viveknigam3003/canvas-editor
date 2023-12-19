@@ -40,7 +40,7 @@ import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
-import { createSnappingLines, snapToObject } from './modules/snapping';
+import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
 
 store.dispatch(appStart());
 
@@ -147,7 +147,7 @@ function App() {
 			const target = options.target as fabric.Object;
 			snapToObject(
 				target as snappingObjectType,
-				canvasRef.current?.getObjects().filter(x => !x?.data?.isSnappingLine) as snappingObjectType[],
+				filterSnappingLines(canvasRef.current?.getObjects()) as snappingObjectType[],
 				guidesRef,
 				canvasRef,
 				Number(snapDistance),
@@ -279,7 +279,7 @@ function App() {
 				...newArtboard,
 				state: {
 					...json,
-					objects: json?.objects.filter((item: any) => !item?.data?.isSnappingLine),
+					objects: filterSnappingLines(json?.objects),
 				},
 			},
 		];
@@ -482,7 +482,7 @@ function App() {
 					...item,
 					state: {
 						...json,
-						objects: json?.objects.filter((item: any) => !item?.data?.isSnappingLine),
+						objects: filterSnappingLines(json?.objects),
 					},
 				};
 			}

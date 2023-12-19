@@ -199,3 +199,8 @@ export function createSnappingLines(
 	);
 	return guidesRef;
 }
+
+export const filterSnappingLines = (arr: fabric.Object[] | undefined) => {
+	if (!arr) return [];
+	return arr.filter(obj => !obj?.data?.isSnappingLine);
+};
