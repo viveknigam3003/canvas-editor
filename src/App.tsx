@@ -50,7 +50,7 @@ function App() {
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
 	const [snapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
-		defaultValue: '10',
+		defaultValue: '2',
 		getInitialValueInEffect: true,
 	});
 	const theme = useMantineTheme();
