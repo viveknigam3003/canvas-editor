@@ -8,7 +8,6 @@ interface CustomFontProps {
 	canvas: fabric.Canvas;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelectedElements }) => {
 	const [name, setName] = useState('');
 	const [url, setUrl] = useState('');
