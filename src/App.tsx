@@ -239,7 +239,6 @@ function App() {
 
 		offScreenCanvas.add(artboardRect);
 		const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-		console.log('🚀 ~ file: App.tsx:242 ~ createSingleArtboard ~ json:', artboardRect);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
