@@ -146,6 +146,9 @@ export function createSnappingLines(
 		selectable: false,
 		stroke: 'blue',
 		isSnappingLine: true,
+		hasControls: false,
+		hasBorders: false,
+		strokeWidth: 2,
 	};
 	const guidesRef = {
 		left: new fabric.Line([0, artboardWidth, 0, 0], {
