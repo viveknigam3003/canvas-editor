@@ -8,6 +8,8 @@ import { useEffect } from 'react';
 const SnapDistanceModal = ({ open, onClose }: any) => {
 	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
+		defaultValue: '2',
+		getInitialValueInEffect: true,
 	});
 	const { classes: modalClasses } = useModalStyles();
 	const imageForm = useForm<{ snapDistance: number }>({

@@ -222,6 +222,7 @@ function App() {
 			height: artboard.height,
 			fill: '#fff',
 			selectable: false,
+			hoverCursor: 'default',
 			data: {
 				type: 'artboard',
 				id,
@@ -238,6 +239,7 @@ function App() {
 
 		offScreenCanvas.add(artboardRect);
 		const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		console.log('🚀 ~ file: App.tsx:242 ~ createSingleArtboard ~ json:', artboardRect);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
@@ -262,6 +264,7 @@ function App() {
 			width: artboard.width,
 			height: artboard.height,
 			fill: '#fff',
+			hoverCursor: 'default',
 			selectable: false,
 			data: {
 				type: 'artboard',
