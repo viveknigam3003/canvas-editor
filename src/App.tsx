@@ -150,8 +150,6 @@ function App() {
 			setCurrentSelectedElements(null);
 		});
 
-		// Event listener for object moving
-
 		canvasRef.current.on('object:moving', function (options) {
 			const target = options.target as fabric.Object;
 			snapToObject(
@@ -497,8 +495,6 @@ function App() {
 			}
 			return item;
 		});
-		console.log('first', updatedArtboards);
-
 		dispatch(setArtboards(updatedArtboards));
 	};
 
@@ -698,9 +694,6 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef, artboardRef);
-			console.count('called');
-			// canvas1?.add(new fabric.Rect({ left: 0, top: 0, width: 100, height: 100, fill: 'red' }));
-			canvasRef.current?.requestRenderAll();
 			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
