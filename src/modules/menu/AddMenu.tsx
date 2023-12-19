@@ -92,7 +92,6 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 									const rect = new fabric.Rect({
 										left: Math.random() * 1000,
 										top: Math.random() * 1000,
-										// random color
 										fill: '#' + Math.floor(Math.random() * 16777215).toString(16),
 										width: 100,
 										height: 100,

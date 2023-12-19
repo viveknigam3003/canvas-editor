@@ -48,7 +48,7 @@ function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
-	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
+	const [snapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
 		defaultValue: '10',
 		getInitialValueInEffect: true,
@@ -907,7 +907,6 @@ function App() {
 						setShowSidebar={setShowSidebar}
 						autosaveChanges={autosaveChanges}
 						setAutoSaveChanges={setAutoSaveChanges}
-						setSnapDistance={setSnapDistance}
 					/>
 					<Tooltip label="Save" openDelay={500}>
 						<ActionIcon onClick={saveArtboardChanges} size={20}>
