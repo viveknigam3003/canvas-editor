@@ -12,6 +12,7 @@ import {
 import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import ColorSpaceSwitch from '../../modules/colorSpace';
 import { useMenuStyles } from '../../styles/menu';
+import SnapDistanceModal from '../snapping/SnapDistanceModal';
 
 interface Props {
 	canvasRef: React.RefObject<fabric.Canvas>;
@@ -31,7 +32,7 @@ const SettingsMenu: React.FC<Props> = ({
 	const { classes } = useMenuStyles();
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
-
+	const [snapDistanceModalOpened, { open: openSnapDistanceModal, close: closeSnapDistanceModal }] = useDisclosure();
 	const debug = () => {
 		console.log(canvasRef.current?.toJSON(['data', 'selectable', 'effects']));
 		notifications.show({
@@ -92,6 +93,13 @@ const SettingsMenu: React.FC<Props> = ({
 					>
 						Show/hide UI
 					</Menu.Item>
+					<Menu.Item
+						icon={<IconPalette size={14} />}
+						className={classes.item}
+						onClick={openSnapDistanceModal}
+					>
+						Change Snapping Distance
+					</Menu.Item>
 					<Menu.Item className={classes.item} closeMenuOnClick={false}>
 						<Checkbox
 							size={'xs'}
@@ -133,6 +141,7 @@ const SettingsMenu: React.FC<Props> = ({
 				onClose={closeColorSpaceModal}
 				recreateCanvas={recreateCanvas}
 			/>
+			<SnapDistanceModal open={snapDistanceModalOpened} onClose={closeSnapDistanceModal} />
 		</Box>
 	);
 };

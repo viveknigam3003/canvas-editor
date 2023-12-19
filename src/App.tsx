@@ -15,7 +15,7 @@ import {
 	useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure, useHotkeys } from '@mantine/hooks';
+import { useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
 import axios from 'axios';
@@ -40,171 +40,19 @@ import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
 import { JSON_ALLOWED_KEYS } from './constants';
+import { createSnappingLines, snapToObject } from './modules/snapping';
 
 store.dispatch(appStart());
-function snapToObject(
-	target: fabric.Object,
-	objects: fabric.Object[],
-	guidesRef: any,
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
-) {
-	const snapDistance = 2; // Adjust this value to set the snapping distance
-	let left = false;
-	let right = false;
-	let top = false;
-	let bottom = false;
-	let centerX = false;
-	let centerY = false;
-	console.log(target);
-	objects.forEach(function (obj) {
-		if (obj === target) return;
 
-		// Snap to the top edge
-		if (Math.abs(target.top - obj.top - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() });
-			top = true;
-		}
-		if (Math.abs(target.top - obj.top) < snapDistance) {
-			target.set({ top: obj.top });
-			top = true;
-		}
-
-		if (Math.abs(target.top - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-			top = true;
-			target.set({ top: obj.top + obj.getScaledHeight() / 2 });
-		}
-		// if (Math.abs(target.top - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-		// 	target.set({ top: obj.top + obj.getScaledHeight() / 2 });
-		// 	top = true;
-		// }
-
-		// Snap to the bottom edge
-		if (Math.abs(target.top + target.getScaledHeight() - obj.top) < snapDistance) {
-			target.set({ top: obj.top - target.getScaledHeight() });
-			bottom = true;
-		}
-
-		if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() });
-			bottom = true;
-		}
-
-		if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-			bottom = true;
-			target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() });
-		}
-
-		// if (
-		// 	Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight() / 2) < snapDistance
-		// ) {
-		// 	target.set({ top: obj.top - target.getScaledHeight() / 2 });
-		// 	bottom = true;
-		// }
-
-		// Snap to the left edge
-		if (Math.abs(target.left - obj.left - obj.getScaledWidth()) < snapDistance) {
-			left = true;
-			target.set({ left: obj.left + obj.getScaledWidth() });
-		}
-		if (Math.abs(target.left - obj.left) < snapDistance) {
-			left = true;
-			target.set({ left: obj.left });
-		}
-		if (Math.abs(target.left - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
-			left = true;
-			target.set({ left: obj.left + obj.getScaledWidth() / 2 });
-		}
-		// Snap to the right edge
-		if (Math.abs(target.left + target.getScaledWidth() - obj.left) < snapDistance) {
-			target.set({ left: obj.left - target.getScaledWidth() });
-			right = true;
-		}
-
-		if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth()) < snapDistance) {
-			target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() });
-			right = true;
-		}
-
-		if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
-			right = true;
-			target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() });
-		}
-		// write snap for target center with object left center and right side
-		// Snap to the center horizontally
-		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
-			target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() / 2 });
-			centerX = true;
-		}
-		// snap target center with object left
-		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left) < snapDistance) {
-			target.set({ left: obj.left - target.getScaledWidth() / 2 });
-			centerX = true;
-		}
-		//snap target center with object right
-		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth()) < snapDistance) {
-			target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() / 2 });
-			centerX = true;
-		}
-
-		// Snap to the center vertically
-		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() / 2 });
-			centerY = true;
-		}
-		// snap target center with object top
-		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top) < snapDistance) {
-			target.set({ top: obj.top - target.getScaledHeight() / 2 });
-			centerY = true;
-		}
-
-		// snap target center with object bottom
-		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() / 2 });
-			centerY = true;
-		}
-
-		if (left) {
-			guidesRef.current.left.set({ opacity: 1, left: target.left });
-		} else {
-			guidesRef.current.left.set({ opacity: 0, left: target.left });
-		}
-
-		if (right) {
-			guidesRef.current.right.set({ opacity: 1, left: target.left + target.getScaledWidth() });
-		} else {
-			guidesRef.current.right.set({ opacity: 0 });
-		}
-
-		if (top) {
-			guidesRef.current.top.set({ opacity: 1, top: target.top });
-		} else {
-			guidesRef.current.top.set({ opacity: 0 });
-		}
-
-		if (bottom) {
-			guidesRef.current.bottom.set({ opacity: 1, top: target.top + target.getScaledHeight() });
-		} else {
-			guidesRef.current.bottom.set({ opacity: 0 });
-		}
-		console.log(centerX, 'center');
-		if (centerX) {
-			guidesRef.current.centerX.set({ opacity: 1, left: target.left + target.getScaledWidth() / 2 });
-		} else {
-			guidesRef.current.centerX.set({ opacity: 0 });
-		}
-		if (centerY) {
-			guidesRef.current.centerY.set({ opacity: 1, top: target.top + target.getScaledHeight() / 2 });
-		} else {
-			guidesRef.current.centerY.set({ opacity: 0 });
-		}
-		canvasRef.current?.renderAll();
-	});
-}
 function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
-
+	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
+		key: 'snapDistance',
+		defaultValue: '10',
+		getInitialValueInEffect: true,
+	});
 	const theme = useMantineTheme();
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
@@ -246,7 +94,14 @@ function App() {
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-	const guidesRef = useRef<any>({
+	const guidesRef = useRef<{
+		left: null | fabric.Line;
+		top: null | fabric.Line;
+		right: null | fabric.Line;
+		bottom: null | fabric.Line;
+		centerX: null | fabric.Line;
+		centerY: null | fabric.Line;
+	}>({
 		left: null,
 		top: null,
 		right: null,
@@ -295,41 +150,17 @@ function App() {
 			setCurrentSelectedElements(null);
 		});
 
-		// Function to snap an object around other objects
-
-		// Add objects to the canvas
-		const rect1 = new fabric.Rect({
-			left: 50,
-			top: 50,
-			width: 100,
-			height: 100,
-			fill: 'red',
-		});
-		const rect2 = new fabric.Rect({
-			left: 200,
-			top: 200,
-			width: 120,
-			height: 100,
-			fill: 'blue',
-		});
-		for (let index = 0; index < 10; index++) {
-			canvasRef.current?.add(
-				new fabric.Rect({
-					left: Math.random() * 1000,
-					top: Math.random() * 1000,
-					width: Math.random() * 100,
-					height: Math.random() * 100,
-					fill: 'blue',
-				}),
-			);
-		}
-
-		canvasRef.current.add(rect1, rect2);
-
 		// Event listener for object moving
+
 		canvasRef.current.on('object:moving', function (options) {
-			const target = options.target;
-			snapToObject(target, canvasRef.current?.getObjects().filter(x => !x?.isSnappingLine), guidesRef, canvasRef);
+			const target = options.target as fabric.Object;
+			snapToObject(
+				target,
+				canvasRef.current?.getObjects().filter(x => !x?.isSnappingLine),
+				guidesRef,
+				canvasRef,
+				Number(snapDistance),
+			);
 		});
 		canvasRef.current.on('object:modified', function () {
 			Object.entries(guidesRef.current).forEach(([, value]) => {
@@ -865,87 +696,8 @@ function App() {
 					obj.effects.reflectionOverlay = reflectionOverlay;
 				}
 			});
-			if (!guidesRef?.current?.left) {
-				guidesRef.current = {
-					// left: new fabric.Line([0, 0, 0, 0], {}),
-					left: new fabric.Line([0, artboardRef?.current?.width, 0, 0], {
-						opacity: 1,
-						top: artboardRef?.current?.top,
-						evented: false,
-						selectable: false,
-						hasControls: false,
-						hasBorders: false,
-						stroke: 'green',
-						strokeWidth: 2,
-						isSnappingLine: true,
-					}),
-					top: new fabric.Line([0, 0, artboardRef?.current?.height, 0], {
-						evented: false,
-						opacity: 1,
-						left: artboardRef?.current?.left,
-						selectable: false,
-						hasControls: false,
-						hasBorders: false,
-						stroke: 'red',
-						strokeWidth: 2,
-						isSnappingLine: true,
-					}),
-					right: new fabric.Line([0, artboardRef?.current?.width, 0, 0], {
-						opacity: 1,
-						top: artboardRef?.current?.top,
-						evented: false,
-						hasControls: false,
-						hasBorders: false,
-						selectable: false,
-						stroke: 'red',
-						strokeWidth: 2,
-						isSnappingLine: true,
-					}),
-					bottom: new fabric.Line([0, 0, artboardRef?.current?.width, 0], {
-						evented: false,
-						left: artboardRef?.current?.left,
-						selectable: false,
-						hasControls: false,
-						hasBorders: false,
-						opacity: 1,
-						stroke: 'red',
-						strokeWidth: 2,
-						isSnappingLine: true,
-					}),
-					centerX: new fabric.Line([0, artboardRef?.current?.height, 0, 0], {
-						evented: false,
-						selectable: false,
-						top: artboardRef?.current?.top,
-						hasControls: false,
-						hasBorders: false,
-						opacity: 1,
-						stroke: 'orange',
-						strokeWidth: 2,
-						isSnappingLine: true,
-					}),
-					centerY: new fabric.Line([0, 0, artboardRef?.current?.height, 0], {
-						evented: false,
-						selectable: false,
-						hasControls: false,
-						hasBorders: false,
-						left: artboardRef?.current?.left,
-						opacity: 1,
-						stroke: 'purple',
-						strokeWidth: 2,
-						isSnappingLine: true,
-					}),
-				};
 
-				canvasRef.current?.add(
-					guidesRef.current.left,
-					guidesRef.current.top,
-					guidesRef.current.right,
-					guidesRef.current.bottom,
-					guidesRef.current.centerX,
-					guidesRef.current.centerY,
-				);
-			}
-
+			guidesRef.current = createSnappingLines(canvasRef, artboardRef);
 			console.count('called');
 			// canvas1?.add(new fabric.Rect({ left: 0, top: 0, width: 100, height: 100, fill: 'red' }));
 			canvasRef.current?.requestRenderAll();
@@ -1155,6 +907,7 @@ function App() {
 						setShowSidebar={setShowSidebar}
 						autosaveChanges={autosaveChanges}
 						setAutoSaveChanges={setAutoSaveChanges}
+						setSnapDistance={setSnapDistance}
 					/>
 					<Tooltip label="Save" openDelay={500}>
 						<ActionIcon onClick={saveArtboardChanges} size={20}>
