@@ -13,33 +13,40 @@ const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelected
 	const [name, setName] = useState('');
 	const [url, setUrl] = useState('');
 	const [modalOpen, setModalOpen] = useState(false);
+	const [boldUrl, setBoldUrl] = useState('');
 
 	const handleLoad = () => {
 		onLoad();
 		setModalOpen(false);
-		// create a font family taking font name and url
+
 		const fontFaceRule = `
-            @font-face {
-                font-family: ${name};
-                src: url(${url})
-            }
-        `;
-		// create a style sheet
+			@font-face {
+				font-family: ${name};
+				src: url(${url})
+			}
+		`;
+
 		const style = document.createElement('style');
-		// add font face rule to style sheet
 		style.appendChild(document.createTextNode(fontFaceRule));
-		// add style sheet to document head
+
+		let boldFontFaceRule: any;
+		if (boldUrl) {
+			boldFontFaceRule = `
+				@font-face {
+					font-family: ${name}_bold;
+					src: url(${boldUrl});
+					font-weight: bold;
+				}
+			`;
+			style.appendChild(document.createTextNode(boldFontFaceRule));
+		}
+
 		document.head.appendChild(style);
 
-		// create a new FontFaceObserver
 		const observer = new FontFaceObserver(name);
-
-		// load the font
 		observer.load().then(
 			() => {
 				console.log('Font is available');
-				// set font family of canvas text
-				console.log('first', currentSelectedElements);
 				if (currentSelectedElements && currentSelectedElements) {
 					const textElement = currentSelectedElements?.[0] as fabric.Text;
 					textElement.set({ fontFamily: name, data: { ...textElement.data, font: fontFaceRule } });
@@ -50,6 +57,23 @@ const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelected
 				console.log('Font is not available', err);
 			},
 		);
+
+		if (boldUrl) {
+			const boldObserver = new FontFaceObserver(`${name}_bold`);
+			boldObserver.load().then(
+				() => {
+					console.log('Bold font is available');
+					if (currentSelectedElements && currentSelectedElements) {
+						const textElement = currentSelectedElements?.[0] as fabric.Text;
+						textElement.set({ data: { ...textElement.data, boldFont: boldFontFaceRule } });
+						canvas.renderAll();
+					}
+				},
+				(err: any) => {
+					console.log('Bold font is not available', err);
+				},
+			);
+		}
 	};
 
 	return (
@@ -62,12 +86,20 @@ const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelected
 					placeholder="Font Name"
 					onChange={event => setName(event.currentTarget.value)}
 				/>
+				<h5>Normal</h5>
 
 				<TextInput
 					style={{ marginTop: '20px' }}
 					value={url}
 					placeholder="Font Url"
 					onChange={event => setUrl(event.currentTarget.value)}
+				/>
+				<h5>Bold</h5>
+				<TextInput
+					style={{ marginTop: '20px' }}
+					value={boldUrl}
+					placeholder="Bold Font Url"
+					onChange={event => setBoldUrl(event.currentTarget.value)}
 				/>
 
 				<Button fullWidth style={{ marginTop: '20px' }} onClick={handleLoad}>

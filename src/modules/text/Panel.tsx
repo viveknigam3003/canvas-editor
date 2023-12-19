@@ -59,10 +59,10 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 	const toggleBold = () => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement.fontWeight === 'bold') {
-			textElement.set({ fontWeight: 'normal' });
+			textElement.set({ fontWeight: 'normal', fontFamily: textElement?.fontFamily?.replace('_bold', '') });
 			setIsBold(false);
 		} else {
-			textElement.set({ fontWeight: 'bold' });
+			textElement.set({ fontWeight: 'bold', fontFamily: `${textElement.fontFamily}_bold` });
 			setIsBold(true);
 		}
 		canvas.requestRenderAll();

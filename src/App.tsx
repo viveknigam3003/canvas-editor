@@ -824,6 +824,24 @@ function App() {
 					return observer.load().catch(err => {
 						console.log('Font is not available', err);
 					});
+				} else if (
+					textItem.data &&
+					typeof textItem.data.boldFont === 'string' &&
+					typeof textItem.fontFamily === 'object'
+				) {
+					const boldFont = textItem.data.boldFont;
+					console.debug('boldFont', boldFont, textItem.fontFamily);
+					const style = document.createElement('style');
+
+					style.appendChild(document.createTextNode(boldFont));
+					document.head.appendChild(style);
+
+					const observer = new FontFaceObserver(textItem.fontFamily || '');
+
+					// load the font
+					return observer.load().catch(err => {
+						console.log('Bold Font is not available', err);
+					});
 				}
 			});
 

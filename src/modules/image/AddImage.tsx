@@ -117,6 +117,44 @@ const ImageModal = ({
 			},
 		);
 	};
+
+	const addSvgFromUrl = (url: string) => {
+		fabric.loadSVGFromURL(url, (objects, options) => {
+			const obj = fabric.util.groupSVGElements(objects, options);
+
+			if (!artboardRef.current) {
+				return;
+			}
+
+			const left = artboardRef.current.left;
+			const top = artboardRef.current.top;
+			const width = artboardRef.current.width;
+			const height = artboardRef.current.height;
+
+			if (!left || !top || !width || !height) {
+				return;
+			}
+
+			// calculate the center of the artboard
+			const centerX = left + width / 2;
+			const centerY = top + height / 2;
+
+			obj.set({
+				left: centerX,
+				top: centerY,
+				data: {
+					id: generateId(),
+				},
+			});
+			canvasRef.current?.add(obj);
+			canvasRef.current?.setActiveObject(obj);
+			imageForm.reset();
+			dispatch(
+				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
+			);
+			closeImageModal();
+		});
+	};
 	return (
 		<Modal
 			opened={imageModalOpened}
@@ -129,17 +167,21 @@ const ImageModal = ({
 				content: modalClasses.content,
 				title: modalClasses.title,
 			}}
+			size={600}
 		>
-			<Tabs defaultValue="unsplash">
+			<Tabs defaultValue="upload">
 				<Tabs.List>
-					<Tabs.Tab value="unsplash" icon={<IconSettings size="0.8rem" />}>
-						Unsplash Random
-					</Tabs.Tab>
 					<Tabs.Tab value="upload" icon={<IconLinkPlus size="0.8rem" />}>
 						Upload
 					</Tabs.Tab>
 					<Tabs.Tab value="url" icon={<IconPhoto size="0.8rem" />}>
 						From URL
+					</Tabs.Tab>
+					<Tabs.Tab value="svg" icon={<IconPhoto size="0.8rem" />}>
+						SVG from URL
+					</Tabs.Tab>
+					<Tabs.Tab value="unsplash" icon={<IconSettings size="0.8rem" />}>
+						Unsplash Random
 					</Tabs.Tab>
 				</Tabs.List>
 
@@ -209,6 +251,34 @@ const ImageModal = ({
 							}}
 						>
 							Add Random From Unsplash
+						</Button>
+					</Stack>
+				</Tabs.Panel>
+
+				<Tabs.Panel value="svg" pt="xs">
+					<Stack spacing={'lg'}>
+						<TextInput
+							label="SVG URL"
+							placeholder="Enter valid url"
+							required
+							classNames={{ label: modalClasses.label }}
+							{...imageForm.getInputProps('url')}
+						/>
+						<Button
+							variant="light"
+							size="sm"
+							fullWidth
+							mt={'md'}
+							onClick={() => {
+								const validationResult = imageForm.validate();
+								if (validationResult.hasErrors) {
+									console.log('Errors in image form= ', validationResult.errors);
+									return;
+								}
+								addSvgFromUrl(imageForm.values.url);
+							}}
+						>
+							Add SVG
 						</Button>
 					</Stack>
 				</Tabs.Panel>

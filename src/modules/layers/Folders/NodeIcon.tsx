@@ -1,3 +1,4 @@
+import { IconHeading, IconMask, IconShape } from '@tabler/icons-react';
 import React from 'react';
 
 const NodeIcon: React.FC<{ type: any }> = ({ type }) => {
@@ -43,24 +44,13 @@ const NodeIcon: React.FC<{ type: any }> = ({ type }) => {
 				<path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" />
 			</svg>
 		);
-	if (type === 'textbox')
-		return (
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				strokeWidth="2"
-				stroke="#6F7E8C"
-				fill="none"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			>
-				<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-				<path d="M10 8h4" />
-				<path d="M12 8v8" />
-			</svg>
-		);
+	if (type === 'textbox') return <IconHeading size={16} color="#6F7E8C" />;
+	if (type === 'path') {
+		return <IconShape size={16} color="#6F7E8C" />;
+	}
+	if (type === 'clipGroup') {
+		return <IconMask size={16} color="#6F7E8C" />;
+	}
 	return (
 		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<g clipPath="url(#clip0_2878_11221)">
