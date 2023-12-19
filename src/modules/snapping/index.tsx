@@ -24,109 +24,122 @@ export function snapToObject(
 	let centerY = false;
 	objects.forEach(function (obj) {
 		if (obj === target) return;
-		const targetTop = target.top as number;
-		const targetLeft = target.left as number;
-		const objTop = obj.top as number;
-		const objLeft = obj.left as number;
-		if (Math.abs(targetTop - objTop - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: objTop + obj.getScaledHeight() });
+
+		// Snap to the top edge
+		if (Math.abs(target.top - obj.top - obj.getScaledHeight()) < snapDistance) {
+			target.set({ top: obj.top + obj.getScaledHeight() });
 			top = true;
 		}
-		if (Math.abs(targetTop - objTop) < snapDistance) {
-			target.set({ top: objTop });
+		if (Math.abs(target.top - obj.top) < snapDistance) {
+			target.set({ top: obj.top });
 			top = true;
 		}
-		if (Math.abs(targetTop - objTop - obj.getScaledHeight() / 2) < snapDistance) {
+
+		if (Math.abs(target.top - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
 			top = true;
-			target.set({ top: objTop + obj.getScaledHeight() / 2 });
+			target.set({ top: obj.top + obj.getScaledHeight() / 2 });
 		}
-		if (Math.abs(targetTop + target.getScaledHeight() - objTop) < snapDistance) {
-			target.set({ top: objTop - target.getScaledHeight() });
+		if (Math.abs(target.top + target.getScaledHeight() - obj.top) < snapDistance) {
+			target.set({ top: obj.top - target.getScaledHeight() });
 			bottom = true;
 		}
-		if (Math.abs(targetTop + target.getScaledHeight() - objTop - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: objTop + obj.getScaledHeight() - target.getScaledHeight() });
+
+		if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight()) < snapDistance) {
+			target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() });
 			bottom = true;
 		}
-		if (Math.abs(targetTop + target.getScaledHeight() - objTop - obj.getScaledHeight() / 2) < snapDistance) {
+
+		if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
 			bottom = true;
-			target.set({ top: objTop + obj.getScaledHeight() / 2 - target.getScaledHeight() });
+			target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() });
 		}
-		if (Math.abs(targetLeft - objLeft - obj.getScaledWidth()) < snapDistance) {
+
+		if (Math.abs(target.left - obj.left - obj.getScaledWidth()) < snapDistance) {
 			left = true;
-			target.set({ left: objLeft + obj.getScaledWidth() });
+			target.set({ left: obj.left + obj.getScaledWidth() });
 		}
-		if (Math.abs(targetLeft - objLeft) < snapDistance) {
+		if (Math.abs(target.left - obj.left) < snapDistance) {
 			left = true;
-			target.set({ left: objLeft });
+			target.set({ left: obj.left });
 		}
-		if (Math.abs(targetLeft - objLeft - obj.getScaledWidth() / 2) < snapDistance) {
+		if (Math.abs(target.left - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
 			left = true;
-			target.set({ left: objLeft + obj.getScaledWidth() / 2 });
+			target.set({ left: obj.left + obj.getScaledWidth() / 2 });
 		}
-		if (Math.abs(targetLeft + target.getScaledWidth() - objLeft) < snapDistance) {
-			target.set({ left: objLeft - target.getScaledWidth() });
+		// Snap to the right edge
+		if (Math.abs(target.left + target.getScaledWidth() - obj.left) < snapDistance) {
+			target.set({ left: obj.left - target.getScaledWidth() });
 			right = true;
 		}
-		if (Math.abs(targetLeft + target.getScaledWidth() - objLeft - obj.getScaledWidth()) < snapDistance) {
-			target.set({ left: objLeft + obj.getScaledWidth() - target.getScaledWidth() });
+
+		if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth()) < snapDistance) {
+			target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() });
 			right = true;
 		}
-		if (Math.abs(targetLeft + target.getScaledWidth() - objLeft - obj.getScaledWidth() / 2) < snapDistance) {
+
+		if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
 			right = true;
-			target.set({ left: objLeft + obj.getScaledWidth() / 2 - target.getScaledWidth() });
+			target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() });
 		}
-		if (Math.abs(targetLeft + target.getScaledWidth() / 2 - objLeft - obj.getScaledWidth() / 2) < snapDistance) {
-			target.set({ left: objLeft + obj.getScaledWidth() / 2 - target.getScaledWidth() / 2 });
+
+		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
+			target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() / 2 });
 			centerX = true;
 		}
-		if (Math.abs(targetLeft + target.getScaledWidth() / 2 - objLeft) < snapDistance) {
-			target.set({ left: objLeft - target.getScaledWidth() / 2 });
+
+		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left) < snapDistance) {
+			target.set({ left: obj.left - target.getScaledWidth() / 2 });
 			centerX = true;
 		}
-		if (Math.abs(targetLeft + target.getScaledWidth() / 2 - objLeft - obj.getScaledWidth()) < snapDistance) {
-			target.set({ left: objLeft + obj.getScaledWidth() - target.getScaledWidth() / 2 });
+		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth()) < snapDistance) {
+			target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() / 2 });
 			centerX = true;
 		}
-		if (Math.abs(targetTop + target.getScaledHeight() / 2 - objTop - obj.getScaledHeight() / 2) < snapDistance) {
-			target.set({ top: objTop + obj.getScaledHeight() / 2 - target.getScaledHeight() / 2 });
+
+		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
+			target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() / 2 });
 			centerY = true;
 		}
-		if (Math.abs(targetTop + target.getScaledHeight() / 2 - objTop) < snapDistance) {
-			target.set({ top: objTop - target.getScaledHeight() / 2 });
+		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top) < snapDistance) {
+			target.set({ top: obj.top - target.getScaledHeight() / 2 });
 			centerY = true;
 		}
-		if (Math.abs(targetTop + target.getScaledHeight() / 2 - objTop - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: objTop + obj.getScaledHeight() - target.getScaledHeight() / 2 });
+
+		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight()) < snapDistance) {
+			target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() / 2 });
 			centerY = true;
 		}
+
 		if (left) {
-			guidesRef.current.left.set({ opacity: 1, left: targetLeft });
+			guidesRef.current.left.set({ opacity: 1, left: target.left });
 		} else {
-			guidesRef.current.left.set({ opacity: 0, left: targetLeft });
+			guidesRef.current.left.set({ opacity: 0, left: target.left });
 		}
+
 		if (right) {
-			guidesRef.current.right.set({ opacity: 1, left: targetLeft + target.getScaledWidth() });
+			guidesRef.current.right.set({ opacity: 1, left: target.left + target.getScaledWidth() });
 		} else {
 			guidesRef.current.right.set({ opacity: 0 });
 		}
+
 		if (top) {
-			guidesRef.current.top.set({ opacity: 1, top: targetTop });
+			guidesRef.current.top.set({ opacity: 1, top: target.top });
 		} else {
 			guidesRef.current.top.set({ opacity: 0 });
 		}
+
 		if (bottom) {
-			guidesRef.current.bottom.set({ opacity: 1, top: targetTop + target.getScaledHeight() });
+			guidesRef.current.bottom.set({ opacity: 1, top: target.top + target.getScaledHeight() });
 		} else {
 			guidesRef.current.bottom.set({ opacity: 0 });
 		}
 		if (centerX) {
-			guidesRef.current.centerX.set({ opacity: 1, left: targetLeft + target.getScaledWidth() / 2 });
+			guidesRef.current.centerX.set({ opacity: 1, left: target.left + target.getScaledWidth() / 2 });
 		} else {
 			guidesRef.current.centerX.set({ opacity: 0 });
 		}
 		if (centerY) {
-			guidesRef.current.centerY.set({ opacity: 1, top: targetTop + target.getScaledHeight() / 2 });
+			guidesRef.current.centerY.set({ opacity: 1, top: target.top + target.getScaledHeight() / 2 });
 		} else {
 			guidesRef.current.centerY.set({ opacity: 0 });
 		}
@@ -146,9 +159,9 @@ export function createSnappingLines(
 		selectable: false,
 		stroke: 'blue',
 		isSnappingLine: true,
-		hasControls: false,
-		hasBorders: false,
-		strokeWidth: 2,
+		// hasControls: false,
+		// hasBorders: false,
+		// strokeWidth: 2,
 	};
 	const guidesRef = {
 		left: new fabric.Line([0, artboardWidth, 0, 0], {
