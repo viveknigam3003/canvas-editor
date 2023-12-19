@@ -130,7 +130,7 @@ export function snapToObject(
 		} else {
 			guidesRef.current.centerY.set({ opacity: 0 });
 		}
-		canvasRef.current?.requestRenderAll();
+		canvasRef.current?.renderAll();
 	});
 }
 
