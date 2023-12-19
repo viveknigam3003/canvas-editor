@@ -2,9 +2,16 @@
 import { fabric } from 'fabric';
 import React from 'react';
 
+type snappingObjectType = {
+	top: number;
+	left: number;
+	getScaledHeight: () => number;
+	getScaledWidth: () => number;
+	set(props: { top?: number; left?: number }): void;
+};
 export function snapToObject(
-	target: fabric.Object,
-	objects: fabric.Object[],
+	target: snappingObjectType,
+	objects: snappingObjectType[],
 	guidesRef: React.MutableRefObject<{
 		top: fabric.Line;
 		bottom: fabric.Line;
@@ -26,7 +33,7 @@ export function snapToObject(
 		if (obj === target) return;
 
 		// Snap to the top edge
-		if (Math.abs(target.top - obj.top - obj.getScaledHeight()) < snapDistance) {
+		if (Math.abs(target.top - obj?.top - obj.getScaledHeight()) < snapDistance) {
 			target.set({ top: obj.top + obj.getScaledHeight() });
 			top = true;
 		}
@@ -158,7 +165,9 @@ export function createSnappingLines(
 		evented: false,
 		selectable: false,
 		stroke: 'blue',
-		isSnappingLine: true,
+		data: {
+			isSnappingLine: true,
+		},
 		// hasControls: false,
 		// hasBorders: false,
 		// strokeWidth: 2,
@@ -191,7 +200,7 @@ export function createSnappingLines(
 	};
 	canvasRef.current
 		?.getObjects()
-		.filter(obj => obj.isSnappingLine)
+		.filter(obj => obj?.data?.isSnappingLine)
 		.forEach(obj => canvasRef.current?.remove(obj));
 	canvasRef.current?.add(
 		guidesRef.left,

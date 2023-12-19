@@ -154,7 +154,7 @@ function App() {
 			const target = options.target as fabric.Object;
 			snapToObject(
 				target,
-				canvasRef.current?.getObjects().filter(x => !x?.isSnappingLine),
+				canvasRef.current?.getObjects().filter(x => !x?.data?.isSnappingLine),
 				guidesRef,
 				canvasRef,
 				Number(snapDistance),
@@ -286,7 +286,7 @@ function App() {
 				...newArtboard,
 				state: {
 					...json,
-					objects: json?.objects.filter((item: any) => !item?.isSnappingLine),
+					objects: json?.objects.filter((item: any) => !item?.data?.isSnappingLine),
 				},
 			},
 		];
@@ -489,7 +489,7 @@ function App() {
 					...item,
 					state: {
 						...json,
-						objects: json?.objects.filter((item: any) => !item?.isSnappingLine),
+						objects: json?.objects.filter((item: any) => !item?.data?.isSnappingLine),
 					},
 				};
 			}
