@@ -1,25 +1,12 @@
 //TODO: optimize snapping
 import { fabric } from 'fabric';
 import React from 'react';
+import { guidesRefType, snappingObjectType } from '../../types';
 
-type snappingObjectType = {
-	top: number;
-	left: number;
-	getScaledHeight: () => number;
-	getScaledWidth: () => number;
-	set(props: { top?: number; left?: number }): void;
-};
 export function snapToObject(
 	target: snappingObjectType,
 	objects: snappingObjectType[],
-	guidesRef: React.MutableRefObject<{
-		top: fabric.Line;
-		bottom: fabric.Line;
-		left: fabric.Line;
-		right: fabric.Line;
-		centerX: fabric.Line;
-		centerY: fabric.Line;
-	}>,
+	guidesRef: React.MutableRefObject<guidesRefType>,
 	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
 	snapDistance: number,
 ) {
@@ -118,37 +105,37 @@ export function snapToObject(
 		}
 
 		if (left) {
-			guidesRef.current.left.set({ opacity: 1, left: target.left });
+			guidesRef?.current?.left?.set({ opacity: 1, left: target.left });
 		} else {
-			guidesRef.current.left.set({ opacity: 0, left: target.left });
+			guidesRef?.current?.left?.set({ opacity: 0, left: target.left });
 		}
 
 		if (right) {
-			guidesRef.current.right.set({ opacity: 1, left: target.left + target.getScaledWidth() });
+			guidesRef?.current?.right?.set({ opacity: 1, left: target.left + target.getScaledWidth() });
 		} else {
-			guidesRef.current.right.set({ opacity: 0 });
+			guidesRef?.current?.right?.set({ opacity: 0 });
 		}
 
 		if (top) {
-			guidesRef.current.top.set({ opacity: 1, top: target.top });
+			guidesRef?.current?.top?.set({ opacity: 1, top: target.top });
 		} else {
-			guidesRef.current.top.set({ opacity: 0 });
+			guidesRef?.current?.top?.set({ opacity: 0 });
 		}
 
 		if (bottom) {
-			guidesRef.current.bottom.set({ opacity: 1, top: target.top + target.getScaledHeight() });
+			guidesRef?.current?.bottom?.set({ opacity: 1, top: target.top + target.getScaledHeight() });
 		} else {
-			guidesRef.current.bottom.set({ opacity: 0 });
+			guidesRef?.current?.bottom?.set({ opacity: 0 });
 		}
 		if (centerX) {
-			guidesRef.current.centerX.set({ opacity: 1, left: target.left + target.getScaledWidth() / 2 });
+			guidesRef?.current?.centerX?.set({ opacity: 1, left: target.left + target.getScaledWidth() / 2 });
 		} else {
-			guidesRef.current.centerX.set({ opacity: 0 });
+			guidesRef?.current?.centerX?.set({ opacity: 0 });
 		}
 		if (centerY) {
-			guidesRef.current.centerY.set({ opacity: 1, top: target.top + target.getScaledHeight() / 2 });
+			guidesRef?.current?.centerY?.set({ opacity: 1, top: target.top + target.getScaledHeight() / 2 });
 		} else {
-			guidesRef.current.centerY.set({ opacity: 0 });
+			guidesRef?.current?.centerY?.set({ opacity: 0 });
 		}
 		canvasRef.current?.renderAll();
 	});

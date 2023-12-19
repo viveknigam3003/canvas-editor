@@ -34,7 +34,7 @@ import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { Artboard, colorSpaceType } from './types';
+import { Artboard, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
@@ -94,14 +94,7 @@ function App() {
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-	const guidesRef = useRef<{
-		left: null | fabric.Line;
-		top: null | fabric.Line;
-		right: null | fabric.Line;
-		bottom: null | fabric.Line;
-		centerX: null | fabric.Line;
-		centerY: null | fabric.Line;
-	}>({
+	const guidesRef = useRef<guidesRefType>({
 		left: null,
 		top: null,
 		right: null,
@@ -153,8 +146,8 @@ function App() {
 		canvasRef.current.on('object:moving', function (options) {
 			const target = options.target as fabric.Object;
 			snapToObject(
-				target,
-				canvasRef.current?.getObjects().filter(x => !x?.data?.isSnappingLine),
+				target as snappingObjectType,
+				canvasRef.current?.getObjects().filter(x => !x?.data?.isSnappingLine) as snappingObjectType[],
 				guidesRef,
 				canvasRef,
 				Number(snapDistance),
@@ -162,7 +155,7 @@ function App() {
 		});
 		canvasRef.current.on('object:modified', function () {
 			Object.entries(guidesRef.current).forEach(([, value]) => {
-				value.set({ opacity: 0 });
+				value?.set({ opacity: 0 });
 			});
 		});
 		return () => {
