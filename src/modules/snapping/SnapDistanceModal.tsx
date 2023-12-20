@@ -15,7 +15,7 @@ const SnapDistanceModal = ({ open, onClose }: any) => {
 	const imageForm = useForm<{ snapDistance: number }>({
 		validate: values => {
 			const errors: Record<string, string> = {};
-			if (!(values.snapDistance > 1 && values.snapDistance < 10)) {
+			if (!(values.snapDistance > 1 && values.snapDistance <= 10)) {
 				errors.snapDistance = 'Snap distance should be between 2 and 10';
 			}
 			return errors;
