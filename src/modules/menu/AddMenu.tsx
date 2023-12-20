@@ -7,6 +7,7 @@ import ImageModal from '../image/AddImage';
 import { updateActiveArtboardLayers } from '../app/actions';
 import { useDispatch } from 'react-redux';
 import { generateId } from '../../utils';
+import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -50,9 +51,7 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 		canvasRef.current?.setActiveObject(text);
 		text.enterEditing();
 		text.selectAll();
-		dispatch(
-			updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
-		);
+		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 	};
 
 	useHotkeys([
@@ -87,7 +86,26 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 				</Tooltip>
 				<Tooltip label="Add shape" openDelay={500}>
 					<ActionIcon>
-						<IconSquare size={14} />
+						<IconSquare
+							onClick={() => {
+								for (let index = 0; index < 10; index++) {
+									const rect = new fabric.Rect({
+										left: Math.random() * 1000,
+										top: Math.random() * 1000,
+										fill: '#' + Math.floor(Math.random() * 16777215).toString(16),
+										width: 100,
+										height: 100,
+										data: {
+											displayText: 'Shape',
+											id: generateId(),
+										},
+									});
+									canvasRef.current?.add(rect);
+								}
+								canvasRef.current?.requestRenderAll();
+							}}
+							size={14}
+						/>
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label="Add preset" openDelay={500}>

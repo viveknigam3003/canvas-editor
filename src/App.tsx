@@ -15,7 +15,7 @@ import {
 	useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure, useHotkeys } from '@mantine/hooks';
+import { useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
 import axios from 'axios';
@@ -34,11 +34,13 @@ import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers
 import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { Artboard, colorSpaceType } from './types';
+import { Artboard, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
+import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
+import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
 
 store.dispatch(appStart());
 
@@ -46,7 +48,11 @@ function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
-
+	const [snapDistance] = useLocalStorage<string>({
+		key: 'snapDistance',
+		defaultValue: '2',
+		getInitialValueInEffect: true,
+	});
 	const theme = useMantineTheme();
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
@@ -88,7 +94,14 @@ function App() {
 	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
+	const guidesRef = useRef<guidesRefType>({
+		left: null,
+		top: null,
+		right: null,
+		bottom: null,
+		centerX: null,
+		centerY: null,
+	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
 
@@ -110,7 +123,7 @@ function App() {
 					return null;
 				}
 
-				if (event.e.shiftKey) {
+				if (event?.e?.shiftKey) {
 					// Once the selection is updated, if there is an element in the array, return it
 					if (event.selected && event.selected.length > 0) {
 						// Add the element to the array if it is not already in the array
@@ -130,6 +143,21 @@ function App() {
 			setCurrentSelectedElements(null);
 		});
 
+		canvasRef.current.on('object:moving', function (options) {
+			const target = options.target as fabric.Object;
+			snapToObject(
+				target as snappingObjectType,
+				filterSnappingLines(canvasRef.current?.getObjects()) as snappingObjectType[],
+				guidesRef,
+				canvasRef,
+				Number(snapDistance),
+			);
+		});
+		canvasRef.current.on('object:modified', function () {
+			Object.entries(guidesRef.current).forEach(([, value]) => {
+				value?.set({ opacity: 0 });
+			});
+		});
 		return () => {
 			canvasRef.current?.dispose();
 		};
@@ -194,6 +222,7 @@ function App() {
 			height: artboard.height,
 			fill: '#fff',
 			selectable: false,
+			hoverCursor: 'default',
 			data: {
 				type: 'artboard',
 				id,
@@ -209,7 +238,7 @@ function App() {
 		});
 
 		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(['data', 'selectable', 'effects']);
+		const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		offScreenCanvas.dispose();
 		return {
 			...newArtboard,
@@ -234,6 +263,7 @@ function App() {
 			width: artboard.width,
 			height: artboard.height,
 			fill: '#fff',
+			hoverCursor: 'default',
 			selectable: false,
 			data: {
 				type: 'artboard',
@@ -244,14 +274,18 @@ function App() {
 		canvasRef.current?.add(artboardRect);
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
+		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		const updatedArtboards = [
 			...artboards,
 			{
 				...newArtboard,
-				state: json,
+				state: {
+					...json,
+					objects: filterSnappingLines(json?.objects),
+				},
 			},
 		];
+		console.log(updatedArtboards);
 		dispatch(setArtboards(updatedArtboards));
 		newArtboardForm.reset();
 		close();
@@ -332,7 +366,7 @@ function App() {
 			colorSpace: colorSpace as colorSpaceType,
 		});
 
-		const stateJSON = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
+		const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
@@ -348,7 +382,7 @@ function App() {
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(['data', 'selectable', 'effects']));
+			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
 
 			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
 
@@ -443,12 +477,15 @@ function App() {
 			return;
 		}
 
-		const json = canvasRef.current?.toJSON(['data', 'selectable', 'effects']);
+		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		const updatedArtboards = artboards.map(item => {
 			if (item.id === selectedArtboard.id) {
 				return {
 					...item,
-					state: json,
+					state: {
+						...json,
+						objects: filterSnappingLines(json?.objects),
+					},
 				};
 			}
 			return item;
@@ -651,6 +688,7 @@ function App() {
 				}
 			});
 
+			guidesRef.current = createSnappingLines(canvasRef, artboardRef);
 			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
@@ -1027,8 +1065,6 @@ function App() {
 	);
 }
 
-export default App;
-
 const useStyles = createStyles(theme => ({
 	root: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
@@ -1096,3 +1132,5 @@ const useStyles = createStyles(theme => ({
 		},
 	},
 }));
+
+export default App;
