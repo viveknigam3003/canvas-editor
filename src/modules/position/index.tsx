@@ -166,8 +166,11 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 					label="Width"
 					value={positionValues.width}
 					onChange={e => {
-						currentSelectedElements?.[0].set('width', e as number);
-						setPositionValues(prev => ({ ...prev, width: e as number }));
+						const element = currentSelectedElements?.[0];
+						if (!element) return;
+						// Set only scaled width
+						element.set('scaleX', (e as number) / element.width!);
+						setPositionValues(prev => ({ ...prev, width: element.getScaledWidth() as number }));
 						canvas.requestRenderAll();
 					}}
 					step={1}
@@ -176,8 +179,11 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 					label="Height"
 					value={positionValues.height}
 					onChange={e => {
-						currentSelectedElements?.[0].set('height', e as number);
-						setPositionValues(prev => ({ ...prev, height: e as number }));
+						const element = currentSelectedElements?.[0];
+						if (!element) return;
+						// Set only scaled height
+						element.set('scaleY', (e as number) / element.height!);
+						setPositionValues(prev => ({ ...prev, height: element.getScaledHeight() as number }));
 						canvas.requestRenderAll();
 					}}
 					step={1}
