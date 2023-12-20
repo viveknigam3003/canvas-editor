@@ -1,8 +1,9 @@
-import { Button, Group, Popover, Slider, Stack, Text, createStyles } from '@mantine/core';
+import { Button, Group, NumberInput, Popover, Slider, Stack, Text, createStyles } from '@mantine/core';
 import { fabric } from 'fabric';
 import React, { useEffect } from 'react';
 import SectionTitle from '../../components/SectionTitle';
 import { generateId } from '../../utils';
+import { getNearestFps, interpolatePropertyValue } from './helpers';
 
 interface AnimationProps {
 	canvas: fabric.Canvas;
@@ -10,19 +11,22 @@ interface AnimationProps {
 	saveArtboardChanges: () => void;
 }
 
-interface Keyframe {
+export interface Keyframe {
 	id: string;
 	property: string;
 	value: string | number;
 	timeMark: number;
 }
 
-const DURATION_OF_VIDEO = 5 * 1000;
+const MAX_DURATION = 60 * 1000;
 
 const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtboardChanges, canvas }) => {
 	const { classes } = useStyles();
 	const [keyframes, setKeyframes] = React.useState<Keyframe[]>([]);
 	const [hasChanges, setHasChanges] = React.useState<boolean>(false);
+	const [duration, setDuration] = React.useState<number>(5000);
+	const [fps, setFps] = React.useState<number>(60);
+	const [isPlaying, setIsPlaying] = React.useState<boolean>(false);
 	const [timemark, setTimemark] = React.useState<number>(0);
 
 	useEffect(() => {
@@ -84,54 +88,8 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		});
 	};
 
-	function easeInOutCubic(x: number): number {
-		return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-	}
-
-	function interpolatePropertyValue(keyframes: Keyframe[], time: number, property: string): number | string {
-		// Sort the keyframes based on timeMark
-		const sortedKeyframes = keyframes
-			.filter(kf => kf.property === property)
-			.sort((a, b) => a.timeMark - b.timeMark);
-
-		// Edge cases
-		if (time <= sortedKeyframes[0].timeMark) {
-			return sortedKeyframes[0].value;
-		}
-		if (time >= sortedKeyframes[sortedKeyframes.length - 1].timeMark) {
-			return sortedKeyframes[sortedKeyframes.length - 1].value;
-		}
-
-		// Find the surrounding keyframes
-		let prevKeyframe: Keyframe | null = null;
-		let nextKeyframe: Keyframe | null = null;
-		for (const kf of sortedKeyframes) {
-			if (kf.timeMark <= time) {
-				prevKeyframe = kf;
-			} else {
-				nextKeyframe = kf;
-				break;
-			}
-		}
-
-		if (prevKeyframe && nextKeyframe) {
-			// Linear interpolation
-			const timeDiff = nextKeyframe.timeMark - prevKeyframe.timeMark;
-			const valueDiff =
-				typeof prevKeyframe.value === 'number' && typeof nextKeyframe.value === 'number'
-					? nextKeyframe.value - prevKeyframe.value
-					: 0;
-			const factor = easeInOutCubic((time - prevKeyframe.timeMark) / timeDiff);
-			return typeof prevKeyframe.value === 'number'
-				? prevKeyframe.value + valueDiff * factor
-				: prevKeyframe.value;
-		}
-
-		return 'Error'; // Handle error or unexpected cases
-	}
-
 	const playAnimation = () => {
-		const frameRate = 60;
+		const frameRate = fps;
 		const frameDuration = 1000 / frameRate;
 		let lastFrameTime = 0;
 		const element = currentSelectedElements[0];
@@ -147,6 +105,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 
 		const kf = [...keyframes].sort((a: Keyframe, b: Keyframe) => a.timeMark - b.timeMark);
 
+		setIsPlaying(true);
 		let t = 0;
 		const animate = (currentTime: number) => {
 			if (currentTime - lastFrameTime > frameDuration) {
@@ -158,9 +117,10 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 				lastFrameTime = currentTime;
 			}
 
-			if (t < DURATION_OF_VIDEO / 1000) {
+			if (t < duration / 1000) {
 				requestAnimationFrame(animate);
 			} else {
+				setIsPlaying(false);
 				console.log('done');
 			}
 		};
@@ -171,6 +131,32 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 	return (
 		<Stack>
 			<SectionTitle>Animation</SectionTitle>
+			<Button onClick={playAnimation} disabled={isPlaying}>
+				{isPlaying ? 'Playing' : 'Play'}
+			</Button>
+			<Group grow>
+				<NumberInput
+					label="Duration (ms)"
+					value={duration}
+					onChange={value => setDuration(value as number)}
+					step={100}
+					min={0}
+					max={MAX_DURATION}
+					stepHoldDelay={500}
+					stepHoldInterval={100}
+				/>
+				<NumberInput
+					label="FPS"
+					value={fps}
+					onChange={value => setFps(getNearestFps(value as number))}
+					step={1}
+					min={8}
+					max={60}
+					stepHoldDelay={500}
+					stepHoldInterval={100}
+				/>
+			</Group>
+
 			<Popover
 				position="left-end"
 				withinPortal
@@ -186,7 +172,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 				}}
 			>
 				<Popover.Target>
-					<Button>{hasChanges ? 'Save keyframes' : 'Keyframes'}</Button>
+					<Button variant="light">{hasChanges ? 'Save keyframes' : 'Keyframes'}</Button>
 				</Popover.Target>
 				<Popover.Dropdown pb={'2rem'}>
 					<Stack>
@@ -195,10 +181,10 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 							pt="xl"
 							value={timemark}
 							onChange={value => setTimemark(value as number)}
-							step={0.01}
+							step={0.1}
 							min={0}
-							max={DURATION_OF_VIDEO / 1000}
-							precision={2}
+							max={duration / 1000}
+							precision={1}
 							w={300}
 							labelAlwaysOn
 						/>
@@ -223,7 +209,6 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 					</Stack>
 				</Popover.Dropdown>
 			</Popover>
-			<Button onClick={playAnimation}>Play</Button>
 		</Stack>
 	);
 };

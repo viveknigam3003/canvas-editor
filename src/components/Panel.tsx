@@ -49,6 +49,7 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChang
 			{currentSelectedElements.length > 1 ? (
 				<ClipMask currentSelectedElements={currentSelectedElements} canvas={canvas} />
 			) : null}
+			<Divider />
 			<Animation
 				canvas={canvas}
 				currentSelectedElements={currentSelectedElements}
