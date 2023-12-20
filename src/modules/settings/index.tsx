@@ -21,6 +21,8 @@ interface Props {
 	setShowSidebar: React.Dispatch<React.SetStateAction<boolean>>;
 	autosaveChanges: boolean;
 	setAutoSaveChanges: React.Dispatch<React.SetStateAction<boolean>>;
+	snapDistance: string;
+	setSnapDistance: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const SettingsMenu: React.FC<Props> = ({
@@ -29,6 +31,8 @@ const SettingsMenu: React.FC<Props> = ({
 	setShowSidebar,
 	autosaveChanges,
 	setAutoSaveChanges,
+	snapDistance,
+	setSnapDistance,
 }) => {
 	const { classes } = useMenuStyles();
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -142,7 +146,12 @@ const SettingsMenu: React.FC<Props> = ({
 				onClose={closeColorSpaceModal}
 				recreateCanvas={recreateCanvas}
 			/>
-			<SnapDistanceModal open={snapDistanceModalOpened} onClose={closeSnapDistanceModal} />
+			<SnapDistanceModal
+				open={snapDistanceModalOpened}
+				onClose={closeSnapDistanceModal}
+				snapDistance={snapDistance}
+				setSnapDistance={setSnapDistance}
+			/>
 		</Box>
 	);
 };
