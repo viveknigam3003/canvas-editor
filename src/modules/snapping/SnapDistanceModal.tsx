@@ -1,21 +1,21 @@
 import { Button, Modal, NumberInput, Stack } from '@mantine/core';
-
 import { useModalStyles } from '../../styles/modal';
 import { useForm } from '@mantine/form';
-import { useLocalStorage } from '@mantine/hooks';
 import { useEffect } from 'react';
 
-const SnapDistanceModal = ({ open, onClose }: any) => {
-	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
-		key: 'snapDistance',
-		defaultValue: '2',
-		getInitialValueInEffect: true,
-	});
+type SnapDistanceModalType = {
+	open: boolean;
+	onClose: () => void;
+	snapDistance: string;
+	setSnapDistance: React.Dispatch<React.SetStateAction<string>>;
+};
+
+const SnapDistanceModal = ({ open, onClose, snapDistance, setSnapDistance }: SnapDistanceModalType) => {
 	const { classes: modalClasses } = useModalStyles();
 	const imageForm = useForm<{ snapDistance: number }>({
 		validate: values => {
 			const errors: Record<string, string> = {};
-			if (!(values.snapDistance > 1 && values.snapDistance < 10)) {
+			if (!(values.snapDistance > 1 && values.snapDistance < 11)) {
 				errors.snapDistance = 'Snap distance should be between 2 and 10';
 			}
 			return errors;

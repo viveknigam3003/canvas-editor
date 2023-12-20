@@ -48,10 +48,9 @@ function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
-	const [snapDistance] = useLocalStorage<string>({
+	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
 		defaultValue: '2',
-		getInitialValueInEffect: true,
 	});
 	const theme = useMantineTheme();
 	const { classes } = useStyles();
@@ -63,6 +62,7 @@ function App() {
 	const { classes: modalClasses } = useModalStyles();
 	const [opened, { open, close }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
+	const [canvasScrollPoints, setCanvasScrollPoints] = useState(0);
 	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
 		initialValues: {
 			name: '',
@@ -143,25 +143,38 @@ function App() {
 			setCurrentSelectedElements(null);
 		});
 
-		canvasRef.current.on('object:moving', function (options) {
-			const target = options.target as fabric.Object;
-			snapToObject(
-				target as snappingObjectType,
-				filterSnappingLines(canvasRef.current?.getObjects()) as snappingObjectType[],
-				guidesRef,
-				canvasRef,
-				Number(snapDistance),
-			);
-		});
-		canvasRef.current.on('object:modified', function () {
-			Object.entries(guidesRef.current).forEach(([, value]) => {
-				value?.set({ opacity: 0 });
-			});
-		});
 		return () => {
 			canvasRef.current?.dispose();
 		};
 	}, []);
+
+	const onMoveHandler = (options: fabric.IEvent) => {
+		const target = options.target as fabric.Object;
+		snapToObject(
+			target as snappingObjectType,
+			filterSnappingLines(canvasRef.current?.getObjects()) as snappingObjectType[],
+			guidesRef,
+			canvasRef,
+			Number(snapDistance),
+		);
+	};
+
+	const onModifiedHandler = () => {
+		Object.entries(guidesRef.current).forEach(([, value]) => {
+			value?.set({ opacity: 0 });
+		});
+	};
+
+	useEffect(() => {
+		if (canvasRef.current) {
+			canvasRef.current.on('object:moving', onMoveHandler);
+			canvasRef.current.on('object:modified', onModifiedHandler);
+		}
+		return () => {
+			canvasRef.current?.off('object:moving', onMoveHandler);
+			canvasRef.current?.off('object:modified', onModifiedHandler);
+		};
+	}, [canvasRef.current, snapDistance]);
 
 	useEffect(() => {
 		dispatch(updateActiveArtboardLayers(selectedArtboard?.state?.objects || []));
@@ -688,7 +701,7 @@ function App() {
 				}
 			});
 
-			guidesRef.current = createSnappingLines(canvasRef, artboardRef);
+			guidesRef.current = createSnappingLines(canvasRef);
 			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
@@ -726,9 +739,9 @@ function App() {
 				if (!vpt) {
 					return;
 				}
-
 				vpt[4] -= e.deltaX;
 				vpt[5] -= e.deltaY;
+				setCanvasScrollPoints(vpt[4] + vpt[5]);
 				canvas.requestRenderAll();
 			}
 		};
@@ -756,6 +769,10 @@ function App() {
 		};
 	}, []);
 
+	// this is hack to reset snapping lines when zoom level changes or scroll changes ideal solution will be move this to handle pan calculate theie exact position and size
+	useEffect(() => {
+		guidesRef.current = createSnappingLines(canvasRef);
+	}, [zoomLevel, canvasScrollPoints]);
 	useEffect(() => {
 		if (!autosaveChanges) {
 			return;
@@ -895,6 +912,8 @@ function App() {
 						setShowSidebar={setShowSidebar}
 						autosaveChanges={autosaveChanges}
 						setAutoSaveChanges={setAutoSaveChanges}
+						snapDistance={snapDistance}
+						setSnapDistance={setSnapDistance}
 					/>
 					<Tooltip label="Save" openDelay={500}>
 						<ActionIcon onClick={saveArtboardChanges} size={20}>

@@ -137,16 +137,34 @@ export function snapToObject(
 		} else {
 			guidesRef?.current?.centerY?.set({ opacity: 0 });
 		}
+		guidesRef?.current?.left?.setCoords();
+		guidesRef?.current?.right?.setCoords();
+		guidesRef?.current?.top?.setCoords();
+		guidesRef?.current?.bottom?.setCoords();
+		guidesRef?.current?.centerX?.setCoords();
+		guidesRef?.current?.centerY?.setCoords();
 		canvasRef.current?.renderAll();
 	});
 }
 
-export function createSnappingLines(
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
-	artboardRef: React.MutableRefObject<fabric.Rect | null>,
-) {
-	const artboardWidth = artboardRef.current?.width as number;
-	const artboardHeight = artboardRef.current?.height as number;
+const getVisibleTopLeft = (canvasRef: React.MutableRefObject<fabric.Canvas | null>) => {
+	const canvas = canvasRef.current as fabric.Canvas;
+	const vpt = canvas.viewportTransform as unknown as fabric.IPoint[];
+	const scrollTop = window.scrollY || document.documentElement.scrollTop;
+	const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	const visibleTop = -vpt[5] / vpt[0] + scrollTop / vpt[0];
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	const visibleLeft = -vpt[4] / vpt[0] + scrollLeft / vpt[0];
+	return { top: visibleTop, left: visibleLeft };
+};
+
+export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
+	const canvasWidth = (canvasRef.current?.width as number) / (canvasRef.current?.getZoom() as number);
+	const canvasHeight = (canvasRef.current?.height as number) / (canvasRef.current?.getZoom() as number);
+	const { top, left } = getVisibleTopLeft(canvasRef);
 	const defaultSnapLineProps = {
 		opacity: 0,
 		evented: false,
@@ -157,30 +175,18 @@ export function createSnappingLines(
 		},
 	};
 	const guidesRef = {
-		left: new fabric.Line([0, artboardWidth, 0, 0], {
-			top: artboardRef?.current?.top,
+		left: new fabric.Line([0, canvasWidth, 0, 0], {
 			...defaultSnapLineProps,
+			top,
 		}),
-		top: new fabric.Line([0, 0, artboardHeight, 0], {
-			left: artboardRef?.current?.left,
+		top: new fabric.Line([0, 0, canvasHeight, 0], {
 			...defaultSnapLineProps,
+			left,
 		}),
-		right: new fabric.Line([0, artboardWidth, 0, 0], {
-			top: artboardRef?.current?.top,
-			...defaultSnapLineProps,
-		}),
-		bottom: new fabric.Line([0, 0, artboardWidth, 0], {
-			left: artboardRef?.current?.left,
-			...defaultSnapLineProps,
-		}),
-		centerX: new fabric.Line([0, artboardHeight, 0, 0], {
-			top: artboardRef?.current?.top,
-			...defaultSnapLineProps,
-		}),
-		centerY: new fabric.Line([0, 0, artboardHeight, 0], {
-			left: artboardRef?.current?.left,
-			...defaultSnapLineProps,
-		}),
+		right: new fabric.Line([0, canvasWidth, 0, 0], { ...defaultSnapLineProps, top }),
+		bottom: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
+		centerX: new fabric.Line([0, canvasHeight, 0, 0], { ...defaultSnapLineProps, top }),
+		centerY: new fabric.Line([0, 0, canvasHeight, 0], { ...defaultSnapLineProps, left }),
 	};
 	canvasRef.current
 		?.getObjects()
