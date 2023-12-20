@@ -1,14 +1,14 @@
+import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
+import { useLocalStorage } from '@mantine/hooks';
+import { Notifications } from '@mantine/notifications';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import ArtboardPage from './Artboard.tsx';
-import store from './store/index.ts';
 import { Provider } from 'react-redux';
-import { Notifications } from '@mantine/notifications';
-import { useLocalStorage } from '@mantine/hooks';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import App from './App.tsx';
+import ArtboardPage from './Artboard.tsx';
+import './index.css';
+import store from './store/index.ts';
 
 const router = createBrowserRouter([
 	{

@@ -1008,6 +1008,7 @@ function App() {
 								artboardRef={artboardRef}
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
+								saveArtboardChanges={saveArtboardChanges}
 							/>
 						)}
 					</Box>
@@ -1130,6 +1131,8 @@ const useStyles = createStyles(theme => ({
 		width: 300,
 		height: '100%',
 		padding: '1rem',
+		overflowY: 'auto',
+		paddingBottom: '2rem',
 	},
 	center: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],

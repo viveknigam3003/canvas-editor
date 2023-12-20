@@ -4,14 +4,16 @@ import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
 import ClipMask from '../modules/clipmask';
 import Position from '../modules/position';
+import Animation from '../modules/animate';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
+	saveArtboardChanges: () => void;
 };
 
-const Panel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
+const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChanges }: PanelProps) => {
 	if (!currentSelectedElements.length) {
 		return null;
 	}
@@ -47,6 +49,11 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => 
 			{currentSelectedElements.length > 1 ? (
 				<ClipMask currentSelectedElements={currentSelectedElements} canvas={canvas} />
 			) : null}
+			<Animation
+				canvas={canvas}
+				currentSelectedElements={currentSelectedElements}
+				saveArtboardChanges={saveArtboardChanges}
+			/>
 		</Stack>
 	);
 };
