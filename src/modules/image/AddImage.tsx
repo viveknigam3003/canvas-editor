@@ -26,11 +26,24 @@ const ImageModal = ({
 	artboardRef,
 }: ImageModalProps) => {
 	const dispatch = useDispatch();
+	const { classes: modalClasses } = useModalStyles();
+	const imageForm = useForm<{ url: string }>({
+		initialValues: {
+			url: '',
+		},
+		validate: values => {
+			const errors: Record<string, string> = {};
+			if (values.url.trim().length === 0) {
+				errors.url = 'Image url cannot be empty';
+			}
+			return errors;
+		},
+	});
+
 	const getImageScale = (image: fabric.Image): number => {
 		// Calculate the scale needed to fit the image inside the artboard with 20% padding
 		const artboardWidth = artboardRef.current?.width;
 		const artboardHeight = artboardRef.current?.height;
-		console.log('Artboard = ', artboardWidth, artboardHeight);
 		if (!artboardWidth || !artboardHeight) {
 			return 1;
 		}
@@ -46,23 +59,11 @@ const ImageModal = ({
 		const widthScale = (artboardWidth * 0.8) / imageWidth;
 		const heightScale = (artboardHeight * 0.8) / imageHeight;
 
-		console.log('Width scale = ', widthScale, 'Height scale = ', heightScale);
+		const scale = Math.min(widthScale, heightScale);
 
-		return Math.min(widthScale, heightScale);
+		return scale;
 	};
-	const { classes: modalClasses } = useModalStyles();
-	const imageForm = useForm<{ url: string }>({
-		initialValues: {
-			url: '',
-		},
-		validate: values => {
-			const errors: Record<string, string> = {};
-			if (values.url.trim().length === 0) {
-				errors.url = 'Image url cannot be empty';
-			}
-			return errors;
-		},
-	});
+
 	const addImageFromUrl = (url: string) => {
 		fabric.Image.fromURL(
 			url,

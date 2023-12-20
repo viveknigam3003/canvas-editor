@@ -3,6 +3,7 @@ import ImagePanel from '../modules/image/Panel';
 import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
 import ClipMask from '../modules/clipmask';
+import Position from '../modules/position';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -24,6 +25,8 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => 
 						canvas={canvas}
 						currentSelectedElements={currentSelectedElements}
 					/>
+					<Divider />
+					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					<Divider />
 					{currentSelectedElements?.[0]?.type === 'textbox' && (
 						<TextPanel
