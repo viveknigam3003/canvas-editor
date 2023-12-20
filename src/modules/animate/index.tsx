@@ -101,8 +101,6 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 			return;
 		}
 
-		console.log(keyframes);
-
 		const kf = [...keyframes].sort((a: Keyframe, b: Keyframe) => a.timeMark - b.timeMark);
 
 		setIsPlaying(true);
@@ -121,7 +119,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 				requestAnimationFrame(animate);
 			} else {
 				setIsPlaying(false);
-				console.log('done');
+				console.debug('animation end');
 			}
 		};
 
