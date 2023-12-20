@@ -769,7 +769,7 @@ function App() {
 		};
 	}, []);
 
-	// this is hack to reset snapping lines when zoom level changes or scroll changes ideal solution will be move this to handle pan calculate theie exact position and size
+	// this is hack to reset snapping lines when zoom level changes or scroll changes,ideal solution will be move this to handlePan function and change the snapping lines based on the scroll and zoom level
 	useEffect(() => {
 		guidesRef.current = createSnappingLines(canvasRef);
 	}, [zoomLevel, canvasScrollPoints]);
