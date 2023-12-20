@@ -205,5 +205,5 @@ export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Can
 
 export const filterSnappingLines = (arr: fabric.Object[] | undefined) => {
 	if (!arr) return [];
-	return arr.filter(obj => !obj?.data?.isSnappingLine);
+	return arr.filter(obj => !obj?.data?.isSnappingLine && !obj?.data?.ignoreSnapping);
 };

@@ -18,6 +18,7 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 				type: 'reflection',
 				parent: original.data.id,
 				id: generateId(),
+				ignoreSnapping: true,
 			},
 			selectable: false,
 			fill: new Fabric.Gradient({
@@ -54,6 +55,7 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 					type: 'reflectionOverlay',
 					parent: original.data.id,
 					id: generateId(),
+					ignoreSnapping: true,
 				},
 				fill: new Fabric.Gradient({
 					type: 'linear',
