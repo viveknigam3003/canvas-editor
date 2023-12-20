@@ -2,6 +2,7 @@ import { ActionIcon, Box, Checkbox, Menu, Text, Tooltip, useMantineColorScheme }
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
+	IconArrowBarToLeft,
 	IconBug,
 	IconLayoutSidebarLeftCollapse,
 	IconMoon,
@@ -94,11 +95,11 @@ const SettingsMenu: React.FC<Props> = ({
 						Show/hide UI
 					</Menu.Item>
 					<Menu.Item
-						icon={<IconPalette size={14} />}
+						icon={<IconArrowBarToLeft size={14} />}
 						className={classes.item}
 						onClick={openSnapDistanceModal}
 					>
-						Change Snapping Distance
+						Snap Distance
 					</Menu.Item>
 					<Menu.Item className={classes.item} closeMenuOnClick={false}>
 						<Checkbox
