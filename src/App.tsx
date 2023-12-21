@@ -35,7 +35,7 @@ import { redo, undo } from './modules/history/actions';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, colorSpaceType, guidesRefType, snappingObjectType } from './types';
-import { generateId } from './utils';
+import { generateId, getMultiplierFor4K } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
 import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
@@ -471,18 +471,6 @@ function App() {
 		}
 
 		canvas.renderAll();
-	};
-
-	const getMultiplierFor4K = (width?: number, height?: number): number => {
-		// Assuming the canvas is not already 4K, calculate the multiplier needed
-		// to scale the current canvas size up to 4K resolution
-		const maxWidth = 3840; // for UHD 4K width
-		const maxHeight = 2160; // for UHD 4K height
-		const widthMultiplier = maxWidth / (width || 1);
-		const heightMultiplier = maxHeight / (height || 1);
-
-		// Use the smaller multiplier to ensure the entire canvas fits into the 4K resolution
-		return Math.min(widthMultiplier, heightMultiplier);
 	};
 
 	const saveArtboardChanges = () => {
