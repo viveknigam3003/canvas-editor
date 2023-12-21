@@ -13,6 +13,9 @@
 	},
 	"dependencies": {
 		"@emotion/react": "^11.11.1",
+		"@ffmpeg/core": "^0.12.5",
+		"@ffmpeg/ffmpeg": "^0.12.9",
+		"@ffmpeg/util": "^0.12.1",
 		"@mantine/core": "^6.0.21",
 		"@mantine/form": "^6.0.21",
 		"@mantine/hooks": "^6.0.21",
