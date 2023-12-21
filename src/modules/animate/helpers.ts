@@ -1,8 +1,5 @@
 import { Keyframe } from '.';
-
-export function easeInOutCubic(x: number): number {
-	return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-}
+import { evaluateEasingFunction } from './easing';
 
 export const getNearestFps = (fps: number) => {
 	const fpsList = [8, 12, 15, 24, 25, 30, 48, 50, 60];
@@ -41,7 +38,7 @@ export function interpolatePropertyValue(keyframes: Keyframe[], time: number, pr
 			typeof prevKeyframe.value === 'number' && typeof nextKeyframe.value === 'number'
 				? nextKeyframe.value - prevKeyframe.value
 				: 0;
-		const factor = easeInOutCubic((time - prevKeyframe.timeMark) / timeDiff);
+		const factor = evaluateEasingFunction((time - prevKeyframe.timeMark) / timeDiff, prevKeyframe.easing);
 		return typeof prevKeyframe.value === 'number' ? prevKeyframe.value + valueDiff * factor : prevKeyframe.value;
 	}
 
