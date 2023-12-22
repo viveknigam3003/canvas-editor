@@ -23,25 +23,25 @@ import { fabric } from 'fabric';
 import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import AddMenu from './modules/menu/AddMenu';
-import LayerList from './modules/layers/List';
-import MiscMenu from './modules/menu/MiscMenu';
 import Panel from './components/Panel';
-import SettingsMenu from './modules/settings';
-import ZoomMenu from './modules/zoom';
+import SectionTitle from './components/SectionTitle';
+import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
 import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
+import { addVideoToCanvas } from './modules/image/helpers';
+import LayerList from './modules/layers/List';
+import AddMenu from './modules/menu/AddMenu';
+import MiscMenu from './modules/menu/MiscMenu';
+import { SmartObject } from './modules/reflection/helpers';
+import SettingsMenu from './modules/settings';
+import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
+import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
+import { useModalStyles } from './styles/modal';
 import { Artboard, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
-import { SmartObject } from './modules/reflection/helpers';
-import { useModalStyles } from './styles/modal';
-import SectionTitle from './components/SectionTitle';
-import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
-import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
-import { getElementScale, getScaledPosition, getVideoElement } from './modules/image/helpers';
 
 store.dispatch(appStart());
 
@@ -692,31 +692,11 @@ function App() {
 
 			guidesRef.current = createSnappingLines(canvasRef);
 
-			// Load video element
+			// Get the src of the video element and add it to the canvas
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
 				for (let i = 0; i < videoElements.length; i++) {
-					const videoE = getVideoElement(videoElements[i].data?.src);
-					const { left, top } = getScaledPosition(artboardRef);
-					videoE.addEventListener('loadedmetadata', () => {
-						videoE.width = videoE.videoWidth;
-						videoE.height = videoE.videoHeight;
-						console.log('loadedmetadata');
-						const video = new fabric.Image(videoE, {
-							left,
-							top,
-							width: videoE.videoWidth,
-							height: videoE.videoHeight,
-							crossOrigin: 'anonymous',
-						});
-						const scale = getElementScale(video, artboardRef);
-						video.set({
-							scaleX: scale,
-							scaleY: scale,
-						});
-						console.log('Video element = ', videoE.width, videoE.height);
-						canvasRef.current?.add(video);
-					});
+					addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, artboardRef);
 				}
 			}
 			canvas.requestRenderAll();

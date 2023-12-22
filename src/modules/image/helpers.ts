@@ -1,3 +1,6 @@
+import { fabric } from 'fabric';
+import { generateId } from '../../utils';
+
 export const getVideoElement = (url: string) => {
 	const videoE = document.createElement('video');
 	videoE.crossOrigin = 'anonymous';
@@ -52,4 +55,41 @@ export const getScaledPosition = (artboardRef: any): { left: number; top: number
 		left: centerX,
 		top: centerY,
 	};
+};
+
+export const addVideoToCanvas = (
+	src: string,
+	canvas: fabric.Canvas,
+	artboardRef: any,
+	onComplete?: (video: fabric.Object) => void,
+) => {
+	const videoE = getVideoElement(src);
+	const { left, top } = getScaledPosition(artboardRef);
+	videoE.addEventListener('loadedmetadata', () => {
+		videoE.width = videoE.videoWidth;
+		videoE.height = videoE.videoHeight;
+		console.log('loadedmetadata');
+		const video = new fabric.Image(videoE, {
+			left,
+			top,
+			width: videoE.videoWidth,
+			height: videoE.videoHeight,
+			crossOrigin: 'anonymous',
+			data: {
+				type: 'video',
+				src: src,
+				id: generateId(),
+			},
+		});
+		console.log('Video = ', video);
+		const scale = getElementScale(video, artboardRef);
+		video.set({
+			scaleX: scale,
+			scaleY: scale,
+		});
+		canvas.add(video);
+		if (onComplete) {
+			onComplete(video);
+		}
+	});
 };

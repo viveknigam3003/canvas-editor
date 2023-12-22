@@ -1,15 +1,14 @@
-import { Button, Modal, Stack, TextInput } from '@mantine/core';
-import { Artboard } from '../../types';
-import { fabric } from 'fabric';
-import { Tabs, FileInput } from '@mantine/core';
-import { IconPhoto, IconSettings, IconUpload, IconLinkPlus, IconVideo, IconShape } from '@tabler/icons-react';
+import { Button, FileInput, Modal, Stack, Tabs, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { updateActiveArtboardLayers } from '../../modules/app/actions';
+import { IconLinkPlus, IconPhoto, IconSettings, IconShape, IconUpload, IconVideo } from '@tabler/icons-react';
+import { fabric } from 'fabric';
 import { useDispatch } from 'react-redux';
-import { generateId } from '../../utils';
-import { useModalStyles } from '../../styles/modal';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
-import { getElementScale, getScaledPosition, getVideoElement } from './helpers';
+import { updateActiveArtboardLayers } from '../../modules/app/actions';
+import { useModalStyles } from '../../styles/modal';
+import { Artboard } from '../../types';
+import { generateId } from '../../utils';
+import { addVideoToCanvas, getElementScale, getScaledPosition } from './helpers';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
@@ -100,33 +99,9 @@ const ImageModal = ({
 		const reader = new FileReader();
 		reader.onload = function (f: ProgressEvent<FileReader>) {
 			const data = f?.target?.result as string;
-			const videoE = getVideoElement(data);
-			console.log('Video element = ', videoE.width, videoE.height);
-			const { left, top } = getScaledPosition(artboardRef);
-			videoE.addEventListener('loadedmetadata', () => {
-				videoE.width = videoE.videoWidth;
-				videoE.height = videoE.videoHeight;
-				console.log('loadedmetadata');
-				const video = new fabric.Image(videoE, {
-					left,
-					top,
-					width: videoE.videoWidth,
-					height: videoE.videoHeight,
-					crossOrigin: 'anonymous',
-					data: {
-						type: 'video',
-						src: data,
-						id: generateId(),
-					},
-				});
-				console.log('Video = ', video);
-				const scale = getElementScale(video, artboardRef);
-				video.set({
-					scaleX: scale,
-					scaleY: scale,
-				});
-				canvasRef.current?.add(video);
+			addVideoToCanvas(data, canvasRef.current!, artboardRef, video => {
 				canvasRef.current?.setActiveObject(video);
+				canvasRef.current?.renderAll();
 				dispatch(
 					updateActiveArtboardLayers(
 						canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || [],
