@@ -41,6 +41,7 @@ import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
+import { getElementScale, getScaledPosition, getVideoElement } from './modules/image/helpers';
 
 store.dispatch(appStart());
 
@@ -690,6 +691,34 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef);
+
+			// Load video element
+			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
+			if (videoElements?.length) {
+				for (let i = 0; i < videoElements.length; i++) {
+					const videoE = getVideoElement(videoElements[i].data?.src);
+					const { left, top } = getScaledPosition(artboardRef);
+					videoE.addEventListener('loadedmetadata', () => {
+						videoE.width = videoE.videoWidth;
+						videoE.height = videoE.videoHeight;
+						console.log('loadedmetadata');
+						const video = new fabric.Image(videoE, {
+							left,
+							top,
+							width: videoE.videoWidth,
+							height: videoE.videoHeight,
+							crossOrigin: 'anonymous',
+						});
+						const scale = getElementScale(video, artboardRef);
+						video.set({
+							scaleX: scale,
+							scaleY: scale,
+						});
+						console.log('Video element = ', videoE.width, videoE.height);
+						canvasRef.current?.add(video);
+					});
+				}
+			}
 			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
