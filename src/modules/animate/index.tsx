@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import SectionTitle from '../../components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import { generateId } from '../../utils';
-import { getNearestFps, interpolatePropertyValue } from './helpers';
+import { interpolatePropertyValue } from './helpers';
 interface AnimationProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
@@ -125,7 +125,8 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 
 	const playAnimation = () => {
 		const frameRate = fps;
-		const frameDuration = 1000 / frameRate;
+		const frameDuration = Number((1000 / frameRate).toFixed(2));
+		console.log('frameDuration', frameDuration);
 		let lastFrameTime = 0;
 
 		const element = currentSelectedElements[0];
@@ -145,6 +146,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		const videoObj = canvas.getObjects().find(obj => obj.data && obj.data.type === 'video');
 		const htmlVideoElement = videoObj ? (videoObj as any).getElement() : null;
 
+		console.log('videoObj', videoObj, 'htmlVideoElement', htmlVideoElement);
 		if (htmlVideoElement && !(htmlVideoElement instanceof HTMLVideoElement)) {
 			console.error('Invalid video element');
 			return;
@@ -153,19 +155,22 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		const onVideoReady = () => {
 			setIsPlaying(true);
 			let t = 0;
+			if (htmlVideoElement) {
+				htmlVideoElement.currentTime = 0;
+				htmlVideoElement?.play();
+			}
 			const animate = (currentTime: number) => {
 				if (currentTime - lastFrameTime > frameDuration) {
 					const value = interpolatePropertyValue(kf, t, 'left');
 					element.set('left', value as number);
-
 					// Check if the video duration is sufficient for the current time
 					if (htmlVideoElement && t <= htmlVideoElement.duration) {
-						htmlVideoElement.currentTime = t;
+						console.log('video time', htmlVideoElement.currentTime, 'animation time', t);
 					}
 
 					canvas.renderAll();
 
-					t += frameDuration / 1000;
+					t = Number((t + frameDuration / 1000).toFixed(2));
 					lastFrameTime = currentTime;
 				}
 
@@ -173,6 +178,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 					requestAnimationFrame(animate);
 				} else {
 					setIsPlaying(false);
+					htmlVideoElement?.pause();
 					console.debug('Animation ended');
 				}
 			};
@@ -221,13 +227,39 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 
 		const stateJSON = canvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 
-		console.log('stateJSON', stateJSON);
+		const adjustKeyframes = (keyframes: Keyframe[]) => {
+			if (!keyframes) {
+				return [];
+			}
+			// If property is left or top, adjust the value
+			return keyframes.map((keyframe: Keyframe) => {
+				if (keyframe.property === 'left') {
+					return {
+						...keyframe,
+						value: (keyframe.value as number) - artboardLeftAdjustment,
+					};
+				}
+
+				if (keyframe.property === 'top') {
+					return {
+						...keyframe,
+						value: (keyframe.value as number) - artboardTopAdjustment,
+					};
+				}
+
+				return keyframe;
+			});
+		};
 
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
 				...item,
 				left: item.left - artboardLeftAdjustment,
 				top: item.top - artboardTopAdjustment,
+				data: {
+					...item.data,
+					keyframes: adjustKeyframes(item.data.keyframes),
+				},
 			};
 		});
 
@@ -252,7 +284,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 			const keyframes = element.data.keyframes;
 
 			const frameRate = fps;
-			const frameDuration = 1000 / frameRate;
+			const frameDuration = Number((1000 / frameRate).toFixed(2));
 			let lastFrameTime = 0;
 
 			if (!keyframes.length) {
@@ -388,8 +420,9 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 				<NumberInput
 					label="FPS"
 					value={fps}
-					onChange={value => setFps(getNearestFps(value as number))}
-					step={1}
+					onChange={value => setFps(value as number)}
+					step={0.01}
+					precision={2}
 					min={8}
 					max={60}
 					stepHoldDelay={500}
