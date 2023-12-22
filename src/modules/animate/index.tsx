@@ -127,38 +127,71 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		const frameRate = fps;
 		const frameDuration = 1000 / frameRate;
 		let lastFrameTime = 0;
+
 		const element = currentSelectedElements[0];
 		if (!element) {
+			console.error('No element selected for animation');
 			return;
 		}
 
 		if (!keyframes.length) {
+			console.error('No keyframes available for animation');
 			return;
 		}
 
 		const kf = [...keyframes].sort((a: Keyframe, b: Keyframe) => a.timeMark - b.timeMark);
 
-		setIsPlaying(true);
-		let t = 0;
-		const animate = (currentTime: number) => {
-			if (currentTime - lastFrameTime > frameDuration) {
-				const value = interpolatePropertyValue(kf, t, 'left');
-				element.set('left', value as number);
-				canvas.renderAll();
+		// Find the video element
+		const videoObj = canvas.getObjects().find(obj => obj.data && obj.data.type === 'video');
+		const htmlVideoElement = videoObj ? (videoObj as any).getElement() : null;
 
-				t = t + frameDuration / 1000;
-				lastFrameTime = currentTime;
-			}
+		if (htmlVideoElement && !(htmlVideoElement instanceof HTMLVideoElement)) {
+			console.error('Invalid video element');
+			return;
+		}
 
-			if (t < duration / 1000) {
-				requestAnimationFrame(animate);
-			} else {
-				setIsPlaying(false);
-				console.debug('animation end');
-			}
+		const onVideoReady = () => {
+			setIsPlaying(true);
+			let t = 0;
+			const animate = (currentTime: number) => {
+				if (currentTime - lastFrameTime > frameDuration) {
+					const value = interpolatePropertyValue(kf, t, 'left');
+					element.set('left', value as number);
+
+					// Check if the video duration is sufficient for the current time
+					if (htmlVideoElement && t <= htmlVideoElement.duration) {
+						htmlVideoElement.currentTime = t;
+					}
+
+					canvas.renderAll();
+
+					t += frameDuration / 1000;
+					lastFrameTime = currentTime;
+				}
+
+				if (t < duration / 1000) {
+					requestAnimationFrame(animate);
+				} else {
+					setIsPlaying(false);
+					console.debug('Animation ended');
+				}
+			};
+
+			requestAnimationFrame(animate);
 		};
 
-		requestAnimationFrame(animate);
+		if (htmlVideoElement) {
+			if (htmlVideoElement.readyState >= 4) {
+				// Video is ready
+				onVideoReady();
+			} else {
+				// Wait for the video to be ready
+				htmlVideoElement.addEventListener('loadedmetadata', onVideoReady);
+			}
+		} else {
+			// If no video, start the animation without video
+			onVideoReady();
+		}
 	};
 
 	const animateOffCanvas = (onAnimationComplete: (frameData: any[]) => void) => {
