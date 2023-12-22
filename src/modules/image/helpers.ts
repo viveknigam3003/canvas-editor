@@ -60,15 +60,26 @@ export const getScaledPosition = (artboardRef: any): { left: number; top: number
 export const addVideoToCanvas = (
 	src: string,
 	canvas: fabric.Canvas,
-	artboardRef: any,
-	onComplete?: (video: fabric.Object) => void,
+	{ artboardRef, onComplete }: { artboardRef: any; onComplete?: (video: fabric.Image) => void },
 ) => {
+	console.log('Loading video');
 	const videoE = getVideoElement(src);
 	const { left, top } = getScaledPosition(artboardRef);
 	videoE.addEventListener('loadedmetadata', () => {
 		videoE.width = videoE.videoWidth;
 		videoE.height = videoE.videoHeight;
-		console.log('loadedmetadata');
+		const existingVideoObject = canvas.getObjects().find(obj => obj.data?.src === src);
+
+		if (existingVideoObject) {
+			console.log('Existing video object found');
+			videoE.currentTime = 0.01;
+			(existingVideoObject as fabric.Image).setElement(videoE);
+			if (onComplete) {
+				onComplete(existingVideoObject as fabric.Image);
+			}
+			return;
+		}
+
 		const video = new fabric.Image(videoE, {
 			left,
 			top,
@@ -77,11 +88,10 @@ export const addVideoToCanvas = (
 			crossOrigin: 'anonymous',
 			data: {
 				type: 'video',
-				src: src,
+				src,
 				id: generateId(),
 			},
 		});
-		console.log('Video = ', video);
 		const scale = getElementScale(video, artboardRef);
 		video.set({
 			scaleX: scale,

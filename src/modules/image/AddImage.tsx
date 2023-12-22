@@ -99,15 +99,18 @@ const ImageModal = ({
 		const reader = new FileReader();
 		reader.onload = function (f: ProgressEvent<FileReader>) {
 			const data = f?.target?.result as string;
-			addVideoToCanvas(data, canvasRef.current!, artboardRef, video => {
-				canvasRef.current?.setActiveObject(video);
-				canvasRef.current?.renderAll();
-				dispatch(
-					updateActiveArtboardLayers(
-						canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || [],
-					),
-				);
-				closeImageModal();
+			addVideoToCanvas(data, canvasRef.current!, {
+				artboardRef,
+				onComplete: video => {
+					canvasRef.current?.setActiveObject(video);
+					canvasRef.current?.renderAll();
+					dispatch(
+						updateActiveArtboardLayers(
+							canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || [],
+						),
+					);
+					closeImageModal();
+				},
 			});
 		};
 		reader.onerror = function (e) {

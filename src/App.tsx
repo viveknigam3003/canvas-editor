@@ -619,16 +619,16 @@ function App() {
 		const json = currentArtboardState.state;
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
-			const artboard = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard');
+			const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
 			}
 			zoomToFit();
 
 			// create a style sheet
-			const artboardTexts = canvasRef.current?.getObjects().filter(item => item.type === 'textbox');
+			const artboardTexts = canvas.getObjects().filter(item => item.type === 'textbox');
 			// take all texts and then loop over. Read data property inside and get font from it
-			const fontPromises = artboardTexts?.map(item => {
+			const fontPromises = artboardTexts?.map((item: any) => {
 				const textItem = item as fabric.Text;
 				if (
 					textItem.data &&
@@ -675,7 +675,7 @@ function App() {
 			}
 
 			// Attach the reference for reflection object back to the parent object
-			(canvasRef.current?.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
+			(canvas.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
 				const reflection = canvasRef.current
 					?.getObjects()
 					.find(item => item.data?.type === 'reflection' && item.data.parent === obj.data?.id);
@@ -696,7 +696,9 @@ function App() {
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
 				for (let i = 0; i < videoElements.length; i++) {
-					addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, artboardRef);
+					addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, {
+						artboardRef,
+					});
 				}
 			}
 			canvas.requestRenderAll();
