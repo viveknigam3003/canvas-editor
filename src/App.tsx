@@ -51,6 +51,11 @@ store.dispatch(appStart());
 	return 'Video is ' + (isVideoEnabled ? 'disabled' : 'enabled');
 };
 
+(window as any).hardReset = () => {
+	localStorage.setItem('artboards', JSON.stringify([]));
+	window.location.reload();
+};
+
 function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
