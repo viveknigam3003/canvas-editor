@@ -29,7 +29,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 	const [keyframes, setKeyframes] = useState<Keyframe[]>([]);
 	const [hasChanges, setHasChanges] = useState<boolean>(false);
 	const [duration, setDuration] = useState<number>(3000);
-	const [fps, setFps] = useState<number>(60);
+	const [fps, setFps] = useState<number>(30);
 	const [isPlaying, setIsPlaying] = useState<boolean>(false);
 	const [timemark, setTimemark] = useState<number>(0);
 	const [loaded, setLoaded] = useState(false);
@@ -349,6 +349,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 						frameData.push(
 							renderCanvas.toDataURL({
 								format: 'png',
+								multiplier: 2,
 							}),
 						);
 						setProgress({
