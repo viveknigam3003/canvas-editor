@@ -1,4 +1,4 @@
-import { IconHeading, IconMask, IconShape } from '@tabler/icons-react';
+import { IconHeading, IconMask, IconShape, IconVideo } from '@tabler/icons-react';
 import React from 'react';
 
 const NodeIcon: React.FC<{ type: any }> = ({ type }) => {
@@ -50,6 +50,9 @@ const NodeIcon: React.FC<{ type: any }> = ({ type }) => {
 	}
 	if (type === 'clipGroup') {
 		return <IconMask size={16} color="#6F7E8C" />;
+	}
+	if (type === 'video') {
+		return <IconVideo size={16} color="#6F7E8C" />;
 	}
 	return (
 		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

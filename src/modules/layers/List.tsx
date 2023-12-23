@@ -179,9 +179,16 @@ export default function LayerList({ canvas }: LayerListProp) {
 								node={node}
 								depth={depth}
 								isOpen={isOpen}
-								onClick={() => {
+								onClick={id => {
 									if (node.droppable) {
-										toggle(node?.id);
+										toggle(id);
+										return;
+									}
+									const item = canvas?.getObjects().find((obj: any) => obj?.data?.id === id);
+									if (item) {
+										canvas?.setActiveObject(item);
+										canvas?.getActiveObject()?.drawControls(canvas?.getContext());
+										canvas?.requestRenderAll();
 									}
 								}}
 								isDropTarget={isDropTarget}

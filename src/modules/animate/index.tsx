@@ -70,6 +70,10 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		if (!element) {
 			return;
 		}
+		if (!element.data) {
+			return;
+		}
+
 		const { keyframes } = element.data;
 		if (!keyframes) {
 			return;
