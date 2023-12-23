@@ -250,10 +250,10 @@ const ImageModal = ({
 					<Stack spacing={'lg'}>
 						<FileInput
 							accept="video/*"
-							onChange={file => {
+							onChange={async file => {
 								console.log(file);
 								if (file) {
-									addVideoFromFile(file);
+									await addVideoFromFile(file);
 								}
 							}}
 							label="Upload Video"

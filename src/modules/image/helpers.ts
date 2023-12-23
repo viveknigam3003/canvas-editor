@@ -80,8 +80,8 @@ export const addVideoToCanvas = async (
 			const video = new fabric.Image(videoE, {
 				left,
 				top,
-				scaleX: artboardRef.scaleX,
-				scaleY: artboardRef.scaleY,
+				height: videoE.videoHeight,
+				width: videoE.videoWidth,
 				crossOrigin: 'anonymous',
 				data: {
 					type: 'video',
@@ -89,7 +89,14 @@ export const addVideoToCanvas = async (
 					id: generateId(),
 				},
 			});
+			const scale = getElementScale(video, artboardRef);
+			video.set({
+				scaleX: scale,
+				scaleY: scale,
+			});
+			videoE.currentTime = 0.01; // This may be unnecessary unless you're trying to bypass a browser quirk.
 			canvas.add(video);
+			console.log('Video added to canvas');
 			resolve(video);
 		});
 
@@ -97,7 +104,5 @@ export const addVideoToCanvas = async (
 			console.error('Error loading video', e);
 			reject(new Error('Error loading video'));
 		});
-
-		videoE.load(); // Start loading the video
 	});
 };
