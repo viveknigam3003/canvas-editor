@@ -696,7 +696,7 @@ function App() {
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
 				for (let i = 0; i < videoElements.length; i++) {
-					addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, {
+					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, {
 						artboardRef,
 					});
 				}

@@ -7,6 +7,7 @@ import SectionTitle from '../../components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import { generateId } from '../../utils';
 import { interpolatePropertyValue } from './helpers';
+import { addVideoToCanvas } from '../image/helpers';
 interface AnimationProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
@@ -37,6 +38,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		message: '',
 		rendering: false,
 	});
+	const artboardRef = useRef<fabric.Rect | null>(null);
 
 	const ffmpegRef = useRef(new FFmpeg());
 
@@ -165,6 +167,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 					element.set('left', value as number);
 					// Check if the video duration is sufficient for the current time
 					if (htmlVideoElement && t <= htmlVideoElement.duration) {
+						htmlVideoElement.currentTime = t;
 						console.log('video time', htmlVideoElement.currentTime, 'animation time', t);
 					}
 
@@ -268,9 +271,23 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 			objects: adjustedStateJSONObjects,
 		};
 
-		renderCanvas.loadFromJSON(adjustedStateJSON, () => {
+		renderCanvas.loadFromJSON(adjustedStateJSON, async () => {
 			renderCanvas.renderAll();
-			console.log('renderCanvas loaded');
+			// Load video elements if any
+			const videoElements = renderCanvas.getObjects().filter(obj => obj.data.type === 'video');
+			const artboard = renderCanvas.getObjects().find(obj => obj.data.type === 'artboard');
+			if (!artboard) {
+				throw new Error('Artboard not found');
+			}
+			artboardRef.current = artboard as fabric.Rect;
+			if (videoElements.length) {
+				for (let i = 0; i < videoElements.length; i++) {
+					const videoObj = await addVideoToCanvas(videoElements[i].data.src, renderCanvas, {
+						artboardRef,
+					});
+					(videoObj.getElement() as HTMLVideoElement).load();
+				}
+			}
 
 			const currentElement = currentSelectedElements[0];
 			if (!currentElement) {
@@ -284,7 +301,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 			const keyframes = element.data.keyframes;
 
 			const frameRate = fps;
-			const frameDuration = Number((1000 / frameRate).toFixed(2));
+			const frameDuration = 1000 / frameRate;
 			let lastFrameTime = 0;
 
 			if (!keyframes.length) {
@@ -293,48 +310,89 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 
 			const kf = [...keyframes].sort((a: Keyframe, b: Keyframe) => a.timeMark - b.timeMark);
 
-			let t = 0;
-			setProgress({
-				percent: 0,
-				message: 'Rendering',
-				rendering: true,
-			});
-			const totalFrames = Math.round(duration / frameDuration);
-			const frameData: any[] = [];
-			const animate = (currentTime: number) => {
-				if (currentTime - lastFrameTime > frameDuration) {
-					const value = interpolatePropertyValue(kf, t, 'left');
-					element.set('left', value as number);
-					renderCanvas.renderAll();
+			const videoObj = renderCanvas.getObjects().find(obj => obj.data && obj.data.type === 'video');
+			const htmlVideoElement = videoObj ? (videoObj as any).getElement() : null;
+			// htmlVideoElement.load();
 
-					frameData.push(
-						renderCanvas.toDataURL({
-							format: 'png',
-						}),
-					);
-					setProgress({
-						percent: Math.round((frameData.length / totalFrames) * 100),
-						message: `Rendering (${Math.round((frameData.length / totalFrames) * 100)}%)`,
-						rendering: true,
-					});
-					t = t + frameDuration / 1000;
-					lastFrameTime = currentTime;
-				}
+			console.log('videoObj', videoObj, 'htmlVideoElement', htmlVideoElement);
+			if (htmlVideoElement && !(htmlVideoElement instanceof HTMLVideoElement)) {
+				console.error('Invalid video element');
+				return;
+			}
 
-				if (t < duration / 1000) {
-					requestAnimationFrame(animate);
-				} else {
-					console.debug('animation end');
-					setProgress({
-						percent: 100,
-						message: 'Rendering complete',
-						rendering: true,
-					});
-					onAnimationComplete(frameData);
-				}
+			const onVideoReady = () => {
+				let t = 0;
+				setProgress({
+					percent: 0,
+					message: 'Rendering',
+					rendering: true,
+				});
+				const totalFrames = Math.round(duration / frameDuration);
+				console.log('totalFrames', totalFrames);
+				const frameData: any[] = [];
+				htmlVideoElement.currentTime = 0;
+				// if (htmlVideoElement) {
+				// 	htmlVideoElement.currentTime = 0;
+				// 	htmlVideoElement?.play();
+				// }
+				const animate = (currentTime: number) => {
+					if (currentTime - lastFrameTime > frameDuration) {
+						const value = interpolatePropertyValue(kf, t, 'left');
+						element.set('left', value as number);
+
+						if (htmlVideoElement && t <= htmlVideoElement.duration) {
+							htmlVideoElement.currentTime = t;
+						}
+
+						renderCanvas.requestRenderAll();
+
+						frameData.push(
+							renderCanvas.toDataURL({
+								format: 'png',
+							}),
+						);
+						setProgress({
+							percent: Math.round((frameData.length / totalFrames) * 100),
+							message: `Rendering (${Math.round((frameData.length / totalFrames) * 100)}%)`,
+							rendering: true,
+						});
+
+						t += frameDuration / 1000;
+						lastFrameTime = currentTime;
+					}
+
+					if (t < duration / 1000) {
+						requestAnimationFrame(animate);
+					} else {
+						// htmlVideoElement?.pause();
+						console.debug('Animation ended');
+						setProgress({
+							percent: 100,
+							message: 'Rendering complete',
+							rendering: true,
+						});
+						onAnimationComplete(frameData);
+					}
+				};
+
+				requestAnimationFrame(animate);
 			};
 
-			requestAnimationFrame(animate);
+			if (htmlVideoElement) {
+				if (htmlVideoElement.readyState >= 4) {
+					// Video is ready
+					console.log('video ready, starting animation');
+					onVideoReady();
+				} else {
+					// Wait for the video to be ready
+					console.log('video not ready, waiting for it to be ready');
+					htmlVideoElement.addEventListener('loadedmetadata', onVideoReady);
+				}
+			} else {
+				console.log('no video element, starting animation');
+				// If no video, start the animation without video
+				onVideoReady();
+			}
 		});
 	};
 
@@ -350,6 +408,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		}
 
 		animateOffCanvas(async (frameData: any[]) => {
+			console.log('Total frames', frameData.length);
 			setProgress({
 				percent: 100,
 				message: 'Encoding video',
@@ -362,13 +421,17 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 
 			for (let i = 0; i < frameData.length; i++) {
 				ffmpeg.writeFile(`frame${i}.png`, await fetchFile(frameData[i]));
+				console.log('frame', i, 'written');
 			}
 
+			console.log('FPS', fps);
 			await ffmpeg.exec([
 				'-framerate',
 				`${fps}`,
 				'-i',
 				'frame%d.png',
+				'-vf',
+				`fps=fps=${fps}`,
 				'-c:v',
 				'libx264', // Video codec: H.264
 				'-c:a',

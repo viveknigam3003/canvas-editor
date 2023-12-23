@@ -3,6 +3,7 @@ import { generateId } from '../../utils';
 
 export const getVideoElement = (url: string) => {
 	const videoE = document.createElement('video');
+	videoE.muted = true;
 	videoE.crossOrigin = 'anonymous';
 	const source = document.createElement('source');
 	source.src = url;
@@ -43,10 +44,6 @@ export const getScaledPosition = (artboardRef: any): { left: number; top: number
 	const width = artboardRef.current.width;
 	const height = artboardRef.current.height;
 
-	if (!left || !top || !width || !height) {
-		throw new Error('Artboard dimensions not found');
-	}
-
 	// calculate the center of the artboard
 	const centerX = left + width / 2;
 	const centerY = top + height / 2;
@@ -57,49 +54,50 @@ export const getScaledPosition = (artboardRef: any): { left: number; top: number
 	};
 };
 
-export const addVideoToCanvas = (
+export const addVideoToCanvas = async (
 	src: string,
 	canvas: fabric.Canvas,
-	{ artboardRef, onComplete }: { artboardRef: any; onComplete?: (video: fabric.Image) => void },
-) => {
-	console.log('Loading video');
-	const videoE = getVideoElement(src);
-	const { left, top } = getScaledPosition(artboardRef);
-	videoE.addEventListener('loadedmetadata', () => {
-		videoE.width = videoE.videoWidth;
-		videoE.height = videoE.videoHeight;
-		const existingVideoObject = canvas.getObjects().find(obj => obj.data?.src === src);
+	{ artboardRef }: { artboardRef: any },
+): Promise<fabric.Image> => {
+	return new Promise((resolve, reject) => {
+		console.log('Loading video');
+		const videoE = getVideoElement(src);
+		const { left, top } = getScaledPosition(artboardRef);
 
-		if (existingVideoObject) {
-			console.log('Existing video object found');
-			videoE.currentTime = 0.01;
-			(existingVideoObject as fabric.Image).setElement(videoE);
-			if (onComplete) {
-				onComplete(existingVideoObject as fabric.Image);
+		videoE.addEventListener('loadedmetadata', () => {
+			videoE.width = videoE.videoWidth;
+			videoE.height = videoE.videoHeight;
+			const existingVideoObject = canvas.getObjects().find(obj => obj.data?.src === src);
+
+			if (existingVideoObject) {
+				console.log('Existing video object found');
+				videoE.currentTime = 0.01; // This may be unnecessary unless you're trying to bypass a browser quirk.
+				(existingVideoObject as fabric.Image).setElement(videoE);
+				resolve(existingVideoObject as fabric.Image);
+				return;
 			}
-			return;
-		}
 
-		const video = new fabric.Image(videoE, {
-			left,
-			top,
-			width: videoE.videoWidth,
-			height: videoE.videoHeight,
-			crossOrigin: 'anonymous',
-			data: {
-				type: 'video',
-				src,
-				id: generateId(),
-			},
+			const video = new fabric.Image(videoE, {
+				left,
+				top,
+				scaleX: artboardRef.scaleX,
+				scaleY: artboardRef.scaleY,
+				crossOrigin: 'anonymous',
+				data: {
+					type: 'video',
+					src,
+					id: generateId(),
+				},
+			});
+			canvas.add(video);
+			resolve(video);
 		});
-		const scale = getElementScale(video, artboardRef);
-		video.set({
-			scaleX: scale,
-			scaleY: scale,
+
+		videoE.addEventListener('error', e => {
+			console.error('Error loading video', e);
+			reject(new Error('Error loading video'));
 		});
-		canvas.add(video);
-		if (onComplete) {
-			onComplete(video);
-		}
+
+		videoE.load(); // Start loading the video
 	});
 };

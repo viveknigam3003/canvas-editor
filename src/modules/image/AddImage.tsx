@@ -95,23 +95,19 @@ const ImageModal = ({
 		});
 	};
 
-	const addVideoFromFile = (file: File) => {
+	const addVideoFromFile = async (file: File) => {
 		const reader = new FileReader();
-		reader.onload = function (f: ProgressEvent<FileReader>) {
+		reader.onload = async function (f: ProgressEvent<FileReader>) {
 			const data = f?.target?.result as string;
-			addVideoToCanvas(data, canvasRef.current!, {
+			const video = await addVideoToCanvas(data, canvasRef.current!, {
 				artboardRef,
-				onComplete: video => {
-					canvasRef.current?.setActiveObject(video);
-					canvasRef.current?.renderAll();
-					dispatch(
-						updateActiveArtboardLayers(
-							canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || [],
-						),
-					);
-					closeImageModal();
-				},
 			});
+			canvasRef.current?.setActiveObject(video);
+			canvasRef.current?.renderAll();
+			dispatch(
+				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
+			);
+			closeImageModal();
 		};
 		reader.onerror = function (e) {
 			console.log('Error in reading file', e);
