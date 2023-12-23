@@ -45,6 +45,12 @@ import { generateId, getMultiplierFor4K } from './utils';
 
 store.dispatch(appStart());
 
+(window as any).switchVideo = () => {
+	const isVideoEnabled = JSON.parse(localStorage.getItem('video') || 'false');
+	localStorage.setItem('video', JSON.stringify(!isVideoEnabled));
+	return 'Video is ' + (isVideoEnabled ? 'disabled' : 'enabled');
+};
+
 function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);

@@ -1,10 +1,10 @@
 import { Divider, Stack } from '@mantine/core';
+import Animation from '../modules/animate';
+import ClipMask from '../modules/clipmask';
 import ImagePanel from '../modules/image/Panel';
+import Position from '../modules/position';
 import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
-import ClipMask from '../modules/clipmask';
-import Position from '../modules/position';
-import Animation from '../modules/animate';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -14,6 +14,8 @@ type PanelProps = {
 };
 
 const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChanges }: PanelProps) => {
+	const isVideoEnabled = localStorage.getItem('video') === 'true';
+
 	if (!currentSelectedElements.length) {
 		return null;
 	}
@@ -50,11 +52,13 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChang
 				<ClipMask currentSelectedElements={currentSelectedElements} canvas={canvas} />
 			) : null}
 			<Divider />
-			<Animation
-				canvas={canvas}
-				currentSelectedElements={currentSelectedElements}
-				saveArtboardChanges={saveArtboardChanges}
-			/>
+			{isVideoEnabled && (
+				<Animation
+					canvas={canvas}
+					currentSelectedElements={currentSelectedElements}
+					saveArtboardChanges={saveArtboardChanges}
+				/>
+			)}
 		</Stack>
 	);
 };
