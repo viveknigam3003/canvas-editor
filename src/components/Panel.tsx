@@ -5,6 +5,7 @@ import ImagePanel from '../modules/image/Panel';
 import Position from '../modules/position';
 import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
+import Opacity from '../modules/opacity';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -46,6 +47,11 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChang
 							currentSelectedElements={currentSelectedElements}
 						/>
 					)}
+					<Opacity
+						canvas={canvas}
+						currentSelectedElements={currentSelectedElements}
+						saveArtboardChanges={saveArtboardChanges}
+					/>
 				</>
 			)}
 			{currentSelectedElements.length > 1 ? (
