@@ -15,7 +15,7 @@ import {
 	useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
+import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
 	IconCircleCheck,
@@ -124,6 +124,17 @@ function App() {
 	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
+	const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
+
+	// useEffect(() => {
+	// 	if (selectedArtboard) {
+	// 		setSelectedArtboards([selectedArtboard.id]);
+	// 	}
+	// }, [selectedArtboard]);
+
+	useEffect(() => {
+		console.log('Selected artboards', selectedArtboards);
+	}, [selectedArtboards]);
 
 	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
@@ -342,14 +353,27 @@ function App() {
 		close();
 	};
 
-	const updateSelectedArtboard = (artboard: Artboard) => {
-		if (selectedArtboard?.id === artboard.id) {
-			return;
-		}
+	const updateSelectedArtboard = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, artboard: Artboard) => {
+		e.stopPropagation();
+		e.preventDefault();
 
-		// clear the canvas of selected artboard
-		canvasRef.current?.clear();
-		dispatch(setSelectedArtboard(artboard));
+		const isActiveArtboard = selectedArtboard?.id === artboard.id;
+		const isSelectedArtboard = selectedArtboards.includes(artboard.id);
+
+		if (e.shiftKey) {
+			if (isSelectedArtboard && !isActiveArtboard) {
+				setSelectedArtboards(arr => arr.filter(item => item !== artboard.id));
+			} else if (!isSelectedArtboard && !isActiveArtboard) {
+				setSelectedArtboards(arr => [...arr, artboard.id]);
+			}
+		} else {
+			if (isSelectedArtboard && !isActiveArtboard) {
+				dispatch(setSelectedArtboard(artboard));
+			} else {
+				dispatch(setSelectedArtboard(artboard));
+				setSelectedArtboards([artboard.id]);
+			}
+		}
 	};
 
 	const exportAllArtboards = async () => {
@@ -688,13 +712,27 @@ function App() {
 
 		const updatedArtboards = [...artboards, newArtboard];
 		dispatch(setArtboards(updatedArtboards));
-		dispatch(setSelectedArtboard(newArtboard));
+		if (selectedArtboards.length === 1) {
+			dispatch(setSelectedArtboard(newArtboard));
+			setSelectedArtboards([newArtboard.id]);
+		}
 	};
 
 	const deleteArtboard = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, artboardId: string) => {
 		e.stopPropagation();
+		const artboardIndex = artboards.findIndex(item => item.id === artboardId);
 		const updatedArtboards = artboards.filter(item => item.id !== artboardId);
 		dispatch(setArtboards(updatedArtboards));
+		if (artboardIndex === 0) {
+			dispatch(setSelectedArtboard(updatedArtboards[0]));
+		} else {
+			dispatch(setSelectedArtboard(updatedArtboards[artboardIndex - 1]));
+		}
+
+		// Clear canvas if updatedArtboards is empty
+		if (updatedArtboards.length === 0) {
+			canvasRef.current?.clear();
+		}
 	};
 
 	// Handle the undo and redo actions to update artboards
@@ -1001,6 +1039,37 @@ function App() {
 		],
 	]);
 
+	const getBackgroundColor = (artboard: Artboard) => {
+		const isArtboardActive = selectedArtboard?.id === artboard.id;
+		const isArtboardSelected = selectedArtboards.includes(artboard.id);
+		const activeElement = currentSelectedElements?.[0];
+
+		const isElementInCurrentArtboard = artboard.state?.objects
+			.map((item: any) => item.data?.id)
+			.includes(activeElement?.data?.id);
+
+		if (isArtboardActive) {
+			if (isArtboardSelected) {
+				if (selectedArtboards.length === 1) {
+					return theme.colors.violet[1];
+				}
+				return theme.colors.violet[2];
+			}
+
+			return theme.colors.violet[1];
+		}
+
+		if (isArtboardSelected) {
+			if (activeElement && !isElementInCurrentArtboard) {
+				return theme.colors.gray[2];
+			}
+
+			return theme.colors.violet[1];
+		}
+
+		return 'transparent';
+	};
+
 	return (
 		<Box className={classes.root}>
 			<Box className={classes.header} px={16}>
@@ -1057,7 +1126,14 @@ function App() {
 			<Flex className={classes.shell}>
 				{showSidebar ? (
 					<Box className={classes.left}>
-						<Stack spacing={0}>
+						<Stack
+							spacing={0}
+							tabIndex={1}
+							onKeyDown={getHotkeyHandler([
+								['escape', () => setSelectedArtboards([selectedArtboard?.id || ''])],
+							])}
+							className={classes.artboardListContainer}
+						>
 							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<SectionTitle>Artboards ({artboards.length})</SectionTitle>
@@ -1082,14 +1158,9 @@ function App() {
 											<Group
 												key={artboard.id}
 												className={classes.artboardButton}
-												onClick={() => updateSelectedArtboard(artboard)}
+												onClick={e => updateSelectedArtboard(e, artboard)}
 												style={{
-													backgroundColor:
-														selectedArtboard?.id === artboard.id
-															? theme.colorScheme === 'dark'
-																? theme.colors.dark[6]
-																: theme.colors.violet[1]
-															: 'transparent',
+													backgroundColor: getBackgroundColor(artboard),
 												}}
 												align="center"
 											>
@@ -1099,11 +1170,21 @@ function App() {
 														{artboard.width}x{artboard.height}
 													</Text>
 												</Group>
-												<Group spacing={'2'}>
-													<ActionIcon onClick={e => duplicateArtboard(e, artboard.id)}>
+
+												<Group
+													spacing={'sm'}
+													display={selectedArtboard?.id === artboard.id ? 'flex' : 'none'}
+												>
+													<ActionIcon
+														onClick={e => duplicateArtboard(e, artboard.id)}
+														size={'sm'}
+													>
 														<IconCopy size={14} />
 													</ActionIcon>
-													<ActionIcon onClick={e => deleteArtboard(e, artboard.id)}>
+													<ActionIcon
+														onClick={e => deleteArtboard(e, artboard.id)}
+														size={'sm'}
+													>
 														<IconTrash size={14} />
 													</ActionIcon>
 												</Group>
@@ -1271,8 +1352,14 @@ const useStyles = createStyles(theme => ({
 		transition: 'background-color 100ms ease',
 		height: 40,
 		width: '100%',
+		userSelect: 'none',
 		'&:hover': {
 			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
+		},
+	},
+	artboardListContainer: {
+		'&:focus': {
+			outline: 'none',
 		},
 	},
 }));
