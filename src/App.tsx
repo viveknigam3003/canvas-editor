@@ -609,6 +609,23 @@ function App() {
 		}
 	};
 
+	const deleteElement = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObject = canvas.getActiveObject();
+		if (!activeObject) {
+			return;
+		}
+
+		canvas.remove(activeObject);
+		canvas.renderAll();
+		dispatch(updateActiveArtboardLayers(canvas.getObjects()));
+		saveArtboardChanges();
+	};
+
 	// Handle the undo and redo actions to update artboards
 	useEffect(() => {
 		if (!selectedArtboard) {
@@ -895,6 +912,13 @@ function App() {
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				ungroup();
+			},
+		],
+		[
+			'backspace',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				deleteElement();
 			},
 		],
 	]);
