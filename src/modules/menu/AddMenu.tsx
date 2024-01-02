@@ -1,13 +1,13 @@
 import { ActionIcon, Group, Tooltip } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
-import { IconLayersSubtract, IconLetterT, IconPhoto, IconSquare } from '@tabler/icons-react';
+import { IconLayersSubtract, IconLetterT, IconPhoto, IconRectangle, IconSquareAsterisk } from '@tabler/icons-react';
 import { fabric } from 'fabric';
-import { Artboard } from '../../types';
-import ImageModal from '../image/AddImage';
-import { updateActiveArtboardLayers } from '../app/actions';
 import { useDispatch } from 'react-redux';
-import { generateId } from '../../utils';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
+import { Artboard } from '../../types';
+import { generateId } from '../../utils';
+import { updateActiveArtboardLayers } from '../app/actions';
+import ImageModal from '../image/AddImage';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -69,7 +69,47 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 				openImageModal();
 			},
 		],
+		[
+			'R',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				addRectangle();
+			},
+		],
 	]);
+
+	const addRectangle = () => {
+		if (!selectedArtboard) {
+			return;
+		}
+		if (!artboardRef.current) {
+			return;
+		}
+		const left = artboardRef.current.left;
+		const top = artboardRef.current.top;
+		const width = artboardRef.current.width;
+		const height = artboardRef.current.height;
+		if (!left || !top || !width || !height) {
+			return;
+		}
+		// calculate the center of the artboard
+		const centerX = left + width / 2;
+		const centerY = top + height / 2;
+		const rect = new fabric.Rect({
+			left: centerX,
+			top: centerY,
+			fill: '#e3e3e3',
+			width: 100,
+			height: 100,
+			data: {
+				displayText: 'Shape',
+				id: generateId(),
+			},
+		});
+		canvasRef.current?.add(rect);
+		canvasRef.current?.requestRenderAll();
+		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
+	};
 
 	return (
 		<>
@@ -84,9 +124,14 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 						<IconPhoto size={14} />
 					</ActionIcon>
 				</Tooltip>
-				<Tooltip label="Add shape" openDelay={500}>
+				<Tooltip label="Rectangle" openDelay={500}>
 					<ActionIcon>
-						<IconSquare
+						<IconRectangle onClick={addRectangle} size={14} />
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label="Add multiple shapes" openDelay={500}>
+					<ActionIcon>
+						<IconSquareAsterisk
 							onClick={() => {
 								for (let index = 0; index < 10; index++) {
 									const rect = new fabric.Rect({
