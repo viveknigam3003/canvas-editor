@@ -615,15 +615,36 @@ function App() {
 			return;
 		}
 
-		const activeObject = canvas.getActiveObject();
-		if (!activeObject) {
+		const activeObjects = canvas.getActiveObjects();
+		if (!activeObjects.length) {
 			return;
 		}
 
-		canvas.remove(activeObject);
+		activeObjects.forEach(object => {
+			canvas.remove(object);
+		});
 		canvas.renderAll();
 		dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 		saveArtboardChanges();
+	};
+
+	const duplicateElement = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObjects = canvas.getActiveObjects();
+		if (activeObjects.length > 1) {
+			return;
+		}
+
+		activeObjects[0].clone((cloned: fabric.Object) => {
+			canvas.add(cloned);
+			canvas.renderAll();
+			dispatch(updateActiveArtboardLayers(canvas.getObjects()));
+			saveArtboardChanges();
+		});
 	};
 
 	// Handle the undo and redo actions to update artboards
@@ -919,6 +940,13 @@ function App() {
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				deleteElement();
+			},
+		],
+		[
+			'mod+d',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				duplicateElement();
 			},
 		],
 	]);
