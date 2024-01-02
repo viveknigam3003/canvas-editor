@@ -17,7 +17,15 @@ import {
 import { useForm } from '@mantine/form';
 import { useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
+import {
+	IconCircleCheck,
+	IconCopy,
+	IconDeviceFloppy,
+	IconDownload,
+	IconFileDownload,
+	IconPlus,
+	IconTrash,
+} from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import FontFaceObserver from 'fontfaceobserver';
@@ -647,6 +655,48 @@ function App() {
 		});
 	};
 
+	const getNextArtboardName = (artboards: Artboard[]) => {
+		// Get the last artboard name
+		const lastArtboardName = artboards[artboards.length - 1].name;
+
+		// If there is no number at the end, return the name with 1 appended
+		if (!/\d+$/.test(lastArtboardName)) {
+			return `${lastArtboardName} 1`;
+		}
+
+		// Get the number at the end of the artboard name
+		const lastArtboardNumber = parseInt(lastArtboardName.match(/\d+$/)![0]);
+
+		// Return the name with the next number appended
+		return `${lastArtboardName.replace(/\d+$/, '')}${lastArtboardNumber + 1}`;
+	};
+
+	const duplicateArtboard = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, artboardId: string) => {
+		e.stopPropagation();
+		const artboard = artboards.find(item => item.id === artboardId);
+		if (!artboard) {
+			return;
+		}
+
+		const id = generateId();
+		const newArtboard: Artboard = {
+			...artboard,
+			name: getNextArtboardName(artboards),
+			id,
+			state: JSON.parse(JSON.stringify(artboard.state)),
+		};
+
+		const updatedArtboards = [...artboards, newArtboard];
+		dispatch(setArtboards(updatedArtboards));
+		dispatch(setSelectedArtboard(newArtboard));
+	};
+
+	const deleteArtboard = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, artboardId: string) => {
+		e.stopPropagation();
+		const updatedArtboards = artboards.filter(item => item.id !== artboardId);
+		dispatch(setArtboards(updatedArtboards));
+	};
+
 	// Handle the undo and redo actions to update artboards
 	useEffect(() => {
 		if (!selectedArtboard) {
@@ -1033,7 +1083,6 @@ function App() {
 												key={artboard.id}
 												className={classes.artboardButton}
 												onClick={() => updateSelectedArtboard(artboard)}
-												align="center"
 												style={{
 													backgroundColor:
 														selectedArtboard?.id === artboard.id
@@ -1042,11 +1091,22 @@ function App() {
 																: theme.colors.violet[1]
 															: 'transparent',
 												}}
+												align="center"
 											>
-												<Text size={14}>{artboard.name}</Text>
-												<Text size={12} color="gray">
-													{artboard.width}x{artboard.height}
-												</Text>
+												<Group w={'70%'}>
+													<Text size={14}>{artboard.name}</Text>
+													<Text size={12} color="gray">
+														{artboard.width}x{artboard.height}
+													</Text>
+												</Group>
+												<Group spacing={'2'}>
+													<ActionIcon onClick={e => duplicateArtboard(e, artboard.id)}>
+														<IconCopy size={14} />
+													</ActionIcon>
+													<ActionIcon onClick={e => deleteArtboard(e, artboard.id)}>
+														<IconTrash size={14} />
+													</ActionIcon>
+												</Group>
 											</Group>
 									  ))
 									: null}
