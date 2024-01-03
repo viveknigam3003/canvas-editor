@@ -5,6 +5,8 @@ import { RootState } from '../../store/rootReducer';
 import { ApplicationState } from '../app/reducer';
 import { redo, setRedoable, setUndoable, undo, updatePointer, updateStateHistory } from './actions';
 import { Delta } from './reducer';
+import { Artboard } from '../../types';
+import { ApplicationActionType } from '../app/actions';
 
 export function* recordChanges({
 	previousState,
@@ -125,6 +127,10 @@ function* undoSaga() {
 	// Take the item at the currentIndex pointer and apply the inverse of the diff to the current state
 	const delta = deltas[currentIndex];
 
+	if (!delta) {
+		return;
+	}
+
 	const keys = delta.key.split('.');
 	// If the key is app.artboards, then we need select state.app.artboards
 	const state: ApplicationState = yield select((state: RootState) => {
@@ -135,7 +141,7 @@ function* undoSaga() {
 
 		return currentState;
 	});
-	const stateCopy: ApplicationState = JSON.parse(JSON.stringify(state));
+	const stateCopy: any = JSON.parse(JSON.stringify(state));
 
 	const reverseDiff = getReverseDiff(delta.diff);
 
@@ -145,6 +151,15 @@ function* undoSaga() {
 	}
 
 	yield put({ type: delta.actionType, payload: stateCopy });
+
+	// Special case for handling selected artboard canvas updates.
+	if (delta.actionType === ApplicationActionType.UPDATE_ARTBOARDS) {
+		const selectedArtboard: Artboard = yield select((state: RootState) => state.app.selectedArtboard);
+		const updatedSelectedArtboard = stateCopy.find((a: Artboard) => a.id === selectedArtboard?.id);
+		if (selectedArtboard) {
+			yield put({ type: ApplicationActionType.UPDATE_SELECTED_ARTBOARD, payload: updatedSelectedArtboard });
+		}
+	}
 	yield put(updatePointer(Math.max(currentIndex - 1, 0)));
 
 	// Set undoable flag based on if the user can undo or not
@@ -172,6 +187,11 @@ function* redoSaga() {
 
 	// Take the item at the currentIndex pointer and apply the diff to the current state
 	const delta = deltas[currentIndex + 1];
+
+	if (!delta) {
+		return;
+	}
+
 	const keys = delta.key.split('.');
 	// If the key is app.artboards, then we need select state.app.artboards
 	const state: ApplicationState = yield select((state: RootState) => {
@@ -182,7 +202,7 @@ function* redoSaga() {
 
 		return currentState;
 	});
-	const stateCopy: ApplicationState = JSON.parse(JSON.stringify(state));
+	const stateCopy: any = JSON.parse(JSON.stringify(state));
 
 	// Apply the diff to the current state
 	for (const d of delta.diff) {
@@ -190,6 +210,15 @@ function* redoSaga() {
 	}
 
 	yield put({ type: delta.actionType, payload: stateCopy });
+
+	// Special case for handling selected artboard canvas updates.
+	if (delta.actionType === ApplicationActionType.UPDATE_ARTBOARDS) {
+		const selectedArtboard: Artboard = yield select((state: RootState) => state.app.selectedArtboard);
+		const updatedSelectedArtboard = stateCopy.find((a: Artboard) => a.id === selectedArtboard?.id);
+		if (selectedArtboard) {
+			yield put({ type: ApplicationActionType.UPDATE_SELECTED_ARTBOARD, payload: updatedSelectedArtboard });
+		}
+	}
 	yield put(updatePointer(Math.min(currentIndex + 1, deltas.length - 1)));
 
 	const newPointer = Math.min(currentIndex + 1, deltas.length - 1);
