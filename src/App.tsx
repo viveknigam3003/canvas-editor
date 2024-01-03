@@ -35,7 +35,13 @@ import Panel from './components/Panel';
 import SectionTitle from './components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
-import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
+import {
+	appStart,
+	setArtboards,
+	setSelectedArtboard,
+	setSelectedArtboards,
+	updateActiveArtboardLayers,
+} from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import { addVideoToCanvas } from './modules/image/helpers';
 import LayerList from './modules/layers/List';
@@ -68,6 +74,7 @@ function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
+	const selectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
 		defaultValue: '2',
@@ -124,7 +131,7 @@ function App() {
 	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
-	const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
+	// const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
 
 	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
@@ -352,16 +359,18 @@ function App() {
 
 		if (e.shiftKey) {
 			if (isSelectedArtboard && !isActiveArtboard) {
-				setSelectedArtboards(arr => arr.filter(item => item !== artboard.id));
+				const arr = selectedArtboards.filter(item => item !== artboard.id);
+				dispatch(setSelectedArtboards(arr));
 			} else if (!isSelectedArtboard && !isActiveArtboard) {
-				setSelectedArtboards(arr => [...arr, artboard.id]);
+				const arr = [...selectedArtboards, artboard.id];
+				dispatch(setSelectedArtboards(arr));
 			}
 		} else {
 			if (isSelectedArtboard && !isActiveArtboard) {
 				dispatch(setSelectedArtboard(artboard));
 			} else {
 				dispatch(setSelectedArtboard(artboard));
-				setSelectedArtboards([artboard.id]);
+				dispatch(setSelectedArtboards([artboard.id]));
 			}
 		}
 	};
@@ -1201,7 +1210,6 @@ function App() {
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 								saveArtboardChanges={saveArtboardChanges}
-								currentSelectedArtboards={selectedArtboards}
 							/>
 						)}
 					</Box>

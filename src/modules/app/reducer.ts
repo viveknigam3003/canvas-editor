@@ -1,17 +1,25 @@
 import { createReducer } from '@reduxjs/toolkit';
 import { Artboard } from '../../types';
-import { initState, updateActiveArtboardLayers, updateArtboards, updateSelectedArtboard } from './actions';
+import {
+	initState,
+	updateActiveArtboardLayers,
+	updateArtboards,
+	updateSelectedArtboard,
+	updateSelectedArtboards,
+} from './actions';
 
 export interface ApplicationState {
 	artboards: Array<Artboard>;
 	selectedArtboard: Artboard | null;
 	activeArtboardLayers: Array<any>;
+	selectedArtboards: Array<string>;
 }
 
 export const initialState: ApplicationState = {
 	selectedArtboard: null,
 	artboards: [],
 	activeArtboardLayers: [],
+	selectedArtboards: [],
 };
 
 const appReducer = createReducer(initialState, builder => {
@@ -30,6 +38,9 @@ const appReducer = createReducer(initialState, builder => {
 		})
 		.addCase(updateActiveArtboardLayers, (state, action) => {
 			state.activeArtboardLayers = action.payload;
+		})
+		.addCase(updateSelectedArtboards, (state, action) => {
+			state.selectedArtboards = action.payload;
 		});
 });
 

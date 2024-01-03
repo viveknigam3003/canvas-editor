@@ -31,6 +31,7 @@ function* initStateSaga() {
 		initState({
 			artboards,
 			selectedArtboard: artboards[0] ?? null,
+			selectedArtboards: [artboards[0]?.id ?? ''],
 		}),
 	);
 
