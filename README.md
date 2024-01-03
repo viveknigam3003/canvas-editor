@@ -15,11 +15,11 @@ It's still in a nascent phase where we're experimenting with features. Currently
 -   Multiple color space canvas - sRGB and Display-P3
 -   Filters and styling - like reflection and shadows
 -   Snapping guides
+-   Bulk editing across creatives
 
 ## Upcoming features
 
 -   Rearranging of layers & groups
--   Improved autosave logic
 -   Word/letter styling
 -   Rulers and markers
 -   Image editing

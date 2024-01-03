@@ -85,7 +85,6 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements, cu
 	}, [currentSelectedElements, currentSelectedArtboards]);
 
 	const applyBulkEdit = (element: fabric.Object, properties: Record<string, any>) => {
-		console.log('Applying bulk edit', element, properties);
 		const updated = getBulkEditedArtboards(element.data.id, properties, {
 			artboards,
 			selectedArtboards: currentSelectedArtboards,
