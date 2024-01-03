@@ -1212,6 +1212,7 @@ function App() {
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 								saveArtboardChanges={saveArtboardChanges}
+								currentSelectedArtboards={selectedArtboards}
 							/>
 						)}
 					</Box>

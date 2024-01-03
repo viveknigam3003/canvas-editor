@@ -1,14 +1,20 @@
 import { Group, NumberInput, Stack } from '@mantine/core';
+import { useHotkeys } from '@mantine/hooks';
+import { fabric } from 'fabric';
 import React, { useEffect, useState } from 'react';
 import SectionTitle from '../../components/SectionTitle';
-import { useHotkeys } from '@mantine/hooks';
+import { getArtboardsFromIds, getBulkEditedArtboards } from '../utils/bulkEdit';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/rootReducer';
 
 interface PositionProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
+	currentSelectedArtboards: string[];
 }
 
-const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) => {
+const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements, currentSelectedArtboards }) => {
+	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const [positionValues, setPositionValues] = useState({
 		x: 0,
 		y: 0,
@@ -70,6 +76,10 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
 				element?.set('top', element.top! + 1);
+				const boards = getArtboardsFromIds(artboards, currentSelectedArtboards);
+				const updated = getBulkEditedArtboards(boards, element.data.id, 'top', element.top! + 1);
+				console.log(updated);
+				// TODO: Add dispatch action to update only updated artboards
 				setPositionValues(prev => ({ ...prev, y: element.top as number }));
 				canvas.requestRenderAll();
 			},
