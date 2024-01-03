@@ -266,7 +266,6 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 			<Stack>
 				<SectionTitle>Color</SectionTitle>
 				<ColorInput
-					label="Color"
 					value={selectedFontColor}
 					onChange={e => {
 						currentSelectedElements?.[0].set('fill', e);
