@@ -1,14 +1,22 @@
 import { Group, NumberInput, Stack } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
-import SectionTitle from '../../components/SectionTitle';
 import { useHotkeys } from '@mantine/hooks';
+import { fabric } from 'fabric';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import SectionTitle from '../../components/SectionTitle';
+import { RootState } from '../../store/rootReducer';
+import { getBulkEditedArtboards } from '../utils/bulkEdit';
+import { setArtboards } from '../app/actions';
 
 interface PositionProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
+	currentSelectedArtboards: string[];
 }
 
-const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) => {
+const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements, currentSelectedArtboards }) => {
+	const dispatch = useDispatch();
+	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const [positionValues, setPositionValues] = useState({
 		x: 0,
 		y: 0,
@@ -35,6 +43,9 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				x: element.left as number,
 				y: element.top as number,
 			}));
+			if (currentSelectedArtboards.length > 1) {
+				applyBulkEdit(element, { left: element.left, top: element.top });
+			}
 		});
 		element.on('resizing', () => {
 			setPositionValues(prev => ({
@@ -42,6 +53,12 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				width: element.getScaledWidth() as number,
 				height: element.getScaledHeight() as number,
 			}));
+			if (currentSelectedArtboards.length > 1) {
+				applyBulkEdit(element, {
+					width: element.getScaledWidth(),
+					height: element.getScaledHeight(),
+				});
+			}
 		});
 		element.on('scaling', () => {
 			setPositionValues({
@@ -50,8 +67,30 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				width: element.getScaledWidth(),
 				height: element.getScaledHeight() as number,
 			});
+			if (currentSelectedArtboards.length > 1) {
+				applyBulkEdit(element, {
+					left: element.left,
+					top: element.top,
+					width: element.getScaledWidth(),
+					height: element.getScaledHeight(),
+				});
+			}
 		});
-	}, [currentSelectedElements]);
+
+		return () => {
+			element.off('moving');
+			element.off('resizing');
+			element.off('scaling');
+		};
+	}, [currentSelectedElements, currentSelectedArtboards]);
+
+	const applyBulkEdit = (element: fabric.Object, properties: Record<string, any>) => {
+		const updated = getBulkEditedArtboards(element.data.id, properties, {
+			artboards,
+			selectedArtboards: currentSelectedArtboards,
+		});
+		dispatch(setArtboards(updated));
+	};
 
 	useHotkeys([
 		[

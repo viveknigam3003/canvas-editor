@@ -15,9 +15,17 @@ import {
 	useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
+import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconCircleCheck, IconDeviceFloppy, IconDownload, IconFileDownload, IconPlus } from '@tabler/icons-react';
+import {
+	IconCircleCheck,
+	IconCopy,
+	IconDeviceFloppy,
+	IconDownload,
+	IconFileDownload,
+	IconPlus,
+	IconTrash,
+} from '@tabler/icons-react';
 import axios from 'axios';
 import { fabric } from 'fabric';
 import FontFaceObserver from 'fontfaceobserver';
@@ -83,7 +91,7 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-	const [autosaveChanges, setAutoSaveChanges] = useState(false);
+	const [autosaveChanges, setAutoSaveChanges] = useState(true);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -131,6 +139,7 @@ function App() {
 	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
+	const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
 
 	useEffect(() => {
 		if (canvasRef.current && colorSchemeRef.current !== theme.colorScheme) {
@@ -380,14 +389,27 @@ function App() {
 		close();
 	};
 
-	const updateSelectedArtboard = (artboard: Artboard) => {
-		if (selectedArtboard?.id === artboard.id) {
-			return;
-		}
+	const updateSelectedArtboard = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, artboard: Artboard) => {
+		e.stopPropagation();
+		e.preventDefault();
 
-		// clear the canvas of selected artboard
-		canvasRef.current?.clear();
-		dispatch(setSelectedArtboard(artboard));
+		const isActiveArtboard = selectedArtboard?.id === artboard.id;
+		const isSelectedArtboard = selectedArtboards.includes(artboard.id);
+
+		if (e.shiftKey) {
+			if (isSelectedArtboard && !isActiveArtboard) {
+				setSelectedArtboards(arr => arr.filter(item => item !== artboard.id));
+			} else if (!isSelectedArtboard && !isActiveArtboard) {
+				setSelectedArtboards(arr => [...arr, artboard.id]);
+			}
+		} else {
+			if (isSelectedArtboard && !isActiveArtboard) {
+				dispatch(setSelectedArtboard(artboard));
+			} else {
+				dispatch(setSelectedArtboard(artboard));
+				setSelectedArtboards([artboard.id]);
+			}
+		}
 	};
 
 	const exportAllArtboards = async () => {
@@ -706,15 +728,65 @@ function App() {
 		});
 	};
 
-	// Handle the undo and redo actions to update artboards
-	useEffect(() => {
-		if (!selectedArtboard) {
+	const getNextArtboardName = (artboards: Artboard[]) => {
+		// Get the last artboard name
+		const lastArtboardName = artboards[artboards.length - 1].name;
+
+		// If there is no number at the end, return the name with 1 appended
+		if (!/\d+$/.test(lastArtboardName)) {
+			return `${lastArtboardName} 1`;
+		}
+
+		// Get the number at the end of the artboard name
+		const lastArtboardNumber = parseInt(lastArtboardName.match(/\d+$/)![0]);
+
+		// Return the name with the next number appended
+		return `${lastArtboardName.replace(/\d+$/, '')}${lastArtboardNumber + 1}`;
+	};
+
+	const duplicateArtboard = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, artboardId: string) => {
+		e.stopPropagation();
+		const artboard = artboards.find(item => item.id === artboardId);
+		if (!artboard) {
 			return;
 		}
 
-		const currentArtboardState = artboards.find(item => item.id === selectedArtboard.id);
+		const id = generateId();
+		const newArtboard: Artboard = {
+			...artboard,
+			name: getNextArtboardName(artboards),
+			id,
+			state: JSON.parse(JSON.stringify(artboard.state)),
+		};
 
-		if (!currentArtboardState) {
+		const updatedArtboards = [...artboards, newArtboard];
+		dispatch(setArtboards(updatedArtboards));
+		if (selectedArtboards.length === 1) {
+			dispatch(setSelectedArtboard(newArtboard));
+			setSelectedArtboards([newArtboard.id]);
+		}
+	};
+
+	const deleteArtboard = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, artboardId: string) => {
+		e.stopPropagation();
+		const artboardIndex = artboards.findIndex(item => item.id === artboardId);
+		const updatedArtboards = artboards.filter(item => item.id !== artboardId);
+		dispatch(setArtboards(updatedArtboards));
+		if (artboardIndex === 0) {
+			dispatch(setSelectedArtboard(updatedArtboards[0]));
+		} else {
+			dispatch(setSelectedArtboard(updatedArtboards[artboardIndex - 1]));
+		}
+
+		// Clear canvas if updatedArtboards is empty
+		if (updatedArtboards.length === 0) {
+			canvasRef.current?.clear();
+		}
+	};
+
+	// Handle the undo and redo actions to update artboards
+	useEffect(() => {
+		if (!selectedArtboard) {
 			return;
 		}
 
@@ -724,7 +796,12 @@ function App() {
 			return;
 		}
 
-		const json = currentArtboardState.state;
+		const json = selectedArtboard.state;
+
+		if (!json) {
+			return;
+		}
+
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
 			const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
@@ -812,7 +889,7 @@ function App() {
 			}
 			canvas.requestRenderAll();
 		});
-	}, [selectedArtboard, artboards]);
+	}, [selectedArtboard]);
 
 	useEffect(() => {
 		if (showRuler) {
@@ -1019,6 +1096,37 @@ function App() {
 		],
 	]);
 
+	const getBackgroundColor = (artboard: Artboard) => {
+		const isArtboardActive = selectedArtboard?.id === artboard.id;
+		const isArtboardSelected = selectedArtboards.includes(artboard.id);
+		const activeElement = currentSelectedElements?.[0];
+
+		const isElementInCurrentArtboard = artboard.state?.objects
+			.map((item: any) => item.data?.id)
+			.includes(activeElement?.data?.id);
+
+		if (isArtboardActive) {
+			if (isArtboardSelected) {
+				if (selectedArtboards.length === 1) {
+					return theme.colors.violet[1];
+				}
+				return theme.colors.violet[2];
+			}
+
+			return theme.colors.violet[1];
+		}
+
+		if (isArtboardSelected) {
+			if (activeElement && !isElementInCurrentArtboard) {
+				return theme.colors.gray[2];
+			}
+
+			return theme.colors.violet[1];
+		}
+
+		return 'transparent';
+	};
+
 	return (
 		<Box className={classes.root}>
 			<Box className={classes.header} px={16}>
@@ -1076,7 +1184,14 @@ function App() {
 			<Flex className={classes.shell}>
 				{showSidebar ? (
 					<Box className={classes.left}>
-						<Stack spacing={0}>
+						<Stack
+							spacing={0}
+							tabIndex={1}
+							onKeyDown={getHotkeyHandler([
+								['escape', () => setSelectedArtboards([selectedArtboard?.id || ''])],
+							])}
+							className={classes.artboardListContainer}
+						>
 							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<SectionTitle>Artboards ({artboards.length})</SectionTitle>
@@ -1101,21 +1216,36 @@ function App() {
 											<Group
 												key={artboard.id}
 												className={classes.artboardButton}
-												onClick={() => updateSelectedArtboard(artboard)}
-												align="center"
+												onClick={e => updateSelectedArtboard(e, artboard)}
 												style={{
-													backgroundColor:
-														selectedArtboard?.id === artboard.id
-															? theme.colorScheme === 'dark'
-																? theme.colors.dark[6]
-																: theme.colors.violet[1]
-															: 'transparent',
+													backgroundColor: getBackgroundColor(artboard),
 												}}
+												align="center"
 											>
-												<Text size={14}>{artboard.name}</Text>
-												<Text size={12} color="gray">
-													{artboard.width}x{artboard.height}
-												</Text>
+												<Group w={'70%'}>
+													<Text size={14}>{artboard.name}</Text>
+													<Text size={12} color="gray">
+														{artboard.width}x{artboard.height}
+													</Text>
+												</Group>
+
+												<Group
+													spacing={'sm'}
+													display={selectedArtboard?.id === artboard.id ? 'flex' : 'none'}
+												>
+													<ActionIcon
+														onClick={e => duplicateArtboard(e, artboard.id)}
+														size={'sm'}
+													>
+														<IconCopy size={14} />
+													</ActionIcon>
+													<ActionIcon
+														onClick={e => deleteArtboard(e, artboard.id)}
+														size={'sm'}
+													>
+														<IconTrash size={14} />
+													</ActionIcon>
+												</Group>
 											</Group>
 									  ))
 									: null}
@@ -1140,6 +1270,7 @@ function App() {
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 								saveArtboardChanges={saveArtboardChanges}
+								currentSelectedArtboards={selectedArtboards}
 							/>
 						)}
 					</Box>
@@ -1280,8 +1411,14 @@ const useStyles = createStyles(theme => ({
 		transition: 'background-color 100ms ease',
 		height: 40,
 		width: '100%',
+		userSelect: 'none',
 		'&:hover': {
 			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
+		},
+	},
+	artboardListContainer: {
+		'&:focus': {
+			outline: 'none',
 		},
 	},
 	canvas: {
