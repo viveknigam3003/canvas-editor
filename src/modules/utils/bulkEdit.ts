@@ -8,18 +8,22 @@ export const getArtboardsFromIds = (artboards: Artboard[], selectedArtboards: st
 };
 
 export const getBulkEditedArtboards = (
-	artboards: Artboard[],
 	elementId: string,
-	key: string,
-	value: any,
+	properties: { [key: string]: any },
+	data: {
+		artboards: Artboard[];
+		selectedArtboards: string[];
+	},
 ): Artboard[] => {
+	const { artboards, selectedArtboards } = data;
 	return artboards.map(artboard => {
 		// Check if the artboard has objects and find the element
-		if (artboard.state?.objects) {
+		if (selectedArtboards.includes(artboard.id) && artboard.state?.objects) {
+			console.log('artboard updated', artboard.id);
 			const newObjects = artboard.state.objects.map((obj: fabric.Object) => {
 				// Update the element that matches the ID
 				if (obj.data && obj.data.id === elementId) {
-					return { ...obj, [key]: value };
+					return Object.assign({}, obj, properties);
 				}
 				return obj; // Return other objects unchanged
 			});
