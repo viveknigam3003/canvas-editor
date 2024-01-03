@@ -11,15 +11,15 @@ import ImageModal from '../image/AddImage';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
-	selectedArtboard: Artboard | null;
+	activeArtboard: Artboard | null;
 	canvasRef: React.RefObject<fabric.Canvas>;
 };
 
-export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: AddMenuProps) {
+export default function AddMenu({ artboardRef, activeArtboard, canvasRef }: AddMenuProps) {
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
 	const dispatch = useDispatch();
 	const addText = () => {
-		if (!selectedArtboard) {
+		if (!activeArtboard) {
 			return;
 		}
 		if (!artboardRef.current) {
@@ -79,7 +79,7 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 	]);
 
 	const addRectangle = () => {
-		if (!selectedArtboard) {
+		if (!activeArtboard) {
 			return;
 		}
 		if (!artboardRef.current) {
@@ -160,7 +160,7 @@ export default function AddMenu({ artboardRef, selectedArtboard, canvasRef }: Ad
 				</Tooltip>
 			</Group>
 			<ImageModal
-				selectedArtboard={selectedArtboard}
+				activeArtboard={activeArtboard}
 				artboardRef={artboardRef}
 				canvasRef={canvasRef}
 				imageModalOpened={imageModalOpened}

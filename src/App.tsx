@@ -35,7 +35,13 @@ import Panel from './components/Panel';
 import SectionTitle from './components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
-import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
+import {
+	appStart,
+	setArtboards,
+	setActiveArtboard,
+	setSelectedArtboards,
+	updateActiveArtboardLayers,
+} from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
 import { addVideoToCanvas } from './modules/image/helpers';
 import LayerList from './modules/layers/List';
@@ -80,7 +86,8 @@ store.dispatch(appStart());
 function App() {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
-	const selectedArtboard = useSelector((state: RootState) => state.app.selectedArtboard);
+	const activeArtboard = useSelector((state: RootState) => state.app.activeArtboard);
+	const selectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
 		defaultValue: '2',
@@ -139,7 +146,6 @@ function App() {
 	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
-	const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
 
 	useEffect(() => {
 		if (canvasRef.current && colorSchemeRef.current !== theme.colorScheme) {
@@ -242,8 +248,8 @@ function App() {
 	}, [canvasRef.current, snapDistance]);
 
 	useEffect(() => {
-		dispatch(updateActiveArtboardLayers(selectedArtboard?.state?.objects || []));
-	}, [selectedArtboard, dispatch]);
+		dispatch(updateActiveArtboardLayers(activeArtboard?.state?.objects || []));
+	}, [activeArtboard, dispatch]);
 
 	const recreateCanvas = () => {
 		//reload window
@@ -333,7 +339,7 @@ function App() {
 		}
 		const id = generateId();
 		const newArtboard: Artboard = { ...artboard, id };
-		dispatch(setSelectedArtboard(newArtboard));
+		dispatch(setActiveArtboard(newArtboard));
 
 		canvasRef.current?.clear();
 		const artboardRect = new fabric.Rect({
@@ -384,7 +390,7 @@ function App() {
 		const updatedArtboards = [...artboards, ...allArtboards];
 		dispatch(setArtboards(updatedArtboards));
 		newArtboardForm.reset();
-		dispatch(setSelectedArtboard(allArtboards[0]));
+		dispatch(setActiveArtboard(allArtboards[0]));
 		setIsCreatingArtboards(false);
 		close();
 	};
@@ -393,21 +399,23 @@ function App() {
 		e.stopPropagation();
 		e.preventDefault();
 
-		const isActiveArtboard = selectedArtboard?.id === artboard.id;
+		const isActiveArtboard = activeArtboard?.id === artboard.id;
 		const isSelectedArtboard = selectedArtboards.includes(artboard.id);
 
 		if (e.shiftKey) {
 			if (isSelectedArtboard && !isActiveArtboard) {
-				setSelectedArtboards(arr => arr.filter(item => item !== artboard.id));
+				const arr = selectedArtboards.filter(item => item !== artboard.id);
+				dispatch(setSelectedArtboards(arr));
 			} else if (!isSelectedArtboard && !isActiveArtboard) {
-				setSelectedArtboards(arr => [...arr, artboard.id]);
+				const arr = [...selectedArtboards, artboard.id];
+				dispatch(setSelectedArtboards(arr));
 			}
 		} else {
 			if (isSelectedArtboard && !isActiveArtboard) {
-				dispatch(setSelectedArtboard(artboard));
+				dispatch(setActiveArtboard(artboard));
 			} else {
-				dispatch(setSelectedArtboard(artboard));
-				setSelectedArtboards([artboard.id]);
+				dispatch(setActiveArtboard(artboard));
+				dispatch(setSelectedArtboards([artboard.id]));
 			}
 		}
 	};
@@ -554,13 +562,13 @@ function App() {
 	};
 
 	const saveArtboardChanges = () => {
-		if (!selectedArtboard) {
+		if (!activeArtboard) {
 			return;
 		}
 
 		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 		const updatedArtboards = artboards.map(item => {
-			if (item.id === selectedArtboard.id) {
+			if (item.id === activeArtboard.id) {
 				return {
 					...item,
 					state: {
@@ -611,8 +619,8 @@ function App() {
 		}
 
 		const { minZoom, maxZoom } = getMaxMinZoomLevel({
-			width: selectedArtboard?.width || 1,
-			height: selectedArtboard?.height || 1,
+			width: activeArtboard?.width || 1,
+			height: activeArtboard?.height || 1,
 		});
 
 		if (zoom > maxZoom) zoom = maxZoom;
@@ -762,7 +770,7 @@ function App() {
 		const updatedArtboards = [...artboards, newArtboard];
 		dispatch(setArtboards(updatedArtboards));
 		if (selectedArtboards.length === 1) {
-			dispatch(setSelectedArtboard(newArtboard));
+			dispatch(setActiveArtboard(newArtboard));
 			setSelectedArtboards([newArtboard.id]);
 		}
 	};
@@ -773,9 +781,9 @@ function App() {
 		const updatedArtboards = artboards.filter(item => item.id !== artboardId);
 		dispatch(setArtboards(updatedArtboards));
 		if (artboardIndex === 0) {
-			dispatch(setSelectedArtboard(updatedArtboards[0]));
+			dispatch(setActiveArtboard(updatedArtboards[0]));
 		} else {
-			dispatch(setSelectedArtboard(updatedArtboards[artboardIndex - 1]));
+			dispatch(setActiveArtboard(updatedArtboards[artboardIndex - 1]));
 		}
 
 		// Clear canvas if updatedArtboards is empty
@@ -786,7 +794,7 @@ function App() {
 
 	// Handle the undo and redo actions to update artboards
 	useEffect(() => {
-		if (!selectedArtboard) {
+		if (!activeArtboard) {
 			return;
 		}
 
@@ -796,7 +804,7 @@ function App() {
 			return;
 		}
 
-		const json = selectedArtboard.state;
+		const json = activeArtboard.state;
 
 		if (!json) {
 			return;
@@ -889,7 +897,7 @@ function App() {
 			}
 			canvas.requestRenderAll();
 		});
-	}, [selectedArtboard]);
+	}, [activeArtboard]);
 
 	useEffect(() => {
 		if (showRuler) {
@@ -916,8 +924,8 @@ function App() {
 				let zoom = canvas.getZoom() as number;
 				zoom *= 0.99 ** delta;
 				const { minZoom, maxZoom } = getMaxMinZoomLevel({
-					width: selectedArtboard?.width || 1,
-					height: selectedArtboard?.height || 1,
+					width: activeArtboard?.width || 1,
+					height: activeArtboard?.height || 1,
 				});
 				if (zoom > maxZoom) zoom = maxZoom;
 				if (zoom < minZoom) zoom = minZoom;
@@ -944,7 +952,8 @@ function App() {
 		return () => {
 			canvas.off('mouse:wheel', handlePan);
 		};
-	}, [selectedArtboard?.height, selectedArtboard?.width, showRuler]);
+	}, [activeArtboard?.height, activeArtboard?.width]);
+
 	// Update canvas size when viewport size changes
 	useEffect(() => {
 		const handleResize = () => {
@@ -1097,7 +1106,7 @@ function App() {
 	]);
 
 	const getBackgroundColor = (artboard: Artboard) => {
-		const isArtboardActive = selectedArtboard?.id === artboard.id;
+		const isArtboardActive = activeArtboard?.id === artboard.id;
 		const isArtboardSelected = selectedArtboards.includes(artboard.id);
 		const activeElement = currentSelectedElements?.[0];
 
@@ -1135,13 +1144,8 @@ function App() {
 						{/* <img src="/logo.png" alt="logo" width={64} height={64} /> */}
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
-					<AddMenu artboardRef={artboardRef} selectedArtboard={selectedArtboard} canvasRef={canvasRef} />
-					<MiscMenu
-						artboards={artboards}
-						artboardRef={artboardRef}
-						selectedArtboard={selectedArtboard}
-						canvasRef={canvasRef}
-					/>
+					<AddMenu artboardRef={artboardRef} activeArtboard={activeArtboard} canvasRef={canvasRef} />
+					<MiscMenu artboards={artboards} artboardRef={artboardRef} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
 					<SettingsMenu
@@ -1188,7 +1192,7 @@ function App() {
 							spacing={0}
 							tabIndex={1}
 							onKeyDown={getHotkeyHandler([
-								['escape', () => setSelectedArtboards([selectedArtboard?.id || ''])],
+								['escape', () => setSelectedArtboards([activeArtboard?.id || ''])],
 							])}
 							className={classes.artboardListContainer}
 						>
@@ -1231,7 +1235,7 @@ function App() {
 
 												<Group
 													spacing={'sm'}
-													display={selectedArtboard?.id === artboard.id ? 'flex' : 'none'}
+													display={activeArtboard?.id === artboard.id ? 'flex' : 'none'}
 												>
 													<ActionIcon
 														onClick={e => duplicateArtboard(e, artboard.id)}
@@ -1270,7 +1274,6 @@ function App() {
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 								saveArtboardChanges={saveArtboardChanges}
-								currentSelectedArtboards={selectedArtboards}
 							/>
 						)}
 					</Box>

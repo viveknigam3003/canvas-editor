@@ -13,16 +13,9 @@ type PanelProps = {
 	currentSelectedElements: fabric.Object[];
 	artboardRef: React.RefObject<fabric.Rect>;
 	saveArtboardChanges: () => void;
-	currentSelectedArtboards: string[];
 };
 
-const Panel = ({
-	canvas,
-	currentSelectedElements,
-	artboardRef,
-	saveArtboardChanges,
-	currentSelectedArtboards,
-}: PanelProps) => {
+const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChanges }: PanelProps) => {
 	const isVideoEnabled = localStorage.getItem('video') === 'true';
 	const isRulerLine = Object.values(RULER_LINES).includes(currentSelectedElements?.[0]?.data?.type);
 	if (!currentSelectedElements.length || isRulerLine) {
@@ -38,11 +31,7 @@ const Panel = ({
 						currentSelectedElements={currentSelectedElements}
 					/>
 					<Divider />
-					<Position
-						canvas={canvas}
-						currentSelectedElements={currentSelectedElements}
-						currentSelectedArtboards={currentSelectedArtboards}
-					/>
+					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					<Divider />
 					{currentSelectedElements?.[0]?.type === 'textbox' && (
 						<TextPanel

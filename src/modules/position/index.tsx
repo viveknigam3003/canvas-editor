@@ -5,18 +5,18 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SectionTitle from '../../components/SectionTitle';
 import { RootState } from '../../store/rootReducer';
-import { getBulkEditedArtboards } from '../utils/bulkEdit';
+import { getBulkEditedArtboards } from '../app/bulkEdit';
 import { setArtboards } from '../app/actions';
 
 interface PositionProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
-	currentSelectedArtboards: string[];
 }
 
-const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements, currentSelectedArtboards }) => {
+const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) => {
 	const dispatch = useDispatch();
 	const artboards = useSelector((state: RootState) => state.app.artboards);
+	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const [positionValues, setPositionValues] = useState({
 		x: 0,
 		y: 0,

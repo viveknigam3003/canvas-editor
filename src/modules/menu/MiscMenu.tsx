@@ -7,7 +7,6 @@ import { generateId } from '../../utils';
 
 type MiscMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
-	selectedArtboard: Artboard | null;
 	canvasRef: React.RefObject<fabric.Canvas>;
 	artboards: Artboard[];
 };
