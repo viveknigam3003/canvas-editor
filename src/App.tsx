@@ -76,7 +76,7 @@ function App() {
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
-	const [autosaveChanges, setAutoSaveChanges] = useState(false);
+	const [autosaveChanges, setAutoSaveChanges] = useState(true);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
 	const { classes: modalClasses } = useModalStyles();
@@ -125,16 +125,6 @@ function App() {
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
 	const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
-
-	// useEffect(() => {
-	// 	if (selectedArtboard) {
-	// 		setSelectedArtboards([selectedArtboard.id]);
-	// 	}
-	// }, [selectedArtboard]);
-
-	useEffect(() => {
-		console.log('Selected artboards', selectedArtboards);
-	}, [selectedArtboards]);
 
 	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
@@ -741,19 +731,18 @@ function App() {
 			return;
 		}
 
-		const currentArtboardState = artboards.find(item => item.id === selectedArtboard.id);
-
-		if (!currentArtboardState) {
-			return;
-		}
-
 		const canvas = canvasRef.current;
 
 		if (!canvas) {
 			return;
 		}
 
-		const json = currentArtboardState.state;
+		const json = selectedArtboard.state;
+
+		if (!json) {
+			return;
+		}
+
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
 			const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
@@ -840,7 +829,7 @@ function App() {
 			}
 			canvas.requestRenderAll();
 		});
-	}, [selectedArtboard, artboards]);
+	}, [selectedArtboard]);
 
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
