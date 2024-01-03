@@ -154,10 +154,10 @@ function* undoSaga() {
 
 	// Special case for handling selected artboard canvas updates.
 	if (delta.actionType === ApplicationActionType.UPDATE_ARTBOARDS) {
-		const selectedArtboard: Artboard = yield select((state: RootState) => state.app.selectedArtboard);
-		const updatedSelectedArtboard = stateCopy.find((a: Artboard) => a.id === selectedArtboard?.id);
-		if (selectedArtboard) {
-			yield put({ type: ApplicationActionType.UPDATE_SELECTED_ARTBOARD, payload: updatedSelectedArtboard });
+		const activeArtboard: Artboard = yield select((state: RootState) => state.app.activeArtboard);
+		const updatedActiveArtboard = stateCopy.find((a: Artboard) => a.id === activeArtboard?.id);
+		if (activeArtboard) {
+			yield put({ type: ApplicationActionType.UPDATE_ACTIVE_ARTBOARD, payload: updatedActiveArtboard });
 		}
 	}
 	yield put(updatePointer(Math.max(currentIndex - 1, 0)));
@@ -213,10 +213,10 @@ function* redoSaga() {
 
 	// Special case for handling selected artboard canvas updates.
 	if (delta.actionType === ApplicationActionType.UPDATE_ARTBOARDS) {
-		const selectedArtboard: Artboard = yield select((state: RootState) => state.app.selectedArtboard);
-		const updatedSelectedArtboard = stateCopy.find((a: Artboard) => a.id === selectedArtboard?.id);
-		if (selectedArtboard) {
-			yield put({ type: ApplicationActionType.UPDATE_SELECTED_ARTBOARD, payload: updatedSelectedArtboard });
+		const activeArtboard: Artboard = yield select((state: RootState) => state.app.activeArtboard);
+		const updatedActiveArtboard = stateCopy.find((a: Artboard) => a.id === activeArtboard?.id);
+		if (activeArtboard) {
+			yield put({ type: ApplicationActionType.UPDATE_ACTIVE_ARTBOARD, payload: updatedActiveArtboard });
 		}
 	}
 	yield put(updatePointer(Math.min(currentIndex + 1, deltas.length - 1)));

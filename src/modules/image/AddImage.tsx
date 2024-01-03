@@ -13,18 +13,12 @@ import { addVideoToCanvas, getElementScale, getScaledPosition } from './helpers'
 type ImageModalProps = {
 	imageModalOpened: boolean;
 	closeImageModal: () => void;
-	selectedArtboard?: Artboard | null;
+	activeArtboard?: Artboard | null;
 	canvasRef: React.MutableRefObject<fabric.Canvas | null>;
 	artboardRef: React.MutableRefObject<fabric.Rect | null>;
 };
 
-const ImageModal = ({
-	imageModalOpened,
-	closeImageModal,
-	selectedArtboard,
-	canvasRef,
-	artboardRef,
-}: ImageModalProps) => {
+const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasRef, artboardRef }: ImageModalProps) => {
 	const dispatch = useDispatch();
 	const { classes: modalClasses } = useModalStyles();
 	const imageForm = useForm<{ url: string }>({
@@ -122,7 +116,7 @@ const ImageModal = ({
 				imageForm.reset();
 				closeImageModal();
 			}}
-			title={`Add image to ${selectedArtboard?.name}`}
+			title={`Add image to ${activeArtboard?.name}`}
 			classNames={{
 				content: modalClasses.content,
 				title: modalClasses.title,

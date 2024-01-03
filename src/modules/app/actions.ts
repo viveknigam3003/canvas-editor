@@ -7,8 +7,8 @@ export enum ApplicationActionType {
 	INIT_STATE = 'app/initState',
 	SET_ARTBOARDS = 'app/setArtboards',
 	UPDATE_ARTBOARDS = 'app/updateArtboards',
-	SET_SELECTED_ARTBOARD = 'app/setSelectedArtboard',
-	UPDATE_SELECTED_ARTBOARD = 'app/updateSelectedArtboard',
+	SET_ACTIVE_ARTBOARD = 'app/setActiveArtboard',
+	UPDATE_ACTIVE_ARTBOARD = 'app/updateActiveArtboard',
 	UPDATE_ACTIVE_ARTBOARD_LAYERS = 'app/updateActiveArtboardLayers',
 	SET_SELECTED_ARTBOARDS = 'app/setSelectedArtboards',
 	UPDATE_SELECTED_ARTBOARDS = 'app/updateSelectedArtboards',
@@ -22,9 +22,9 @@ export const setArtboards = createAction<Array<Artboard>>(ApplicationActionType.
 
 export const updateArtboards = createAction<Array<Artboard>>(ApplicationActionType.UPDATE_ARTBOARDS);
 
-export const setSelectedArtboard = createAction<Artboard>(ApplicationActionType.SET_SELECTED_ARTBOARD);
+export const setActiveArtboard = createAction<Artboard>(ApplicationActionType.SET_ACTIVE_ARTBOARD);
 
-export const updateSelectedArtboard = createAction<Artboard>(ApplicationActionType.UPDATE_SELECTED_ARTBOARD);
+export const updateActiveArtboard = createAction<Artboard>(ApplicationActionType.UPDATE_ACTIVE_ARTBOARD);
 
 export const updateActiveArtboardLayers = createAction<Array<fabric.Object>>(
 	ApplicationActionType.UPDATE_ACTIVE_ARTBOARD_LAYERS,

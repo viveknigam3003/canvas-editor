@@ -9,10 +9,12 @@ import { recordChanges } from '../history/saga';
 import {
 	appStart,
 	initState,
+	setActiveArtboard,
 	setArtboards,
-	setSelectedArtboard,
+	setSelectedArtboards,
+	updateActiveArtboard,
 	updateArtboards,
-	updateSelectedArtboard,
+	updateSelectedArtboards,
 } from './actions';
 import { ApplicationState } from './reducer';
 
@@ -30,7 +32,7 @@ function* initStateSaga() {
 	yield put(
 		initState({
 			artboards,
-			selectedArtboard: artboards[0] ?? null,
+			activeArtboard: artboards[0] ?? null,
 			selectedArtboards: [artboards[0]?.id ?? ''],
 		}),
 	);
@@ -72,27 +74,39 @@ function* setArtboardsSaga(action: Action) {
 	});
 }
 
-function* setSelectedArtboardSaga(action: Action) {
-	if (!setSelectedArtboard.match(action)) {
+function* setActiveArtboardSaga(action: Action) {
+	if (!setActiveArtboard.match(action)) {
 		return;
 	}
 
-	const previousState: Artboard = yield select((state: RootState) => state.app.selectedArtboard);
+	const previousState: Artboard = yield select((state: RootState) => state.app.activeArtboard);
 	const nextState: Artboard = action.payload;
 
-	yield put(updateSelectedArtboard(action.payload));
+	yield put(updateActiveArtboard(action.payload));
 	yield recordChanges({
 		previousState,
 		nextState,
-		action: updateSelectedArtboard(action.payload),
-		key: 'app.selectedArtboard',
+		action: updateActiveArtboard(action.payload),
+		key: 'app.activeArtboard',
 	});
+}
+
+function* setSelectedArtboardsSaga(action: Action) {
+	if (!setSelectedArtboards.match(action)) {
+		return;
+	}
+
+	// const previousState: string[] = yield select((state: RootState) => state.app.selectedArtboards);
+	// const nextState: string[] = action.payload;
+
+	yield put(updateSelectedArtboards(action.payload));
 }
 
 function* applicationSaga() {
 	yield takeEvery(appStart.type, initStateSaga);
 	yield takeEvery(setArtboards.type, setArtboardsSaga);
-	yield takeEvery(setSelectedArtboard.type, setSelectedArtboardSaga);
+	yield takeEvery(setActiveArtboard.type, setActiveArtboardSaga);
+	yield takeEvery(setSelectedArtboards.type, setSelectedArtboardsSaga);
 }
 
 export default applicationSaga;

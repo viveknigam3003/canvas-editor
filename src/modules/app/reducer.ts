@@ -4,19 +4,19 @@ import {
 	initState,
 	updateActiveArtboardLayers,
 	updateArtboards,
-	updateSelectedArtboard,
+	updateActiveArtboard,
 	updateSelectedArtboards,
 } from './actions';
 
 export interface ApplicationState {
 	artboards: Array<Artboard>;
-	selectedArtboard: Artboard | null;
+	activeArtboard: Artboard | null;
 	activeArtboardLayers: Array<any>;
 	selectedArtboards: Array<string>;
 }
 
 export const initialState: ApplicationState = {
-	selectedArtboard: null,
+	activeArtboard: null,
 	artboards: [],
 	activeArtboardLayers: [],
 	selectedArtboards: [],
@@ -33,8 +33,8 @@ const appReducer = createReducer(initialState, builder => {
 		.addCase(updateArtboards, (state, action) => {
 			state.artboards = action.payload;
 		})
-		.addCase(updateSelectedArtboard, (state, action) => {
-			state.selectedArtboard = action.payload;
+		.addCase(updateActiveArtboard, (state, action) => {
+			state.activeArtboard = action.payload;
 		})
 		.addCase(updateActiveArtboardLayers, (state, action) => {
 			state.activeArtboardLayers = action.payload;
