@@ -109,7 +109,12 @@ const Node: React.FC<{
 	const { classes } = useStyles();
 	const handleToggle = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		onClick(node.id);
+		if (node.droppable) {
+			onClick(node.id);
+			return;
+		}
+
+		onClick((node.data as fabric.Object).data.id);
 	};
 
 	const getNodeType = (node: NodeModel) => {
@@ -122,12 +127,18 @@ const Node: React.FC<{
 			}
 			return 'folder';
 		}
+		if ((node.data as fabric.Object)?.data?.type === 'video') {
+			return 'video';
+		}
 		return node.text;
 	};
 
 	const getNodeText = (node: NodeModel) => {
 		switch (node.text) {
 			case 'image':
+				if ((node.data as fabric.Object)?.data?.type === 'video') {
+					return 'Video';
+				}
 				return 'Image';
 			case 'textbox':
 				if ((node.data as fabric.Object)?.data?.displayText) {

@@ -23,26 +23,51 @@ import { fabric } from 'fabric';
 import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import AddMenu from './modules/menu/AddMenu';
-import LayerList from './modules/layers/List';
-import MiscMenu from './modules/menu/MiscMenu';
 import Panel from './components/Panel';
-import SettingsMenu from './modules/settings';
-import ZoomMenu from './modules/zoom';
+import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
 import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
 import { redo, undo } from './modules/history/actions';
+import { addVideoToCanvas } from './modules/image/helpers';
+import LayerList from './modules/layers/List';
+import AddMenu from './modules/menu/AddMenu';
+import MiscMenu from './modules/menu/MiscMenu';
+import SettingsMenu from './modules/settings';
+import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { Artboard, colorSpaceType, guidesRefType, snappingObjectType } from './types';
-import { generateId } from './utils';
 import { SmartObject } from './modules/reflection/helpers';
-import { useModalStyles } from './styles/modal';
 import SectionTitle from './components/SectionTitle';
-import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
-import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
+import { createSnappingLines, snapToObject } from './modules/snapping';
+import {
+	RULER_LINES,
+	addNewRulerLine,
+	renderRulerStepMarkers,
+	initializeRuler,
+	removeRulerOnMoveMarker,
+	removeRuler,
+	renderRulerAxisBackground,
+	adjustRulerBackgroundPosition,
+	adjustRulerLinesPosition,
+	renderRulerOnMoveMarker,
+} from './modules/ruler';
+import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
+import { useModalStyles } from './styles/modal';
+import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
+import { generateId, getMultiplierFor4K } from './utils';
 
 store.dispatch(appStart());
+
+(window as any).switchVideo = () => {
+	const isVideoEnabled = JSON.parse(localStorage.getItem('video') || 'false');
+	localStorage.setItem('video', JSON.stringify(!isVideoEnabled));
+	return 'Video is ' + (isVideoEnabled ? 'disabled' : 'enabled');
+};
+
+(window as any).hardReset = () => {
+	localStorage.setItem('artboards', JSON.stringify([]));
+	window.location.reload();
+};
 
 function App() {
 	const dispatch = useDispatch();
@@ -52,7 +77,9 @@ function App() {
 		key: 'snapDistance',
 		defaultValue: '2',
 	});
+	const [showRuler, setShowRuler] = useState(true);
 	const theme = useMantineTheme();
+	const colorSchemeRef = useRef(theme.colorScheme);
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
@@ -106,6 +133,14 @@ function App() {
 	const redoable = useSelector((state: RootState) => state.history.redoable);
 
 	useEffect(() => {
+		if (canvasRef.current && colorSchemeRef.current !== theme.colorScheme) {
+			adjustRulerBackgroundPosition(canvasRef, theme.colorScheme);
+			renderRulerStepMarkers(canvasRef, theme.colorScheme);
+		}
+		colorSchemeRef.current = theme.colorScheme;
+	}, [theme.colorScheme]);
+
+	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
 			// create a canvas with clientWidth and clientHeight
 			width: window.innerWidth - 600,
@@ -118,6 +153,12 @@ function App() {
 			setCurrentSelectedElements(event.selected as fabric.Object[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
+			event?.deselected
+				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
+				.forEach(item => {
+					item.set({ stroke: '#000', fill: '#000' });
+				});
+			removeRulerOnMoveMarker(canvasRef);
 			setCurrentSelectedElements(arr => {
 				if (!arr) {
 					return null;
@@ -139,8 +180,19 @@ function App() {
 				// Else if the element is in the desected array, remove it
 			});
 		});
-		canvasRef.current?.on('selection:cleared', function () {
+		canvasRef.current?.on('selection:cleared', function (e) {
+			removeRulerOnMoveMarker(canvasRef);
+			e?.deselected
+				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
+				.forEach(item => {
+					item.set({ stroke: '#000', fill: '#000' });
+					item.setCoords();
+				});
 			setCurrentSelectedElements(null);
+		});
+		// Add a click event listener to the canvas
+		canvasRef.current.on('mouse:down', options => {
+			addNewRulerLine(options, canvasRef);
 		});
 
 		return () => {
@@ -150,9 +202,13 @@ function App() {
 
 	const onMoveHandler = (options: fabric.IEvent) => {
 		const target = options.target as fabric.Object;
+		if (Object.values(RULER_LINES).includes(target.data?.type)) {
+			renderRulerOnMoveMarker(target, canvasRef);
+			return;
+		}
 		snapToObject(
 			target as snappingObjectType,
-			filterSnappingLines(canvasRef.current?.getObjects()) as snappingObjectType[],
+			filterSnappingExcludes(canvasRef.current?.getObjects()) as snappingObjectType[],
 			guidesRef,
 			canvasRef,
 			Number(snapDistance),
@@ -191,6 +247,7 @@ function App() {
 		// Place the canvas in the center of the screen
 		centerBoardToCanvas(artboardRef);
 		setZoomLevel(canvasRef.current?.getZoom() || 1);
+		renderRuler();
 	};
 
 	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
@@ -288,13 +345,14 @@ function App() {
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
 		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const filteredObjects = filterSaveExcludes(json?.objects);
 		const updatedArtboards = [
 			...artboards,
 			{
 				...newArtboard,
 				state: {
 					...json,
-					objects: filterSnappingLines(json?.objects),
+					objects: filteredObjects,
 				},
 			},
 		];
@@ -390,7 +448,7 @@ function App() {
 		});
 		const adjustedStateJSON = {
 			...stateJSON,
-			objects: adjustedStateJSONObjects,
+			objects: filterExportExcludes(adjustedStateJSONObjects),
 		};
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
@@ -473,18 +531,6 @@ function App() {
 		canvas.renderAll();
 	};
 
-	const getMultiplierFor4K = (width?: number, height?: number): number => {
-		// Assuming the canvas is not already 4K, calculate the multiplier needed
-		// to scale the current canvas size up to 4K resolution
-		const maxWidth = 3840; // for UHD 4K width
-		const maxHeight = 2160; // for UHD 4K height
-		const widthMultiplier = maxWidth / (width || 1);
-		const heightMultiplier = maxHeight / (height || 1);
-
-		// Use the smaller multiplier to ensure the entire canvas fits into the 4K resolution
-		return Math.min(widthMultiplier, heightMultiplier);
-	};
-
 	const saveArtboardChanges = () => {
 		if (!selectedArtboard) {
 			return;
@@ -497,7 +543,7 @@ function App() {
 					...item,
 					state: {
 						...json,
-						objects: filterSnappingLines(json?.objects),
+						objects: filterSaveExcludes(json?.objects),
 					},
 				};
 			}
@@ -563,6 +609,15 @@ function App() {
 		);
 	};
 
+	const renderRuler = () => {
+		if (showRuler) {
+			renderRulerAxisBackground(canvasRef, colorSchemeRef.current);
+			adjustRulerBackgroundPosition(canvasRef, colorSchemeRef.current);
+			renderRulerStepMarkers(canvasRef, colorSchemeRef.current);
+			adjustRulerLinesPosition(canvasRef);
+		}
+	};
+
 	const zoomToFit = () => {
 		const canvas = canvasRef.current;
 
@@ -590,7 +645,9 @@ function App() {
 		// Zoom to the center of the canvas
 		zoomFromCenter(zoom);
 		centerBoardToCanvas(artboardRef);
+
 		setZoomLevel(canvasRef.current?.getZoom() || zoom);
+		renderRuler();
 	};
 
 	const zoomIn = () => {
@@ -599,6 +656,7 @@ function App() {
 			zoomFromCenter(zoom + 0.1);
 			setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1);
 		}
+		renderRuler();
 	};
 
 	const zoomOut = () => {
@@ -607,6 +665,45 @@ function App() {
 			zoomFromCenter(zoom - 0.1);
 			setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1);
 		}
+		renderRuler();
+	};
+
+	const deleteElement = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObjects = canvas.getActiveObjects();
+		if (!activeObjects.length) {
+			return;
+		}
+
+		activeObjects.forEach(object => {
+			canvas.remove(object);
+		});
+		canvas.renderAll();
+		dispatch(updateActiveArtboardLayers(canvas.getObjects()));
+		saveArtboardChanges();
+	};
+
+	const duplicateElement = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const activeObjects = canvas.getActiveObjects();
+		if (activeObjects.length > 1) {
+			return;
+		}
+
+		activeObjects[0].clone((cloned: fabric.Object) => {
+			canvas.add(cloned);
+			canvas.renderAll();
+			dispatch(updateActiveArtboardLayers(canvas.getObjects()));
+			saveArtboardChanges();
+		});
 	};
 
 	// Handle the undo and redo actions to update artboards
@@ -630,16 +727,17 @@ function App() {
 		const json = currentArtboardState.state;
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
-			const artboard = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard');
+			const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
 			}
+
 			zoomToFit();
 
 			// create a style sheet
-			const artboardTexts = canvasRef.current?.getObjects().filter(item => item.type === 'textbox');
+			const artboardTexts = canvas.getObjects().filter(item => item.type === 'textbox');
 			// take all texts and then loop over. Read data property inside and get font from it
-			const fontPromises = artboardTexts?.map(item => {
+			const fontPromises = artboardTexts?.map((item: any) => {
 				const textItem = item as fabric.Text;
 				if (
 					textItem.data &&
@@ -686,7 +784,7 @@ function App() {
 			}
 
 			// Attach the reference for reflection object back to the parent object
-			(canvasRef.current?.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
+			(canvas.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
 				const reflection = canvasRef.current
 					?.getObjects()
 					.find(item => item.data?.type === 'reflection' && item.data.parent === obj.data?.id);
@@ -702,9 +800,27 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef);
+			renderRuler();
+			// Get the src of the video element and add it to the canvas
+			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
+			if (videoElements?.length) {
+				for (let i = 0; i < videoElements.length; i++) {
+					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, {
+						artboardRef,
+					});
+				}
+			}
 			canvas.requestRenderAll();
 		});
 	}, [selectedArtboard, artboards]);
+
+	useEffect(() => {
+		if (showRuler) {
+			initializeRuler(canvasRef, colorSchemeRef.current);
+		} else {
+			removeRuler(canvasRef);
+		}
+	}, [showRuler]);
 
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
@@ -717,42 +833,41 @@ function App() {
 			// Handle panning based on deltaX and deltaY but prevent zooming
 			const e = opt.e;
 			e.preventDefault();
+
 			if (e.ctrlKey || e.metaKey) {
 				const delta = opt.e.deltaY;
-				let zoom = canvas.getZoom();
+				let zoom = canvas.getZoom() as number;
 				zoom *= 0.99 ** delta;
-
 				const { minZoom, maxZoom } = getMaxMinZoomLevel({
 					width: selectedArtboard?.width || 1,
 					height: selectedArtboard?.height || 1,
 				});
-
 				if (zoom > maxZoom) zoom = maxZoom;
 				if (zoom < minZoom) zoom = minZoom;
 				if (!zoom || isNaN(zoom)) {
 					zoom = minZoom;
 				}
-				setZoomLevel(zoom);
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+				setZoomLevel(zoom);
+				renderRuler();
+				canvas.renderAll();
 			} else {
-				const vpt = canvas.viewportTransform;
-				if (!vpt) {
+				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
+				if (!pan) {
 					return;
 				}
-				vpt[4] -= e.deltaX;
-				vpt[5] -= e.deltaY;
-				setCanvasScrollPoints(vpt[4] + vpt[5]);
+				pan[4] -= e.deltaX;
+				pan[5] -= e.deltaY;
+				renderRuler();
+				setCanvasScrollPoints(pan[4] + pan[5]);
 				canvas.requestRenderAll();
 			}
 		};
-
 		canvas.on('mouse:wheel', handlePan);
-
 		return () => {
 			canvas.off('mouse:wheel', handlePan);
 		};
-	}, [selectedArtboard?.height, selectedArtboard?.width]);
-
+	}, [selectedArtboard?.height, selectedArtboard?.width, showRuler]);
 	// Update canvas size when viewport size changes
 	useEffect(() => {
 		const handleResize = () => {
@@ -760,6 +875,7 @@ function App() {
 				width: window.innerWidth,
 				height: window.innerHeight - 60,
 			});
+			renderRuler();
 		};
 
 		window.addEventListener('resize', handleResize);
@@ -887,6 +1003,20 @@ function App() {
 				ungroup();
 			},
 		],
+		[
+			'backspace',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				deleteElement();
+			},
+		],
+		[
+			'mod+d',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				duplicateElement();
+			},
+		],
 	]);
 
 	return (
@@ -914,6 +1044,7 @@ function App() {
 						setAutoSaveChanges={setAutoSaveChanges}
 						snapDistance={snapDistance}
 						setSnapDistance={setSnapDistance}
+						setShowRuler={setShowRuler}
 					/>
 					<Tooltip label="Save" openDelay={500}>
 						<ActionIcon onClick={saveArtboardChanges} size={20}>
@@ -999,7 +1130,7 @@ function App() {
 					</Box>
 				) : null}
 				<Center className={classes.center} ref={canvasContainerRef}>
-					<canvas id="canvas" />
+					<canvas className={classes.canvas} id="canvas" />
 				</Center>
 				{showSidebar ? (
 					<Box className={classes.right}>
@@ -1008,6 +1139,7 @@ function App() {
 								artboardRef={artboardRef}
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
+								saveArtboardChanges={saveArtboardChanges}
 							/>
 						)}
 					</Box>
@@ -1130,6 +1262,8 @@ const useStyles = createStyles(theme => ({
 		width: 300,
 		height: '100%',
 		padding: '1rem',
+		overflowY: 'auto',
+		paddingBottom: '2rem',
 	},
 	center: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
@@ -1149,6 +1283,9 @@ const useStyles = createStyles(theme => ({
 		'&:hover': {
 			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
 		},
+	},
+	canvas: {
+		paddingTop: '2px',
 	},
 }));
 

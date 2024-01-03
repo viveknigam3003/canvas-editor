@@ -1,14 +1,14 @@
-import { Button, Modal, Stack, TextInput } from '@mantine/core';
-import { Artboard } from '../../types';
-import { fabric } from 'fabric';
-import { Tabs, FileInput } from '@mantine/core';
-import { IconPhoto, IconSettings, IconUpload, IconLinkPlus } from '@tabler/icons-react';
+import { Button, FileInput, Modal, Stack, Tabs, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { updateActiveArtboardLayers } from '../../modules/app/actions';
+import { IconLinkPlus, IconPhoto, IconSettings, IconShape, IconUpload, IconVideo } from '@tabler/icons-react';
+import { fabric } from 'fabric';
 import { useDispatch } from 'react-redux';
-import { generateId } from '../../utils';
-import { useModalStyles } from '../../styles/modal';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
+import { updateActiveArtboardLayers } from '../../modules/app/actions';
+import { useModalStyles } from '../../styles/modal';
+import { Artboard } from '../../types';
+import { generateId } from '../../utils';
+import { addVideoToCanvas, getElementScale, getScaledPosition } from './helpers';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
@@ -40,62 +40,18 @@ const ImageModal = ({
 		},
 	});
 
-	const getImageScale = (image: fabric.Image): number => {
-		// Calculate the scale needed to fit the image inside the artboard with 20% padding
-		const artboardWidth = artboardRef.current?.width;
-		const artboardHeight = artboardRef.current?.height;
-		if (!artboardWidth || !artboardHeight) {
-			return 1;
-		}
-		const imageWidth = image.width;
-		const imageHeight = image.height;
-
-		console.log('Image = ', imageWidth, imageHeight);
-
-		if (!imageWidth || !imageHeight) {
-			return 1;
-		}
-
-		const widthScale = (artboardWidth * 0.8) / imageWidth;
-		const heightScale = (artboardHeight * 0.8) / imageHeight;
-
-		const scale = Math.min(widthScale, heightScale);
-
-		return scale;
-	};
-
 	const addImageFromUrl = (url: string) => {
 		fabric.Image.fromURL(
 			url,
 			img => {
-				if (!selectedArtboard) {
-					return;
-				}
-
-				if (!artboardRef.current) {
-					return;
-				}
-
-				const left = artboardRef.current.left;
-				const top = artboardRef.current.top;
-				const width = artboardRef.current.width;
-				const height = artboardRef.current.height;
-
-				if (!left || !top || !width || !height) {
-					return;
-				}
-
-				// calculate the center of the artboard
-				const centerX = left + width / 2;
-				const centerY = top + height / 2;
-
-				const scale = getImageScale(img);
+				const { left, top } = getScaledPosition(artboardRef!);
+				const scale = getElementScale(img, artboardRef);
 
 				console.log('Scale = ', scale);
 
 				img.set({
-					left: centerX,
-					top: centerY,
+					left,
+					top,
 					scaleX: scale,
 					scaleY: scale,
 					data: {
@@ -120,26 +76,11 @@ const ImageModal = ({
 		fabric.loadSVGFromURL(url, (objects, options) => {
 			const obj = fabric.util.groupSVGElements(objects, options);
 
-			if (!artboardRef.current) {
-				return;
-			}
-
-			const left = artboardRef.current.left;
-			const top = artboardRef.current.top;
-			const width = artboardRef.current.width;
-			const height = artboardRef.current.height;
-
-			if (!left || !top || !width || !height) {
-				return;
-			}
-
-			// calculate the center of the artboard
-			const centerX = left + width / 2;
-			const centerY = top + height / 2;
+			const { left, top } = getScaledPosition(artboardRef);
 
 			obj.set({
-				left: centerX,
-				top: centerY,
+				left,
+				top,
 				data: {
 					id: generateId(),
 				},
@@ -153,6 +94,27 @@ const ImageModal = ({
 			closeImageModal();
 		});
 	};
+
+	const addVideoFromFile = async (file: File) => {
+		const reader = new FileReader();
+		reader.onload = async function (f: ProgressEvent<FileReader>) {
+			const data = f?.target?.result as string;
+			const video = await addVideoToCanvas(data, canvasRef.current!, {
+				artboardRef,
+			});
+			canvasRef.current?.setActiveObject(video);
+			canvasRef.current?.renderAll();
+			dispatch(
+				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
+			);
+			closeImageModal();
+		};
+		reader.onerror = function (e) {
+			console.log('Error in reading file', e);
+		};
+		reader.readAsDataURL(file);
+	};
+
 	return (
 		<Modal
 			opened={imageModalOpened}
@@ -170,12 +132,15 @@ const ImageModal = ({
 			<Tabs defaultValue="upload">
 				<Tabs.List>
 					<Tabs.Tab value="upload" icon={<IconLinkPlus size="0.8rem" />}>
-						Upload
+						Upload Image
+					</Tabs.Tab>
+					<Tabs.Tab value="video" icon={<IconVideo size="0.8rem" />}>
+						Upload Video
 					</Tabs.Tab>
 					<Tabs.Tab value="url" icon={<IconPhoto size="0.8rem" />}>
 						From URL
 					</Tabs.Tab>
-					<Tabs.Tab value="svg" icon={<IconPhoto size="0.8rem" />}>
+					<Tabs.Tab value="svg" icon={<IconShape size="0.8rem" />}>
 						SVG from URL
 					</Tabs.Tab>
 					<Tabs.Tab value="unsplash" icon={<IconSettings size="0.8rem" />}>
@@ -277,6 +242,30 @@ const ImageModal = ({
 							}}
 						>
 							Add SVG
+						</Button>
+					</Stack>
+				</Tabs.Panel>
+
+				<Tabs.Panel value="video" pt="xs">
+					<Stack spacing={'lg'}>
+						<FileInput
+							accept="video/*"
+							onChange={async file => {
+								console.log(file);
+								if (file) {
+									await addVideoFromFile(file);
+								}
+							}}
+							label="Upload Video"
+							placeholder="Select video for upload"
+							icon={<IconUpload size="0.8rem" />}
+						/>
+						<Button
+							onClick={() => {
+								closeImageModal();
+							}}
+						>
+							Close
 						</Button>
 					</Stack>
 				</Tabs.Panel>

@@ -9,11 +9,13 @@ import {
 	IconPalette,
 	IconSettings,
 	IconSun,
+	IconRuler,
 } from '@tabler/icons-react';
 import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import ColorSpaceSwitch from '../../modules/colorSpace';
 import { useMenuStyles } from '../../styles/menu';
 import SnapDistanceModal from '../snapping/SnapDistanceModal';
+import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 
 interface Props {
 	canvasRef: React.RefObject<fabric.Canvas>;
@@ -23,12 +25,14 @@ interface Props {
 	setAutoSaveChanges: React.Dispatch<React.SetStateAction<boolean>>;
 	snapDistance: string;
 	setSnapDistance: React.Dispatch<React.SetStateAction<string>>;
+	setShowRuler: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SettingsMenu: React.FC<Props> = ({
 	recreateCanvas,
 	canvasRef,
 	setShowSidebar,
+	setShowRuler,
 	autosaveChanges,
 	setAutoSaveChanges,
 	snapDistance,
@@ -39,7 +43,8 @@ const SettingsMenu: React.FC<Props> = ({
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
 	const [snapDistanceModalOpened, { open: openSnapDistanceModal, close: closeSnapDistanceModal }] = useDisclosure();
 	const debug = () => {
-		console.log(canvasRef.current?.toJSON(['data', 'selectable', 'effects']));
+		console.log('json=', canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS));
+		console.log('fabric-objects=', canvasRef.current?.getObjects());
 		notifications.show({
 			icon: <IconBug size={14} />,
 			title: 'Logged state',
@@ -48,7 +53,9 @@ const SettingsMenu: React.FC<Props> = ({
 			autoClose: 1000,
 		});
 	};
-
+	const toggleRuler = () => {
+		setShowRuler(c => !c);
+	};
 	const toggleUI = () => {
 		setShowSidebar(c => !c);
 		canvasRef.current?.setDimensions({
@@ -65,6 +72,7 @@ const SettingsMenu: React.FC<Props> = ({
 				debug();
 			},
 		],
+		['alt+R', toggleRuler],
 		['mod+.', toggleUI],
 		[
 			'alt+L',
@@ -97,6 +105,14 @@ const SettingsMenu: React.FC<Props> = ({
 						onClick={() => toggleUI()}
 					>
 						Show/hide UI
+					</Menu.Item>
+					<Menu.Item
+						icon={<IconRuler size={14} />}
+						className={classes.item}
+						rightSection={<Text size={11}>{getAltKey()} + R</Text>}
+						onClick={() => toggleRuler()}
+					>
+						Show/hide Ruler
 					</Menu.Item>
 					<Menu.Item
 						icon={<IconArrowBarToLeft size={14} />}
