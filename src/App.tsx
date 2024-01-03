@@ -24,6 +24,7 @@ import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Panel from './components/Panel';
+import SectionTitle from './components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
 import { appStart, setArtboards, setSelectedArtboard, updateActiveArtboardLayers } from './modules/app/actions';
@@ -32,13 +33,6 @@ import { addVideoToCanvas } from './modules/image/helpers';
 import LayerList from './modules/layers/List';
 import AddMenu from './modules/menu/AddMenu';
 import MiscMenu from './modules/menu/MiscMenu';
-import SettingsMenu from './modules/settings';
-import ZoomMenu from './modules/zoom';
-import store from './store';
-import { RootState } from './store/rootReducer';
-import { SmartObject } from './modules/reflection/helpers';
-import SectionTitle from './components/SectionTitle';
-import { createSnappingLines, snapToObject } from './modules/snapping';
 import {
 	RULER_LINES,
 	addNewRulerLine,
@@ -52,8 +46,14 @@ import {
 	renderRulerOnMoveMarker,
 } from './modules/ruler';
 import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
-import { useModalStyles } from './styles/modal';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
+import { SmartObject } from './modules/reflection/helpers';
+import SettingsMenu from './modules/settings';
+import { createSnappingLines, snapToObject } from './modules/snapping';
+import ZoomMenu from './modules/zoom';
+import store from './store';
+import { RootState } from './store/rootReducer';
+import { useModalStyles } from './styles/modal';
 import { generateId, getMultiplierFor4K } from './utils';
 
 store.dispatch(appStart());
