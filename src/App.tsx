@@ -262,7 +262,9 @@ function App() {
 		// Place the canvas in the center of the screen
 		centerBoardToCanvas(artboardRef);
 		setZoomLevel(canvasRef.current?.getZoom() || 1);
-		renderRuler();
+		if (showRuler) {
+			renderRuler();
+		}
 	};
 
 	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
@@ -640,12 +642,10 @@ function App() {
 	};
 
 	const renderRuler = () => {
-		if (showRuler) {
-			renderRulerAxisBackground(canvasRef, colorSchemeRef.current);
-			adjustRulerBackgroundPosition(canvasRef, colorSchemeRef.current);
-			renderRulerStepMarkers(canvasRef, colorSchemeRef.current);
-			adjustRulerLinesPosition(canvasRef);
-		}
+		renderRulerAxisBackground(canvasRef, colorSchemeRef.current);
+		adjustRulerBackgroundPosition(canvasRef, colorSchemeRef.current);
+		renderRulerStepMarkers(canvasRef, colorSchemeRef.current);
+		adjustRulerLinesPosition(canvasRef);
 	};
 
 	const zoomToFit = () => {
@@ -677,7 +677,9 @@ function App() {
 		centerBoardToCanvas(artboardRef);
 
 		setZoomLevel(canvasRef.current?.getZoom() || zoom);
-		renderRuler();
+		if (showRuler) {
+			renderRuler();
+		}
 	};
 
 	const zoomIn = () => {
@@ -686,7 +688,9 @@ function App() {
 			zoomFromCenter(zoom + 0.1);
 			setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1);
 		}
-		renderRuler();
+		if (showRuler) {
+			renderRuler();
+		}
 	};
 
 	const zoomOut = () => {
@@ -695,7 +699,9 @@ function App() {
 			zoomFromCenter(zoom - 0.1);
 			setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1);
 		}
-		renderRuler();
+		if (showRuler) {
+			renderRuler();
+		}
 	};
 
 	const deleteElement = () => {
@@ -885,7 +891,9 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef);
-			renderRuler();
+			if (showRuler) {
+				renderRuler();
+			}
 			// Get the src of the video element and add it to the canvas
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
@@ -897,7 +905,7 @@ function App() {
 			}
 			canvas.requestRenderAll();
 		});
-	}, [activeArtboard]);
+	}, [activeArtboard, showRuler]);
 
 	useEffect(() => {
 		if (showRuler) {
@@ -934,7 +942,9 @@ function App() {
 				}
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
 				setZoomLevel(zoom);
-				renderRuler();
+				if (showRuler) {
+					renderRuler();
+				}
 				canvas.renderAll();
 			} else {
 				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
@@ -943,7 +953,9 @@ function App() {
 				}
 				pan[4] -= e.deltaX;
 				pan[5] -= e.deltaY;
-				renderRuler();
+				if (showRuler) {
+					renderRuler();
+				}
 				setCanvasScrollPoints(pan[4] + pan[5]);
 				canvas.requestRenderAll();
 			}
@@ -952,7 +964,7 @@ function App() {
 		return () => {
 			canvas.off('mouse:wheel', handlePan);
 		};
-	}, [activeArtboard?.height, activeArtboard?.width]);
+	}, [activeArtboard?.height, activeArtboard?.width, showRuler]);
 
 	// Update canvas size when viewport size changes
 	useEffect(() => {
@@ -961,7 +973,9 @@ function App() {
 				width: window.innerWidth,
 				height: window.innerHeight - 60,
 			});
-			renderRuler();
+			if (showRuler) {
+				renderRuler();
+			}
 		};
 
 		window.addEventListener('resize', handleResize);
@@ -969,7 +983,7 @@ function App() {
 		return () => {
 			window.removeEventListener('resize', handleResize);
 		};
-	}, []);
+	}, [showRuler]);
 
 	// this is hack to reset snapping lines when zoom level changes or scroll changes,ideal solution will be move this to handlePan function and change the snapping lines based on the scroll and zoom level
 	useEffect(() => {
