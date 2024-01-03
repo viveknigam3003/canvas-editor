@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Divider, Select, Stack } from '@mantine/core';
+import { ActionIcon, Box, ColorInput, Divider, Select, Stack } from '@mantine/core';
 import { IconBold, IconItalic, IconSubscript, IconSuperscript, IconUnderline } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Reflection from '../reflection';
@@ -24,6 +24,7 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 	const [isUnderline, setIsUnderline] = useState(false);
 	const [isSuperscript, setIsSuperscript] = useState(false);
 	const [isSubscript, setIsSubscript] = useState(false);
+	const [selectedFontColor, setSelectedFontColor] = useState('#000000');
 
 	useEffect(() => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
@@ -44,6 +45,9 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 
 			const isSubscript = selectedStyles.some(style => style.fontSize && style.deltaY > 0);
 			setIsSubscript(isSubscript);
+
+			const fontColor = textElement.fill;
+			setSelectedFontColor(fontColor as string);
 		}
 	}, [currentSelectedElements]);
 
@@ -258,6 +262,20 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 					/>
 				</Box>
 			)}
+			<Divider />
+			<Stack>
+				<SectionTitle>Color</SectionTitle>
+				<ColorInput
+					label="Color"
+					value={selectedFontColor}
+					onChange={e => {
+						currentSelectedElements?.[0].set('fill', e);
+						setSelectedFontColor(e as string);
+						canvas.requestRenderAll();
+					}}
+					format="hexa"
+				/>
+			</Stack>
 			<Divider />
 			<Stack>
 				<SectionTitle>Font Styling</SectionTitle>
