@@ -1,1 +1,18 @@
-export const FABRIC_JSON_ALLOWED_KEYS = ['data', 'selectable', 'effects', 'hoverCursor'];
+export const FABRIC_JSON_ALLOWED_KEYS = [
+	'data',
+	'selectable',
+	'effects',
+	'hoverCursor',
+	'stroke',
+	'strokeWidth',
+	'hasControls',
+	'hasBorders',
+	'lockRotation',
+	'lockMovementY',
+	'lockScalingX',
+	'lockScalingY',
+	'lockUniScaling',
+	'lockSkewingX',
+	'lockSkewingY',
+	'lockScalingFlip',
+];

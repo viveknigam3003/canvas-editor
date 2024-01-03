@@ -2,6 +2,7 @@
 import { fabric } from 'fabric';
 import React from 'react';
 import { guidesRefType, snappingObjectType } from '../../types';
+import { getCanvasVisibleTopLeft } from '../utils/canvasUtils';
 
 export function snapToObject(
 	target: snappingObjectType,
@@ -147,24 +148,10 @@ export function snapToObject(
 	});
 }
 
-const getVisibleTopLeft = (canvasRef: React.MutableRefObject<fabric.Canvas | null>) => {
-	const canvas = canvasRef.current as fabric.Canvas;
-	const vpt = canvas.viewportTransform as unknown as fabric.IPoint[];
-	const scrollTop = window.scrollY || document.documentElement.scrollTop;
-	const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	const visibleTop = -vpt[5] / vpt[0] + scrollTop / vpt[0];
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	const visibleLeft = -vpt[4] / vpt[0] + scrollLeft / vpt[0];
-	return { top: visibleTop, left: visibleLeft };
-};
-
 export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
 	const canvasWidth = (canvasRef.current?.width as number) / (canvasRef.current?.getZoom() as number);
 	const canvasHeight = (canvasRef.current?.height as number) / (canvasRef.current?.getZoom() as number);
-	const { top, left } = getVisibleTopLeft(canvasRef);
+	const { top, left } = getCanvasVisibleTopLeft(canvasRef);
 	const defaultSnapLineProps = {
 		opacity: 0,
 		evented: false,
@@ -202,8 +189,3 @@ export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Can
 	);
 	return guidesRef;
 }
-
-export const filterSnappingLines = (arr: fabric.Object[] | undefined) => {
-	if (!arr) return [];
-	return arr.filter(obj => !obj?.data?.isSnappingLine && !obj?.data?.ignoreSnapping);
-};

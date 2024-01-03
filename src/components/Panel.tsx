@@ -5,6 +5,7 @@ import ImagePanel from '../modules/image/Panel';
 import Position from '../modules/position';
 import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
+import { RULER_LINES } from '../modules/ruler';
 import Opacity from '../modules/opacity';
 
 type PanelProps = {
@@ -23,11 +24,10 @@ const Panel = ({
 	currentSelectedArtboards,
 }: PanelProps) => {
 	const isVideoEnabled = localStorage.getItem('video') === 'true';
-
-	if (!currentSelectedElements.length) {
+	const isRulerLine = Object.values(RULER_LINES).includes(currentSelectedElements?.[0]?.data?.type);
+	if (!currentSelectedElements.length || isRulerLine) {
 		return null;
 	}
-
 	return (
 		<Stack>
 			{currentSelectedElements.length === 1 && (

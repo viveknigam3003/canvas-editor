@@ -41,14 +41,27 @@ import { addVideoToCanvas } from './modules/image/helpers';
 import LayerList from './modules/layers/List';
 import AddMenu from './modules/menu/AddMenu';
 import MiscMenu from './modules/menu/MiscMenu';
+import {
+	RULER_LINES,
+	addNewRulerLine,
+	renderRulerStepMarkers,
+	initializeRuler,
+	removeRulerOnMoveMarker,
+	removeRuler,
+	renderRulerAxisBackground,
+	adjustRulerBackgroundPosition,
+	adjustRulerLinesPosition,
+	renderRulerOnMoveMarker,
+} from './modules/ruler';
+import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
+import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { SmartObject } from './modules/reflection/helpers';
 import SettingsMenu from './modules/settings';
-import { createSnappingLines, filterSnappingLines, snapToObject } from './modules/snapping';
+import { createSnappingLines, snapToObject } from './modules/snapping';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { useModalStyles } from './styles/modal';
-import { Artboard, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 
 store.dispatch(appStart());
@@ -72,7 +85,9 @@ function App() {
 		key: 'snapDistance',
 		defaultValue: '2',
 	});
+	const [showRuler, setShowRuler] = useState(true);
 	const theme = useMantineTheme();
+	const colorSchemeRef = useRef(theme.colorScheme);
 	const { classes } = useStyles();
 	const [showSidebar, setShowSidebar] = useState(true);
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
@@ -127,6 +142,14 @@ function App() {
 	const [selectedArtboards, setSelectedArtboards] = useState<string[]>([selectedArtboard?.id || '']);
 
 	useEffect(() => {
+		if (canvasRef.current && colorSchemeRef.current !== theme.colorScheme) {
+			adjustRulerBackgroundPosition(canvasRef, theme.colorScheme);
+			renderRulerStepMarkers(canvasRef, theme.colorScheme);
+		}
+		colorSchemeRef.current = theme.colorScheme;
+	}, [theme.colorScheme]);
+
+	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
 			// create a canvas with clientWidth and clientHeight
 			width: window.innerWidth - 600,
@@ -139,6 +162,12 @@ function App() {
 			setCurrentSelectedElements(event.selected as fabric.Object[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
+			event?.deselected
+				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
+				.forEach(item => {
+					item.set({ stroke: '#000', fill: '#000' });
+				});
+			removeRulerOnMoveMarker(canvasRef);
 			setCurrentSelectedElements(arr => {
 				if (!arr) {
 					return null;
@@ -160,8 +189,19 @@ function App() {
 				// Else if the element is in the desected array, remove it
 			});
 		});
-		canvasRef.current?.on('selection:cleared', function () {
+		canvasRef.current?.on('selection:cleared', function (e) {
+			removeRulerOnMoveMarker(canvasRef);
+			e?.deselected
+				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
+				.forEach(item => {
+					item.set({ stroke: '#000', fill: '#000' });
+					item.setCoords();
+				});
 			setCurrentSelectedElements(null);
+		});
+		// Add a click event listener to the canvas
+		canvasRef.current.on('mouse:down', options => {
+			addNewRulerLine(options, canvasRef);
 		});
 
 		return () => {
@@ -171,9 +211,13 @@ function App() {
 
 	const onMoveHandler = (options: fabric.IEvent) => {
 		const target = options.target as fabric.Object;
+		if (Object.values(RULER_LINES).includes(target.data?.type)) {
+			renderRulerOnMoveMarker(target, canvasRef);
+			return;
+		}
 		snapToObject(
 			target as snappingObjectType,
-			filterSnappingLines(canvasRef.current?.getObjects()) as snappingObjectType[],
+			filterSnappingExcludes(canvasRef.current?.getObjects()) as snappingObjectType[],
 			guidesRef,
 			canvasRef,
 			Number(snapDistance),
@@ -212,6 +256,7 @@ function App() {
 		// Place the canvas in the center of the screen
 		centerBoardToCanvas(artboardRef);
 		setZoomLevel(canvasRef.current?.getZoom() || 1);
+		renderRuler();
 	};
 
 	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
@@ -309,13 +354,14 @@ function App() {
 		artboardRef.current = artboardRect;
 		// Save the state of the canvas
 		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const filteredObjects = filterSaveExcludes(json?.objects);
 		const updatedArtboards = [
 			...artboards,
 			{
 				...newArtboard,
 				state: {
 					...json,
-					objects: filterSnappingLines(json?.objects),
+					objects: filteredObjects,
 				},
 			},
 		];
@@ -424,7 +470,7 @@ function App() {
 		});
 		const adjustedStateJSON = {
 			...stateJSON,
-			objects: adjustedStateJSONObjects,
+			objects: filterExportExcludes(adjustedStateJSONObjects),
 		};
 
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
@@ -519,7 +565,7 @@ function App() {
 					...item,
 					state: {
 						...json,
-						objects: filterSnappingLines(json?.objects),
+						objects: filterSaveExcludes(json?.objects),
 					},
 				};
 			}
@@ -585,6 +631,15 @@ function App() {
 		);
 	};
 
+	const renderRuler = () => {
+		if (showRuler) {
+			renderRulerAxisBackground(canvasRef, colorSchemeRef.current);
+			adjustRulerBackgroundPosition(canvasRef, colorSchemeRef.current);
+			renderRulerStepMarkers(canvasRef, colorSchemeRef.current);
+			adjustRulerLinesPosition(canvasRef);
+		}
+	};
+
 	const zoomToFit = () => {
 		const canvas = canvasRef.current;
 
@@ -612,7 +667,9 @@ function App() {
 		// Zoom to the center of the canvas
 		zoomFromCenter(zoom);
 		centerBoardToCanvas(artboardRef);
+
 		setZoomLevel(canvasRef.current?.getZoom() || zoom);
+		renderRuler();
 	};
 
 	const zoomIn = () => {
@@ -621,6 +678,7 @@ function App() {
 			zoomFromCenter(zoom + 0.1);
 			setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1);
 		}
+		renderRuler();
 	};
 
 	const zoomOut = () => {
@@ -629,6 +687,7 @@ function App() {
 			zoomFromCenter(zoom - 0.1);
 			setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1);
 		}
+		renderRuler();
 	};
 
 	const deleteElement = () => {
@@ -749,6 +808,7 @@ function App() {
 			if (artboard) {
 				artboardRef.current = artboard as fabric.Rect;
 			}
+
 			zoomToFit();
 
 			// create a style sheet
@@ -817,7 +877,7 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef);
-
+			renderRuler();
 			// Get the src of the video element and add it to the canvas
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
@@ -831,6 +891,14 @@ function App() {
 		});
 	}, [selectedArtboard]);
 
+	useEffect(() => {
+		if (showRuler) {
+			initializeRuler(canvasRef, colorSchemeRef.current);
+		} else {
+			removeRuler(canvasRef);
+		}
+	}, [showRuler]);
+
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -842,42 +910,41 @@ function App() {
 			// Handle panning based on deltaX and deltaY but prevent zooming
 			const e = opt.e;
 			e.preventDefault();
+
 			if (e.ctrlKey || e.metaKey) {
 				const delta = opt.e.deltaY;
-				let zoom = canvas.getZoom();
+				let zoom = canvas.getZoom() as number;
 				zoom *= 0.99 ** delta;
-
 				const { minZoom, maxZoom } = getMaxMinZoomLevel({
 					width: selectedArtboard?.width || 1,
 					height: selectedArtboard?.height || 1,
 				});
-
 				if (zoom > maxZoom) zoom = maxZoom;
 				if (zoom < minZoom) zoom = minZoom;
 				if (!zoom || isNaN(zoom)) {
 					zoom = minZoom;
 				}
-				setZoomLevel(zoom);
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+				setZoomLevel(zoom);
+				renderRuler();
+				canvas.renderAll();
 			} else {
-				const vpt = canvas.viewportTransform;
-				if (!vpt) {
+				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
+				if (!pan) {
 					return;
 				}
-				vpt[4] -= e.deltaX;
-				vpt[5] -= e.deltaY;
-				setCanvasScrollPoints(vpt[4] + vpt[5]);
+				pan[4] -= e.deltaX;
+				pan[5] -= e.deltaY;
+				renderRuler();
+				setCanvasScrollPoints(pan[4] + pan[5]);
 				canvas.requestRenderAll();
 			}
 		};
-
 		canvas.on('mouse:wheel', handlePan);
-
 		return () => {
 			canvas.off('mouse:wheel', handlePan);
 		};
-	}, [selectedArtboard?.height, selectedArtboard?.width]);
-
+	}, [selectedArtboard?.height, selectedArtboard?.width, showRuler]);
 	// Update canvas size when viewport size changes
 	useEffect(() => {
 		const handleResize = () => {
@@ -885,6 +952,7 @@ function App() {
 				width: window.innerWidth,
 				height: window.innerHeight - 60,
 			});
+			renderRuler();
 		};
 
 		window.addEventListener('resize', handleResize);
@@ -1084,6 +1152,7 @@ function App() {
 						setAutoSaveChanges={setAutoSaveChanges}
 						snapDistance={snapDistance}
 						setSnapDistance={setSnapDistance}
+						setShowRuler={setShowRuler}
 					/>
 					<Tooltip label="Save" openDelay={500}>
 						<ActionIcon onClick={saveArtboardChanges} size={20}>
@@ -1191,7 +1260,7 @@ function App() {
 					</Box>
 				) : null}
 				<Center className={classes.center} ref={canvasContainerRef}>
-					<canvas id="canvas" />
+					<canvas className={classes.canvas} id="canvas" />
 				</Center>
 				{showSidebar ? (
 					<Box className={classes.right}>
@@ -1351,6 +1420,9 @@ const useStyles = createStyles(theme => ({
 		'&:focus': {
 			outline: 'none',
 		},
+	},
+	canvas: {
+		paddingTop: '2px',
 	},
 }));
 
