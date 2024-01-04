@@ -1,6 +1,6 @@
 import { Action } from '@reduxjs/toolkit';
 import deepDiff from 'deep-diff';
-import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { call, debounce, put, select, takeEvery } from 'redux-saga/effects';
 import { RootState } from '../../store/rootReducer';
 import { Artboard } from '../../types';
 import { updatePointer, updateStateHistory } from '../history/actions';
@@ -8,6 +8,7 @@ import { Delta } from '../history/reducer';
 import { recordChanges } from '../history/saga';
 import {
 	appStart,
+	applyBulkEdit,
 	initState,
 	setActiveArtboard,
 	setArtboards,
@@ -17,6 +18,7 @@ import {
 	updateSelectedArtboards,
 } from './actions';
 import { ApplicationState } from './reducer';
+import { getBulkEditedArtboards } from './bulkEdit';
 
 function* initStateSaga() {
 	const savedState: string = yield call([localStorage, 'getItem'], 'artboards');
@@ -79,16 +81,16 @@ function* setActiveArtboardSaga(action: Action) {
 		return;
 	}
 
-	const previousState: Artboard = yield select((state: RootState) => state.app.activeArtboard);
-	const nextState: Artboard = action.payload;
+	// const previousState: Artboard = yield select((state: RootState) => state.app.activeArtboard);
+	// const nextState: Artboard = action.payload;
 
 	yield put(updateActiveArtboard(action.payload));
-	yield recordChanges({
-		previousState,
-		nextState,
-		action: updateActiveArtboard(action.payload),
-		key: 'app.activeArtboard',
-	});
+	// yield recordChanges({
+	// 	previousState,
+	// 	nextState,
+	// 	action: updateActiveArtboard(action.payload),
+	// 	key: 'app.activeArtboard',
+	// });
 }
 
 function* setSelectedArtboardsSaga(action: Action) {
@@ -102,11 +104,35 @@ function* setSelectedArtboardsSaga(action: Action) {
 	yield put(updateSelectedArtboards(action.payload));
 }
 
+function* applyBulkEditSaga(action: Action) {
+	if (!applyBulkEdit.match(action)) {
+		return;
+	}
+
+	const { element, properties } = action.payload;
+
+	const previousState: Artboard[] = yield select((state: RootState) => state.app.artboards);
+	const selectedArtboards: string[] = yield select((state: RootState) => state.app.selectedArtboards);
+	const nextState: Artboard[] = getBulkEditedArtboards(element.data.id, properties, {
+		artboards: previousState,
+		selectedArtboards,
+	});
+
+	yield put(updateArtboards(nextState));
+	yield recordChanges({
+		previousState,
+		nextState,
+		action: updateArtboards(nextState),
+		key: 'app.artboards',
+	});
+}
+
 function* applicationSaga() {
 	yield takeEvery(appStart.type, initStateSaga);
 	yield takeEvery(setArtboards.type, setArtboardsSaga);
 	yield takeEvery(setActiveArtboard.type, setActiveArtboardSaga);
 	yield takeEvery(setSelectedArtboards.type, setSelectedArtboardsSaga);
+	yield debounce(500, applyBulkEdit.type, applyBulkEditSaga);
 }
 
 export default applicationSaga;
