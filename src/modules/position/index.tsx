@@ -5,8 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SectionTitle from '../../components/SectionTitle';
 import { RootState } from '../../store/rootReducer';
-import { getBulkEditedArtboards } from '../app/bulkEdit';
-import { setArtboards } from '../app/actions';
+import { applyBulkEdit } from '../app/actions';
 
 interface PositionProps {
 	canvas: fabric.Canvas;
@@ -15,7 +14,6 @@ interface PositionProps {
 
 const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) => {
 	const dispatch = useDispatch();
-	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const [positionValues, setPositionValues] = useState({
 		x: 0,
@@ -44,7 +42,15 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				y: element.top as number,
 			}));
 			if (currentSelectedArtboards.length > 1) {
-				applyBulkEdit(element, { left: element.left, top: element.top });
+				dispatch(
+					applyBulkEdit({
+						element,
+						properties: {
+							left: element.left,
+							top: element.top,
+						},
+					}),
+				);
 			}
 		});
 		element.on('resizing', () => {
@@ -54,10 +60,15 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				height: element.getScaledHeight() as number,
 			}));
 			if (currentSelectedArtboards.length > 1) {
-				applyBulkEdit(element, {
-					width: element.getScaledWidth(),
-					height: element.getScaledHeight(),
-				});
+				dispatch(
+					applyBulkEdit({
+						element,
+						properties: {
+							width: element.getScaledWidth(),
+							height: element.getScaledHeight(),
+						},
+					}),
+				);
 			}
 		});
 		element.on('scaling', () => {
@@ -68,12 +79,17 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				height: element.getScaledHeight() as number,
 			});
 			if (currentSelectedArtboards.length > 1) {
-				applyBulkEdit(element, {
-					left: element.left,
-					top: element.top,
-					width: element.getScaledWidth(),
-					height: element.getScaledHeight(),
-				});
+				dispatch(
+					applyBulkEdit({
+						element,
+						properties: {
+							left: element.left,
+							top: element.top,
+							width: element.getScaledWidth(),
+							height: element.getScaledHeight(),
+						},
+					}),
+				);
 			}
 		});
 
@@ -83,14 +99,6 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			element.off('scaling');
 		};
 	}, [currentSelectedElements, currentSelectedArtboards]);
-
-	const applyBulkEdit = (element: fabric.Object, properties: Record<string, any>) => {
-		const updated = getBulkEditedArtboards(element.data.id, properties, {
-			artboards,
-			selectedArtboards: currentSelectedArtboards,
-		});
-		dispatch(setArtboards(updated));
-	};
 
 	useHotkeys([
 		[
