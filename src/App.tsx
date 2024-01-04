@@ -418,6 +418,14 @@ function App() {
 				const newSelectedArtboards = artboards.slice(startIndex, endIndex + 1).map(ab => ab.id);
 				dispatch(setSelectedArtboards(newSelectedArtboards));
 			}
+		} else if (e.metaKey || e.ctrlKey) {
+			if (isSelectedArtboard && !isActiveArtboard) {
+				const arr = selectedArtboards.filter(item => item !== artboard.id);
+				dispatch(setSelectedArtboards(arr));
+			} else if (!isSelectedArtboard && !isActiveArtboard) {
+				const arr = [...selectedArtboards, artboard.id];
+				dispatch(setSelectedArtboards(arr));
+			}
 		} else {
 			if (isSelectedArtboard && !isActiveArtboard) {
 				dispatch(setActiveArtboard(artboard));
