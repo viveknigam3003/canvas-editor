@@ -401,6 +401,7 @@ function App() {
 		e.stopPropagation();
 		e.preventDefault();
 
+		const currentArtboardIndex = artboards.findIndex(ab => ab.id === artboard.id);
 		const isActiveArtboard = activeArtboard?.id === artboard.id;
 		const isSelectedArtboard = selectedArtboards.includes(artboard.id);
 
@@ -409,8 +410,13 @@ function App() {
 				const arr = selectedArtboards.filter(item => item !== artboard.id);
 				dispatch(setSelectedArtboards(arr));
 			} else if (!isSelectedArtboard && !isActiveArtboard) {
-				const arr = [...selectedArtboards, artboard.id];
-				dispatch(setSelectedArtboards(arr));
+				const lastActiveIndex = artboards.findIndex(ab => ab.id === activeArtboard?.id);
+				// Determine the range of indexes to select
+				const startIndex = Math.min(currentArtboardIndex, lastActiveIndex);
+				const endIndex = Math.max(currentArtboardIndex, lastActiveIndex);
+				// Select all artboards between the last active and the clicked one
+				const newSelectedArtboards = artboards.slice(startIndex, endIndex + 1).map(ab => ab.id);
+				dispatch(setSelectedArtboards(newSelectedArtboards));
 			}
 		} else {
 			if (isSelectedArtboard && !isActiveArtboard) {
@@ -1004,10 +1010,14 @@ function App() {
 		let timeout: NodeJS.Timeout;
 
 		const handleCanvasObjectModification = () => {
+			if (selectedArtboards.length > 1) {
+				console.log('Multiple artboards selected, will apply bulk changes');
+				return;
+			}
+
 			console.log('Object modified');
 			timeout = setTimeout(() => {
 				setHasUnsavedChanges(true);
-				console.log('Marked changes');
 			}, 2000);
 		};
 
@@ -1017,7 +1027,7 @@ function App() {
 			canvas.off('object:modified', handleCanvasObjectModification);
 			clearTimeout(timeout);
 		};
-	}, [autosaveChanges]);
+	}, [autosaveChanges, selectedArtboards]);
 
 	useEffect(() => {
 		if (!hasUnsavedChanges) {
@@ -1206,7 +1216,7 @@ function App() {
 							spacing={0}
 							tabIndex={1}
 							onKeyDown={getHotkeyHandler([
-								['escape', () => setSelectedArtboards([activeArtboard?.id || ''])],
+								['escape', () => dispatch(setSelectedArtboards([activeArtboard?.id || '']))],
 							])}
 							className={classes.artboardListContainer}
 						>
