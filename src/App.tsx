@@ -821,7 +821,7 @@ function App() {
 				if (showRuler) {
 					renderRuler();
 				}
-				canvas.renderAll();
+				canvas.requestRenderAll();
 			} else {
 				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
 				if (!pan) {

@@ -50,6 +50,13 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 							...item,
 							left: item.left + leftCursor,
 							top: item.top + topCursor,
+							evented: false,
+							selectable: false,
+							objectCaching: true,
+							data: {
+								...item.data,
+								ignoreSnapping: true,
+							},
 						};
 					}),
 				},
