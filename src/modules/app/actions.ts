@@ -5,6 +5,7 @@ import { ApplicationState } from './reducer';
 export enum ApplicationActionType {
 	APP_START = 'app/appStart',
 	INIT_STATE = 'app/initState',
+	ADD_ARTBOARD = 'app/addArtboard',
 	SET_ARTBOARDS = 'app/setArtboards',
 	UPDATE_ARTBOARDS = 'app/updateArtboards',
 	SET_ACTIVE_ARTBOARD = 'app/setActiveArtboard',
@@ -18,6 +19,10 @@ export enum ApplicationActionType {
 export const appStart = createAction(ApplicationActionType.APP_START);
 
 export const initState = createAction<Partial<Record<keyof ApplicationState, any>>>(ApplicationActionType.INIT_STATE);
+
+export const addArtboard = createAction<{ artboard: Artboard; state: Record<string, any> }>(
+	ApplicationActionType.ADD_ARTBOARD,
+);
 
 export const setArtboards = createAction<Array<Artboard>>(ApplicationActionType.SET_ARTBOARDS);
 

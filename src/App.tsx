@@ -5,16 +5,12 @@ import {
 	Center,
 	Flex,
 	Group,
-	Modal,
-	NumberInput,
 	Stack,
 	Text,
-	TextInput,
 	Tooltip,
 	createStyles,
 	useMantineTheme,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
 import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
@@ -37,37 +33,37 @@ import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
 import {
 	appStart,
-	setArtboards,
 	setActiveArtboard,
+	setArtboards,
 	setSelectedArtboards,
 	updateActiveArtboardLayers,
 } from './modules/app/actions';
+import NewArtboardModal from './modules/artboard/NewArtboardModal';
 import { redo, undo } from './modules/history/actions';
 import { addVideoToCanvas } from './modules/image/helpers';
 import LayerList from './modules/layers/List';
 import AddMenu from './modules/menu/AddMenu';
 import MiscMenu from './modules/menu/MiscMenu';
+import { SmartObject } from './modules/reflection/helpers';
 import {
 	RULER_LINES,
 	addNewRulerLine,
-	renderRulerStepMarkers,
-	initializeRuler,
-	removeRulerOnMoveMarker,
-	removeRuler,
-	renderRulerAxisBackground,
 	adjustRulerBackgroundPosition,
 	adjustRulerLinesPosition,
+	initializeRuler,
+	removeRuler,
+	removeRulerOnMoveMarker,
+	renderRulerAxisBackground,
 	renderRulerOnMoveMarker,
+	renderRulerStepMarkers,
 } from './modules/ruler';
-import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
-import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
-import { SmartObject } from './modules/reflection/helpers';
 import SettingsMenu from './modules/settings';
 import { createSnappingLines, snapToObject } from './modules/snapping';
+import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { useModalStyles } from './styles/modal';
+import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 
 store.dispatch(appStart());
@@ -101,39 +97,13 @@ function App() {
 	const [autosaveChanges, setAutoSaveChanges] = useState(true);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
-	const { classes: modalClasses } = useModalStyles();
-	const [opened, { open, close }] = useDisclosure();
+	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [canvasScrollPoints, setCanvasScrollPoints] = useState(0);
-	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
-		initialValues: {
-			name: '',
-			width: 500,
-			height: 500,
-			number: 1,
-		},
-		validate: values => {
-			const errors: Record<string, string> = {};
-			if (values.name.trim().length === 0) {
-				errors.name = 'Artboard name cannot be empty';
-			}
-			if (values.width < 1) {
-				errors.width = 'Artboard width cannot be less than 1px';
-			}
-			if (values.height < 1) {
-				errors.height = 'Artboard height cannot be less than 1px';
-			}
-			if (values.number < 1) {
-				errors.number = 'Number of artboards cannot be less than 1';
-			}
-			return errors;
-		},
-	});
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const artboardRef = useRef<fabric.Rect | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
-	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const guidesRef = useRef<guidesRefType>({
@@ -294,109 +264,68 @@ function App() {
 		}
 	};
 
-	const createSingleArtboard = (artboard: Omit<Artboard, 'id'>, index: number) => {
-		const id = generateId();
-		const newArtboard: Artboard = {
-			...artboard,
-			name: `${artboard.name} ${index + 1}`,
-			id,
-		};
+	// const createSingleArtboard = (artboard: Omit<Artboard, 'id'>, index: number) => {
+	// 	const id = generateId();
+	// 	const newArtboard: Artboard = {
+	// 		...artboard,
+	// 		name: `${artboard.name} ${index + 1}`,
+	// 		id,
+	// 	};
 
-		const artboardRect = new fabric.Rect({
-			left: (window.innerWidth - 600) / 2 - artboard.width / 2,
-			top: (window.innerHeight - 60) / 2 - artboard.height / 2,
-			width: artboard.width,
-			height: artboard.height,
-			fill: '#fff',
-			selectable: false,
-			hoverCursor: 'default',
-			data: {
-				type: 'artboard',
-				id,
-			},
-		});
+	// 	const artboardRect = new fabric.Rect({
+	// 		left: (window.innerWidth - 600) / 2 - artboard.width / 2,
+	// 		top: (window.innerHeight - 60) / 2 - artboard.height / 2,
+	// 		width: artboard.width,
+	// 		height: artboard.height,
+	// 		fill: '#fff',
+	// 		selectable: false,
+	// 		hoverCursor: 'default',
+	// 		data: {
+	// 			type: 'artboard',
+	// 			id,
+	// 		},
+	// 	});
 
-		const offScreenCanvas = new fabric.Canvas('offscreen', {
-			width: window.innerWidth - 600,
-			height: window.innerHeight - 60,
-			backgroundColor: '#e9ecef',
-			imageSmoothingEnabled: false,
-			colorSpace: colorSpace as colorSpaceType,
-		});
+	// 	const offScreenCanvas = new fabric.Canvas('offscreen', {
+	// 		width: window.innerWidth - 600,
+	// 		height: window.innerHeight - 60,
+	// 		backgroundColor: '#e9ecef',
+	// 		imageSmoothingEnabled: false,
+	// 		colorSpace: colorSpace as colorSpaceType,
+	// 	});
 
-		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-		offScreenCanvas.dispose();
-		return {
-			...newArtboard,
-			state: json,
-		};
-	};
+	// 	offScreenCanvas.add(artboardRect);
+	// 	const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+	// 	offScreenCanvas.dispose();
+	// 	return {
+	// 		...newArtboard,
+	// 		state: json,
+	// 	};
+	// };
 
-	const addNewArtboard = (artboard: Omit<Artboard, 'id'>) => {
-		const validationResult = newArtboardForm.validate();
-		if (validationResult.hasErrors) {
-			console.log('Errors in new artboard form', validationResult.errors);
-			return;
-		}
-		const id = generateId();
-		const newArtboard: Artboard = { ...artboard, id };
-		dispatch(setActiveArtboard(newArtboard));
+	// const createMultipleArtboards = (artboard: Omit<Artboard, 'id'>, n: number) => {
+	// 	setIsCreatingArtboards(true);
+	// 	// Use the addNewArtboard function to create multiple artboards
+	// 	const allArtboards = [];
+	// 	for (let i = 0; i < n; i++) {
+	// 		const newArtboard = createSingleArtboard(artboard, i);
+	// 		allArtboards.push(newArtboard);
+	// 	}
 
-		canvasRef.current?.clear();
-		const artboardRect = new fabric.Rect({
-			left: (window.innerWidth - 600) / 2 - artboard.width / 2,
-			top: (window.innerHeight - 60) / 2 - artboard.height / 2,
-			width: artboard.width,
-			height: artboard.height,
-			fill: '#fff',
-			hoverCursor: 'default',
-			selectable: false,
-			data: {
-				type: 'artboard',
-				id,
-			},
-		});
+	// 	// Update the artboards state
+	// 	const updatedArtboards = [...artboards, ...allArtboards];
+	// 	dispatch(setArtboards(updatedArtboards));
+	// 	newArtboardForm.reset();
+	// 	dispatch(setActiveArtboard(allArtboards[0]));
+	// 	setIsCreatingArtboards(false);
+	// 	closeNewArtboardModal();
+	// };
 
-		canvasRef.current?.add(artboardRect);
-		artboardRef.current = artboardRect;
-		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-		const filteredObjects = filterSaveExcludes(json?.objects);
-		const updatedArtboards = [
-			...artboards,
-			{
-				...newArtboard,
-				state: {
-					...json,
-					objects: filteredObjects,
-				},
-			},
-		];
-		console.log(updatedArtboards);
-		dispatch(setArtboards(updatedArtboards));
-		newArtboardForm.reset();
-		close();
-	};
-
-	const createMultipleArtboards = (artboard: Omit<Artboard, 'id'>, n: number) => {
-		setIsCreatingArtboards(true);
-		// Use the addNewArtboard function to create multiple artboards
-		const allArtboards = [];
-		for (let i = 0; i < n; i++) {
-			const newArtboard = createSingleArtboard(artboard, i);
-			allArtboards.push(newArtboard);
-		}
-
-		// Update the artboards state
-		const updatedArtboards = [...artboards, ...allArtboards];
-		dispatch(setArtboards(updatedArtboards));
-		newArtboardForm.reset();
-		dispatch(setActiveArtboard(allArtboards[0]));
-		setIsCreatingArtboards(false);
-		close();
-	};
-
+	/**
+	 * Update the selected artboards array and the active artboard
+	 * @param e Mouse Event
+	 * @param artboard Artboard object
+	 */
 	const updateSelectedArtboard = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, artboard: Artboard) => {
 		e.stopPropagation();
 		e.preventDefault();
@@ -1232,7 +1161,7 @@ function App() {
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<SectionTitle>Artboards ({artboards.length})</SectionTitle>
 									<Tooltip label="Create new artboard" openDelay={500}>
-										<ActionIcon onClick={open} color="violet" size={16}>
+										<ActionIcon onClick={openNewArtboardModal} color="violet" size={16}>
 											<IconPlus />
 										</ActionIcon>
 									</Tooltip>
@@ -1311,73 +1240,11 @@ function App() {
 					</Box>
 				) : null}
 			</Flex>
-			<Modal
-				opened={opened}
-				onClose={() => {
-					newArtboardForm.reset();
-					close();
-				}}
-				title="Create new artboard"
-				classNames={{
-					content: modalClasses.content,
-					title: modalClasses.title,
-				}}
-			>
-				<Stack spacing={'lg'}>
-					<TextInput
-						label="Artboard name"
-						placeholder="Untitled artboard"
-						required
-						classNames={{ label: modalClasses.label }}
-						{...newArtboardForm.getInputProps('name')}
-						data-autofocus
-					/>
-					<Group grow>
-						<NumberInput
-							label="Width"
-							placeholder="500"
-							required
-							classNames={{ label: modalClasses.label }}
-							{...newArtboardForm.getInputProps('width')}
-						/>
-						<NumberInput
-							label="Height"
-							placeholder="500"
-							required
-							classNames={{ label: modalClasses.label }}
-							{...newArtboardForm.getInputProps('height')}
-						/>
-					</Group>
-					<NumberInput
-						label="Number of artboards"
-						placeholder="1"
-						required
-						classNames={{ label: modalClasses.label }}
-						{...newArtboardForm.getInputProps('number')}
-						min={1}
-						max={1000}
-					/>
-					<Button
-						variant="light"
-						size="sm"
-						fullWidth
-						mt={'md'}
-						loading={isCreatingArboards}
-						onClick={() => {
-							if (newArtboardForm.values.number > 1) {
-								createMultipleArtboards(newArtboardForm.values, newArtboardForm.values.number);
-								return;
-							}
-
-							addNewArtboard(newArtboardForm.values);
-						}}
-					>
-						{newArtboardForm.values.number > 1
-							? `Create ${newArtboardForm.values.number} artboards`
-							: `Create artboard`}
-					</Button>
-				</Stack>
-			</Modal>
+			<NewArtboardModal
+				opened={isNewArtboardModalOpen}
+				onClose={closeNewArtboardModal}
+				canvas={canvasRef.current}
+			/>
 		</Box>
 	);
 }
