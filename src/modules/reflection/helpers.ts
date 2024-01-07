@@ -18,7 +18,7 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 				type: 'reflection',
 				parent: original.data.id,
 				id: generateId(),
-				ignoreSnapping: true,
+				ignoreSnapping: false, // FIXME: turn this back to true when we figure out a way to save the reflection
 			},
 			selectable: false,
 			fill: new Fabric.Gradient({
