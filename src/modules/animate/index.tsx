@@ -326,11 +326,10 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 				const totalFrames = Math.round(duration / frameDuration);
 				console.log('totalFrames', totalFrames);
 				const frameData: any[] = [];
-				htmlVideoElement.currentTime = 0;
-				// if (htmlVideoElement) {
-				// 	htmlVideoElement.currentTime = 0;
-				// 	htmlVideoElement?.play();
-				// }
+				if (htmlVideoElement) {
+					htmlVideoElement.currentTime = 0;
+				}
+
 				const animate = (currentTime: number) => {
 					if (currentTime - lastFrameTime > frameDuration) {
 						const value = interpolatePropertyValue(kf, t, 'left');
