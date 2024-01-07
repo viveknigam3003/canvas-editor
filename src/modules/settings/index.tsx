@@ -7,15 +7,16 @@ import {
 	IconLayoutSidebarLeftCollapse,
 	IconMoon,
 	IconPalette,
+	IconRuler,
 	IconSettings,
 	IconSun,
-	IconRuler,
 } from '@tabler/icons-react';
-import { getAltKey, getModKey } from '../../modules/utils/keyboard';
+import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import ColorSpaceSwitch from '../../modules/colorSpace';
+import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import { useMenuStyles } from '../../styles/menu';
 import SnapDistanceModal from '../snapping/SnapDistanceModal';
-import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
+import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
 interface Props {
 	canvasRef: React.RefObject<fabric.Canvas>;
@@ -44,7 +45,7 @@ const SettingsMenu: React.FC<Props> = ({
 	const [snapDistanceModalOpened, { open: openSnapDistanceModal, close: closeSnapDistanceModal }] = useDisclosure();
 	const debug = () => {
 		console.log('json=', canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS));
-		console.log('fabric-objects=', canvasRef.current?.getObjects());
+		console.log('fabric-objects=', filterSaveExcludes(canvasRef.current?.getObjects()));
 		notifications.show({
 			icon: <IconBug size={14} />,
 			title: 'Logged state',
