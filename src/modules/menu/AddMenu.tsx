@@ -1,6 +1,6 @@
 import { ActionIcon, Group, Tooltip } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
-import { IconLayersSubtract, IconLetterT, IconPhoto, IconRectangle, IconSquareAsterisk } from '@tabler/icons-react';
+import { IconLetterT, IconPhoto } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { useDispatch } from 'react-redux';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
@@ -8,6 +8,7 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { updateActiveArtboardLayers } from '../app/actions';
 import ImageModal from '../image/AddImage';
+import ShapePopover from '../shapes/ShapePopover';
 
 type AddMenuProps = {
 	artboardRef: React.RefObject<fabric.Rect>;
@@ -124,40 +125,7 @@ export default function AddMenu({ artboardRef, activeArtboard, canvasRef }: AddM
 						<IconPhoto size={14} />
 					</ActionIcon>
 				</Tooltip>
-				<Tooltip label="Rectangle" openDelay={500}>
-					<ActionIcon>
-						<IconRectangle onClick={addRectangle} size={14} />
-					</ActionIcon>
-				</Tooltip>
-				<Tooltip label="Add multiple shapes" openDelay={500}>
-					<ActionIcon>
-						<IconSquareAsterisk
-							onClick={() => {
-								for (let index = 0; index < 10; index++) {
-									const rect = new fabric.Rect({
-										left: Math.random() * 1000,
-										top: Math.random() * 1000,
-										fill: '#' + Math.floor(Math.random() * 16777215).toString(16),
-										width: 100,
-										height: 100,
-										data: {
-											displayText: 'Shape',
-											id: generateId(),
-										},
-									});
-									canvasRef.current?.add(rect);
-								}
-								canvasRef.current?.requestRenderAll();
-							}}
-							size={14}
-						/>
-					</ActionIcon>
-				</Tooltip>
-				<Tooltip label="Add preset" openDelay={500}>
-					<ActionIcon>
-						<IconLayersSubtract size={14} />
-					</ActionIcon>
-				</Tooltip>
+				<ShapePopover canvasRef={canvasRef} />
 			</Group>
 			<ImageModal
 				activeArtboard={activeArtboard}

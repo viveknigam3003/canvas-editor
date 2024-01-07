@@ -7,6 +7,7 @@ import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
 import { RULER_LINES } from '../modules/ruler';
 import Opacity from '../modules/opacity';
+import ShapePanel from '../modules/shapes/ShapePanel';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -32,7 +33,15 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChang
 					/>
 					<Divider />
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
-					<Divider />
+
+					{currentSelectedElements?.[0]?.data.type === 'shape' && (
+						<ShapePanel
+							artboardRef={artboardRef}
+							canvas={canvas}
+							currentSelectedElements={currentSelectedElements}
+						/>
+					)}
+
 					{currentSelectedElements?.[0]?.type === 'textbox' && (
 						<TextPanel
 							artboardRef={artboardRef}
