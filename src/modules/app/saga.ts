@@ -149,6 +149,7 @@ function* addArtboardSaga(action: Action) {
 	];
 	yield put(setArtboards(updatedArtboards));
 	yield put(setActiveArtboard(artboard));
+	yield put(setSelectedArtboards([artboard.id]));
 }
 
 function* applicationSaga() {
