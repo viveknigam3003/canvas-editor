@@ -59,12 +59,12 @@ import {
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 import { createSnappingLines, snapToObject } from './modules/snapping';
-import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
+import { filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
-import { generateId, getMultiplierFor4K } from './utils';
+import { generateId } from './utils';
 
 store.dispatch(appStart());
 
@@ -102,7 +102,6 @@ function App() {
 	const [canvasScrollPoints, setCanvasScrollPoints] = useState(0);
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
-	const artboardRef = useRef<fabric.Rect | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -230,20 +229,21 @@ function App() {
 	const resetZoom = () => {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
-		centerBoardToCanvas(artboardRef);
+		centerBoardToCanvas();
 		setZoomLevel(canvasRef.current?.getZoom() || 1);
 		if (showRuler) {
 			renderRuler();
 		}
 	};
 
-	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
+	const centerBoardToCanvas = () => {
 		const canvas = canvasRef.current;
-		const artboard = artboardRef.current;
 
 		if (!canvas) {
 			throw new Error('Canvas is not defined');
 		}
+
+		const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
 
 		if (!artboard) {
 			throw new Error('Artboard is not defined');
@@ -263,63 +263,6 @@ function App() {
 			canvas.setViewportTransform([zoom, 0, 0, zoom, panX, panY]);
 		}
 	};
-
-	// const createSingleArtboard = (artboard: Omit<Artboard, 'id'>, index: number) => {
-	// 	const id = generateId();
-	// 	const newArtboard: Artboard = {
-	// 		...artboard,
-	// 		name: `${artboard.name} ${index + 1}`,
-	// 		id,
-	// 	};
-
-	// 	const artboardRect = new fabric.Rect({
-	// 		left: (window.innerWidth - 600) / 2 - artboard.width / 2,
-	// 		top: (window.innerHeight - 60) / 2 - artboard.height / 2,
-	// 		width: artboard.width,
-	// 		height: artboard.height,
-	// 		fill: '#fff',
-	// 		selectable: false,
-	// 		hoverCursor: 'default',
-	// 		data: {
-	// 			type: 'artboard',
-	// 			id,
-	// 		},
-	// 	});
-
-	// 	const offScreenCanvas = new fabric.Canvas('offscreen', {
-	// 		width: window.innerWidth - 600,
-	// 		height: window.innerHeight - 60,
-	// 		backgroundColor: '#e9ecef',
-	// 		imageSmoothingEnabled: false,
-	// 		colorSpace: colorSpace as colorSpaceType,
-	// 	});
-
-	// 	offScreenCanvas.add(artboardRect);
-	// 	const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-	// 	offScreenCanvas.dispose();
-	// 	return {
-	// 		...newArtboard,
-	// 		state: json,
-	// 	};
-	// };
-
-	// const createMultipleArtboards = (artboard: Omit<Artboard, 'id'>, n: number) => {
-	// 	setIsCreatingArtboards(true);
-	// 	// Use the addNewArtboard function to create multiple artboards
-	// 	const allArtboards = [];
-	// 	for (let i = 0; i < n; i++) {
-	// 		const newArtboard = createSingleArtboard(artboard, i);
-	// 		allArtboards.push(newArtboard);
-	// 	}
-
-	// 	// Update the artboards state
-	// 	const updatedArtboards = [...artboards, ...allArtboards];
-	// 	dispatch(setArtboards(updatedArtboards));
-	// 	newArtboardForm.reset();
-	// 	dispatch(setActiveArtboard(allArtboards[0]));
-	// 	setIsCreatingArtboards(false);
-	// 	closeNewArtboardModal();
-	// };
 
 	/**
 	 * Update the selected artboards array and the active artboard
@@ -397,58 +340,49 @@ function App() {
 	};
 
 	const exportArtboard = () => {
-		const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')
-			?.left;
-		const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')?.top;
-
-		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
-			return;
-		}
-
-		// Now we need to create a new canvas and add the artboard to it
-		const offscreenCanvas = new fabric.Canvas('print', {
-			width: artboardRef.current?.width,
-			height: artboardRef.current?.height,
-			colorSpace: colorSpace as colorSpaceType,
-		});
-
-		const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-
-		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
-			return {
-				...item,
-				left: item.left - artboardLeftAdjustment,
-				top: item.top - artboardTopAdjustment,
-			};
-		});
-		const adjustedStateJSON = {
-			...stateJSON,
-			objects: filterExportExcludes(adjustedStateJSONObjects),
-		};
-
-		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
-			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
-
-			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
-
-			const config = {
-				format: 'png',
-				multiplier,
-			};
-
-			// render the offscreen canvas to a dataURL
-			const dataURL = offscreenCanvas.toDataURL(config);
-
-			const link = document.createElement('a');
-			if (dataURL) {
-				link.href = dataURL;
-				link.download = 'canvas_4k.png';
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-			}
-		});
+		// const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')
+		// 	?.left;
+		// const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')?.top;
+		// if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+		// 	return;
+		// }
+		// // Now we need to create a new canvas and add the artboard to it
+		// const offscreenCanvas = new fabric.Canvas('print', {
+		// 	width: artboardRef.current?.width,
+		// 	height: artboardRef.current?.height,
+		// 	colorSpace: colorSpace as colorSpaceType,
+		// });
+		// const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		// const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
+		// 	return {
+		// 		...item,
+		// 		left: item.left - artboardLeftAdjustment,
+		// 		top: item.top - artboardTopAdjustment,
+		// 	};
+		// });
+		// const adjustedStateJSON = {
+		// 	...stateJSON,
+		// 	objects: filterExportExcludes(adjustedStateJSONObjects),
+		// };
+		// offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+		// 	offscreenCanvas.renderAll();
+		// 	console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
+		// 	const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
+		// 	const config = {
+		// 		format: 'png',
+		// 		multiplier,
+		// 	};
+		// 	// render the offscreen canvas to a dataURL
+		// 	const dataURL = offscreenCanvas.toDataURL(config);
+		// 	const link = document.createElement('a');
+		// 	if (dataURL) {
+		// 		link.href = dataURL;
+		// 		link.download = 'canvas_4k.png';
+		// 		document.body.appendChild(link);
+		// 		link.click();
+		// 		document.body.removeChild(link);
+		// 	}
+		// });
 	};
 
 	// Take selected options in the selected artboard and when this function is called, group the selected elements
@@ -598,13 +532,19 @@ function App() {
 			throw new Error('Canvas is not defined');
 		}
 
+		const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
+
+		if (!artboard) {
+			throw new Error('Artboard is not defined');
+		}
+
 		// Canvas width and height depending on if the sidebar is open or not
 		const canvasWidth = showSidebar ? window.innerWidth - 600 : window.innerWidth;
 		const canvasHeight = canvas.getHeight();
 
 		// Artboard width and height
-		const artboardWidth = artboardRef.current?.width;
-		const artboardHeight = artboardRef.current?.height;
+		const artboardWidth = artboard.width;
+		const artboardHeight = artboard.height;
 
 		if (!artboardWidth || !artboardHeight) {
 			throw new Error('Artboard width or height is not defined');
@@ -617,7 +557,7 @@ function App() {
 
 		// Zoom to the center of the canvas
 		zoomFromCenter(zoom);
-		centerBoardToCanvas(artboardRef);
+		centerBoardToCanvas();
 
 		setZoomLevel(canvasRef.current?.getZoom() || zoom);
 		if (showRuler) {
@@ -761,11 +701,6 @@ function App() {
 
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
-			const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
-			if (artboard) {
-				artboardRef.current = artboard as fabric.Rect;
-			}
-
 			zoomToFit();
 
 			// create a style sheet
@@ -841,9 +776,7 @@ function App() {
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
 				for (let i = 0; i < videoElements.length; i++) {
-					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, {
-						artboardRef,
-					});
+					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!);
 				}
 			}
 			canvas.requestRenderAll();
@@ -1105,8 +1038,8 @@ function App() {
 						{/* <img src="/logo.png" alt="logo" width={64} height={64} /> */}
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
-					<AddMenu artboardRef={artboardRef} activeArtboard={activeArtboard} canvasRef={canvasRef} />
-					<MiscMenu artboards={artboards} artboardRef={artboardRef} canvasRef={canvasRef} />
+					<AddMenu activeArtboard={activeArtboard} canvasRef={canvasRef} />
+					<MiscMenu artboards={artboards} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
 					<SettingsMenu
@@ -1231,10 +1164,10 @@ function App() {
 					<Box className={classes.right}>
 						{canvasRef.current && currentSelectedElements && (
 							<Panel
-								artboardRef={artboardRef}
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 								saveArtboardChanges={saveArtboardChanges}
+								activeArtboard={activeArtboard}
 							/>
 						)}
 					</Box>

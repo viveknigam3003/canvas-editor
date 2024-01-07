@@ -6,7 +6,6 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 
 type MiscMenuProps = {
-	artboardRef: React.RefObject<fabric.Rect>;
 	canvasRef: React.RefObject<fabric.Canvas>;
 	artboards: Artboard[];
 };

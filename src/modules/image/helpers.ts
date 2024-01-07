@@ -12,10 +12,10 @@ export const getVideoElement = (url: string) => {
 	return videoE;
 };
 
-export const getElementScale = (element: fabric.Object, artboardRef: any): number => {
+export const getElementScale = (element: fabric.Object, artboard: fabric.Rect): number => {
 	// Calculate the scale needed to fit the image inside the artboard with 20% padding
-	const artboardWidth = artboardRef.current?.width;
-	const artboardHeight = artboardRef.current?.height;
+	const artboardWidth = artboard.width;
+	const artboardHeight = artboard.height;
 	if (!artboardWidth || !artboardHeight) {
 		return 1;
 	}
@@ -34,15 +34,19 @@ export const getElementScale = (element: fabric.Object, artboardRef: any): numbe
 	return scale;
 };
 
-export const getScaledPosition = (artboardRef: any): { left: number; top: number } => {
-	if (!artboardRef.current) {
-		throw new Error('No artboard ref found');
+export const getScaledPosition = (artboard: fabric.Rect): { left: number; top: number } => {
+	if (!artboard) {
+		throw new Error('Artboard not found');
 	}
 
-	const left = artboardRef.current.left;
-	const top = artboardRef.current.top;
-	const width = artboardRef.current.width;
-	const height = artboardRef.current.height;
+	const left = artboard.left;
+	const top = artboard.top;
+	const width = artboard.width;
+	const height = artboard.height;
+
+	if (!left || !top || !width || !height) {
+		throw new Error('Artboard dimensions not found');
+	}
 
 	// calculate the center of the artboard
 	const centerX = left + width / 2;
@@ -54,15 +58,18 @@ export const getScaledPosition = (artboardRef: any): { left: number; top: number
 	};
 };
 
-export const addVideoToCanvas = async (
-	src: string,
-	canvas: fabric.Canvas,
-	{ artboardRef }: { artboardRef: any },
-): Promise<fabric.Image> => {
+export const addVideoToCanvas = async (src: string, canvas: fabric.Canvas): Promise<fabric.Image> => {
 	return new Promise((resolve, reject) => {
 		console.log('Loading video');
+		const artboard = canvas.getObjects().find(obj => obj.data?.type === 'artboard');
+
+		if (!artboard) {
+			reject(new Error('Artboard not found'));
+			return;
+		}
+
 		const videoE = getVideoElement(src);
-		const { left, top } = getScaledPosition(artboardRef);
+		const { left, top } = getScaledPosition(artboard);
 
 		videoE.addEventListener('loadedmetadata', () => {
 			videoE.width = videoE.videoWidth;
@@ -89,7 +96,7 @@ export const addVideoToCanvas = async (
 					id: generateId(),
 				},
 			});
-			const scale = getElementScale(video, artboardRef);
+			const scale = getElementScale(video, artboard);
 			video.set({
 				scaleX: scale,
 				scaleY: scale,

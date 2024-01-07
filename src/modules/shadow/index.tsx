@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 interface ShadowProps {
 	currentSelectedElements: fabric.Object[];
 	canvas: fabric.Canvas;
-	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas, artboardRef }) => {
-	const artboardWidth = artboardRef.current?.width ?? 100;
-	const artboardHeight = artboardRef.current?.height ?? 100;
+const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
+	const xOffset = canvas.width ?? 100;
+	const yOffset = canvas.height ?? 100;
+
 	const [shadowValues, setShadowValues] = useState({
 		offsetX: 0,
 		offsetY: 0,
@@ -41,8 +41,8 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas, artboa
 						setShadowValues(prev => ({ ...prev, offsetX: e as number }));
 						canvas.requestRenderAll();
 					}}
-					min={-artboardWidth}
-					max={artboardWidth}
+					min={-xOffset}
+					max={xOffset}
 					step={1}
 				/>
 				<NumberInput
@@ -56,8 +56,8 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas, artboa
 						setShadowValues(prev => ({ ...prev, offsetY: e as number }));
 						canvas.requestRenderAll();
 					}}
-					min={-artboardHeight}
-					max={artboardHeight}
+					min={-yOffset}
+					max={yOffset}
 					step={1}
 				/>
 			</Group>
