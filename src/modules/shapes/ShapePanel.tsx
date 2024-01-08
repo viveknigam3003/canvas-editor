@@ -7,10 +7,9 @@ import { useEffect, useState } from 'react';
 interface PanelProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
-	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const ShapePanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
+const ShapePanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const [selectedFontColor, setSelectedFontColor] = useState('#000000');
 
 	useEffect(() => {
@@ -36,7 +35,7 @@ const ShapePanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps
 			<Divider />
 			<Stack>
 				<SectionTitle>Shadow</SectionTitle>
-				<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} artboardRef={artboardRef} />
+				<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} />
 			</Stack>
 			<Divider />
 			<Stack>

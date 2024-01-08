@@ -41,11 +41,7 @@ const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArt
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
 
 					{currentSelectedElements?.[0]?.data.type === 'shape' && (
-						<ShapePanel
-							artboardRef={artboardRef}
-							canvas={canvas}
-							currentSelectedElements={currentSelectedElements}
-						/>
+						<ShapePanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					)}
 
 					{currentSelectedElements?.[0]?.type === 'textbox' && (

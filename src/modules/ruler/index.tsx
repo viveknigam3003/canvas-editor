@@ -331,19 +331,22 @@ export function loadRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas |
 		if (!currentArtboardRuler) return;
 		const zoom = canvasRef.current?.getZoom() as number;
 		const pan = canvasRef.current?.viewportTransform as FixedArray<number, 6>;
+		const canvasHeight =
+			zoom > 1 ? (canvasRef.current?.height as number) : (canvasRef.current?.height as number) / zoom;
+		const canvasWidth =
+			zoom > 1 ? (canvasRef.current?.width as number) : (canvasRef.current?.width as number) / zoom;
 		currentArtboardRuler.forEach((item: fabric.Object) => {
 			const axis = item?.data?.type === RULER_LINES.X_RULER_LINE ? 'x' : 'y';
 			const points =
 				axis === 'x'
-					? [item.left, (-pan[5] + 20) / zoom, item.left, canvasRef.current?.height / zoom]
-					: [(-pan[4] + 20) / zoom, item.top, canvasRef.current?.width / zoom, item.top];
+					? [item.left, (-pan[5] + 20) / zoom, item.left, canvasHeight]
+					: [(-pan[4] + 20) / zoom, item.top, canvasWidth, item.top];
 			const line = new fabric.Line(points as number[], {
 				stroke: '#000',
 				strokeWidth: 2 / zoom,
 				hasControls: false,
 				hasBorders: false,
 				lockRotation: true,
-
 				lockScalingX: true,
 				lockScalingY: true,
 				lockUniScaling: true,

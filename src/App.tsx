@@ -757,13 +757,26 @@ function App() {
 		if (!artboard) {
 			return;
 		}
-
 		const id = generateId();
+		const newState = JSON.parse(JSON.stringify(artboard.state));
+		newState.objects = newState.objects.map((item: any) => {
+			if (item.data?.type === 'artboard') {
+				console.log('item', item);
+				return {
+					...item,
+					data: {
+						...item.data,
+						id,
+					},
+				};
+			}
+			return item;
+		});
 		const newArtboard: Artboard = {
 			...artboard,
 			name: getNextArtboardName(artboards),
 			id,
-			state: JSON.parse(JSON.stringify(artboard.state)),
+			state: newState,
 		};
 
 		const updatedArtboards = [...artboards, newArtboard];
