@@ -7,6 +7,7 @@ import AlignmentPanel from '../modules/position/Alignment';
 import TextPanel from '../modules/text/Panel';
 import { RULER_LINES } from '../modules/ruler';
 import Opacity from '../modules/opacity';
+import ShapePanel from '../modules/shapes/ShapePanel';
 import { Artboard } from '../types';
 
 type PanelProps = {
@@ -38,7 +39,11 @@ const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArt
 					/>
 					<Divider />
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
-					<Divider />
+
+					{currentSelectedElements?.[0]?.data.type === 'shape' && (
+						<ShapePanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
+					)}
+
 					{currentSelectedElements?.[0]?.type === 'textbox' && (
 						<TextPanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					)}

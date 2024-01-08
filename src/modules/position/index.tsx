@@ -1,4 +1,4 @@
-import { Group, NumberInput, Stack } from '@mantine/core';
+import { Divider, Group, NumberInput, Stack } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { fabric } from 'fabric';
 import React, { useEffect, useState } from 'react';
@@ -236,6 +236,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 					step={1}
 				/>
 			</Group>
+			<Divider />
 		</Stack>
 	);
 };

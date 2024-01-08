@@ -1,9 +1,12 @@
 import { RULER_ELEMENTS, RULER_LINES } from '../ruler';
 
-const isSnappingExclude = (obj: fabric.Object) => !obj?.data?.isSnappingLine && !obj?.data?.ignoreSnapping;
+// filters snapLine type and snapping ignore objects
+const isSnappingExclude = (obj: fabric.Object) => obj?.data?.type !== 'snapLine' && !obj?.data?.ignoreSnapping;
 
+// filters all elements related to ruler except ruler lines
 const isRulerElementsExclude = (obj: fabric.Object) => !Object.values(RULER_ELEMENTS).includes(obj?.data?.type);
 
+// filters all ruler lines
 const isRulerLineExclude = (obj: fabric.Object) => !Object.values(RULER_LINES).includes(obj?.data?.type);
 
 const isLayerPanelExclude = (obj: fabric.Object) =>
@@ -12,8 +15,7 @@ const isLayerPanelExclude = (obj: fabric.Object) =>
 const isExportExclude = (obj: fabric.Object) =>
 	isRulerElementsExclude(obj) && isRulerLineExclude(obj) && isSnappingExclude(obj);
 
-const isSaveExclude = (obj: fabric.Object) =>
-	isSnappingExclude(obj) && isRulerElementsExclude(obj) && isRulerLineExclude(obj);
+const isSaveExclude = (obj: fabric.Object) => !obj?.data?.isSaveExclude;
 
 export const filterSnappingExcludes = (arr: fabric.Object[] | undefined) => {
 	if (!arr) return [];

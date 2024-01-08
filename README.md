@@ -16,10 +16,10 @@ It's still in a nascent phase where we're experimenting with features. Currently
 -   Filters and styling - like reflection and shadows
 -   Snapping guides
 -   Bulk editing across creatives
+-   Rulers and markers
 
 ## Upcoming features
 
 -   Rearranging of layers & groups
 -   Word/letter styling
--   Rulers and markers
 -   Image editing
