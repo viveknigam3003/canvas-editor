@@ -377,10 +377,19 @@ export function initializeRuler(
 	canvasRef.current?.requestRenderAll();
 }
 
-export function deleteRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas | null>, ids: string[] = []) {
+export function deleteRulerLines(
+	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
+	currentArtboardID: string,
+	ids: string[] = [],
+) {
 	const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 	const rulerLines = json?.objects.filter((x: fabric.Object) => Object.values(RULER_LINES).includes(x.data?.type));
-	localStorage.setItem('ruler', JSON.stringify(rulerLines?.filter((x: fabric.Object) => !ids.includes(x.data?.id))));
+	const rulerState = readRulerDataFromStorage();
+	const newState = {
+		...rulerState,
+		[currentArtboardID]: rulerLines?.filter((x: fabric.Object) => !ids.includes(x.data?.id)),
+	};
+	localStorage.setItem('ruler', JSON.stringify(newState));
 }
 
 export function addNewRulerLine(

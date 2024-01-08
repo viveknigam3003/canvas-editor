@@ -710,6 +710,7 @@ function App() {
 		});
 		deleteRulerLines(
 			canvasRef,
+			activeArtboard?.id as string,
 			activeObjects.map(item => item.data?.id),
 		);
 		canvas.renderAll();
