@@ -1,4 +1,4 @@
-import { Button, Modal, NumberInput, Stack } from '@mantine/core';
+import { Button, Flex, Modal, NumberInput, Slider, Stack } from '@mantine/core';
 import { useModalStyles } from '../../styles/modal';
 import { useForm } from '@mantine/form';
 import { useEffect } from 'react';
@@ -38,14 +38,29 @@ const SnapDistanceModal = ({ open, onClose, snapDistance, setSnapDistance }: Sna
 					title: modalClasses.title,
 				}}
 			>
-				<Stack spacing={'lg'}>
-					<NumberInput
-						defaultValue={2}
-						placeholder="Snap Distance"
-						label="Snap Distance"
-						withAsterisk
-						{...imageForm.getInputProps('snapDistance')}
-					/>
+				<Stack>
+					<Stack>
+						<Flex align="center" gap={10}>
+							<Slider
+								defaultValue={2}
+								min={1}
+								max={10}
+								styles={{
+									trackContainer: { height: '80px' },
+								}}
+								style={{ width: 350 }}
+								step={1}
+								{...imageForm.getInputProps('snapDistance')}
+							/>
+							<NumberInput
+								max={10}
+								style={{ width: 60 }}
+								defaultValue={2}
+								withAsterisk
+								{...imageForm.getInputProps('snapDistance')}
+							/>
+						</Flex>
+					</Stack>
 					<Button
 						onClick={() => {
 							const validationResult = imageForm.validate();
