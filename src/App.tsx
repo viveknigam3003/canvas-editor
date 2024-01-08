@@ -945,7 +945,7 @@ function App() {
 				if (showRuler) {
 					renderRuler();
 				}
-				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
+				const pan = canvas.viewportTransform as FixedArray<number, 6>;
 				setCanvasScrollPoints(pan[4] + pan[5]);
 				canvas.requestRenderAll();
 			} else {
