@@ -465,8 +465,8 @@ export function addNewRulerLine(
 	}
 	const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 	const rulerLines = json?.objects.filter((x: fabric.Object) => Object.values(RULER_LINES).includes(x.data?.type));
-	const parsedState = readRulerDataFromStorage();
-	localStorage.setItem('ruler', JSON.stringify({ ...parsedState, [id]: rulerLines }));
+	const rulerState = readRulerDataFromStorage();
+	localStorage.setItem('ruler', JSON.stringify({ ...rulerState, [id]: rulerLines }));
 }
 
 export function renderRulerOnMoveMarker(
@@ -506,18 +506,18 @@ export function renderRulerOnMoveMarker(
 }
 
 export function readRulerDataFromStorage() {
-	const rulerLinesFromStroage = localStorage.getItem('ruler');
-	const parsedState = JSON.parse(rulerLinesFromStroage || '{}');
-	return parsedState;
+	const rulerLinesFromStorage = localStorage.getItem('ruler');
+	const rulerState = JSON.parse(rulerLinesFromStorage || '{}');
+	return rulerState;
 }
 
 export function updateRulerLineInStorage(id: string, rulerLines: fabric.Object[]) {
-	const parsedState = readRulerDataFromStorage();
-	localStorage.setItem('ruler', JSON.stringify({ ...parsedState, [id]: rulerLines }));
+	const rulerState = readRulerDataFromStorage();
+	localStorage.setItem('ruler', JSON.stringify({ ...rulerState, [id]: rulerLines }));
 }
 
 export function deleteRulerLineForArtboard(id: string) {
-	const parsedState = readRulerDataFromStorage();
-	delete parsedState[id];
-	localStorage.setItem('ruler', JSON.stringify(parsedState));
+	const rulerState = readRulerDataFromStorage();
+	delete rulerState[id];
+	localStorage.setItem('ruler', JSON.stringify(rulerState));
 }
