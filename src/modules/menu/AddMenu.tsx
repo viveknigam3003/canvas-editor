@@ -7,40 +7,31 @@ import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { updateActiveArtboardLayers } from '../app/actions';
+import { getArtboardCenter } from '../artboard/helpers';
 import ImageModal from '../image/AddImage';
 
 type AddMenuProps = {
-	artboardRef: React.RefObject<fabric.Rect>;
 	activeArtboard: Artboard | null;
 	canvasRef: React.RefObject<fabric.Canvas>;
 };
 
-export default function AddMenu({ artboardRef, activeArtboard, canvasRef }: AddMenuProps) {
+export default function AddMenu({ activeArtboard, canvasRef }: AddMenuProps) {
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
 	const dispatch = useDispatch();
+
 	const addText = () => {
 		if (!activeArtboard) {
 			return;
 		}
-		if (!artboardRef.current) {
-			return;
-		}
-		const left = artboardRef.current.left;
-		const top = artboardRef.current.top;
-		const width = artboardRef.current.width;
-		const height = artboardRef.current.height;
-		if (!left || !top || !width || !height) {
-			return;
-		}
-		// calculate the center of the artboard
-		const centerX = left + width / 2;
-		const centerY = top + height / 2;
+
+		const artboardCenter = getArtboardCenter(canvasRef.current, activeArtboard.id);
+		const { x: centerX, y: centerY } = artboardCenter;
+
 		const text = new fabric.Textbox('', {
 			left: centerX,
 			top: centerY,
 			fontFamily: 'Inter',
 			fontSize: 20,
-			width: width / 10,
 			data: {
 				displayText: 'Text',
 				id: generateId(),
@@ -82,19 +73,9 @@ export default function AddMenu({ artboardRef, activeArtboard, canvasRef }: AddM
 		if (!activeArtboard) {
 			return;
 		}
-		if (!artboardRef.current) {
-			return;
-		}
-		const left = artboardRef.current.left;
-		const top = artboardRef.current.top;
-		const width = artboardRef.current.width;
-		const height = artboardRef.current.height;
-		if (!left || !top || !width || !height) {
-			return;
-		}
-		// calculate the center of the artboard
-		const centerX = left + width / 2;
-		const centerY = top + height / 2;
+		const artboard = getArtboardCenter(canvasRef.current, activeArtboard.id);
+		const { x: centerX, y: centerY } = artboard;
+
 		const rect = new fabric.Rect({
 			left: centerX,
 			top: centerY,
@@ -161,7 +142,6 @@ export default function AddMenu({ artboardRef, activeArtboard, canvasRef }: AddM
 			</Group>
 			<ImageModal
 				activeArtboard={activeArtboard}
-				artboardRef={artboardRef}
 				canvasRef={canvasRef}
 				imageModalOpened={imageModalOpened}
 				closeImageModal={closeImageModal}
