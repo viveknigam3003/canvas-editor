@@ -23,3 +23,4 @@ It's still in a nascent phase where we're experimenting with features. Currently
 -   Word/letter styling
 -   Rulers and markers
 -   Image editing
+-   Support Multilingual Fonts
