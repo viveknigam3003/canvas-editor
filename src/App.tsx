@@ -58,6 +58,7 @@ import {
 	deleteRulerLines,
 	updateRulerLineInStorage,
 	renderRulerStepMarkers,
+	deleteRulerLineForArtboard,
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 import { createSnappingLines, snapToObject } from './modules/snapping';
@@ -797,7 +798,7 @@ function App() {
 		} else {
 			dispatch(setActiveArtboard(updatedArtboards[artboardIndex - 1]));
 		}
-
+		deleteRulerLineForArtboard(artboardId);
 		// Clear canvas if updatedArtboards is empty
 		if (updatedArtboards.length === 0) {
 			canvasRef.current?.clear();
