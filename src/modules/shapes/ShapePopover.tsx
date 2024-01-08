@@ -3,6 +3,7 @@ import { IconSquare } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { shapesData } from './shapesPath';
 import { useState } from 'react';
+import { Artboard } from '../../types';
 
 const DEFAULT_SHAPE_COLOR = '#C4C4C4';
 
@@ -31,14 +32,38 @@ const useStyles = createStyles(() => ({
 	},
 }));
 
-export default function ShapePopover({ canvasRef }: { canvasRef: React.RefObject<fabric.Canvas> }) {
+type ShapePopoverProps = {
+	canvasRef: React.RefObject<fabric.Canvas>;
+	activeArtboard: Artboard | null;
+	artboardRef: React.RefObject<fabric.Rect>;
+};
+export default function ShapePopover({ canvasRef, activeArtboard, artboardRef }: ShapePopoverProps) {
 	const [opened, setOpened] = useState(false);
 	const { classes } = useStyles();
 	const addShape = (shape: shapeType, name: string) => {
+		if (!activeArtboard) {
+			return;
+		}
+		if (!artboardRef.current) {
+			return;
+		}
+		const left = artboardRef.current.left;
+		const top = artboardRef.current.top;
+		const width = artboardRef.current.width;
+		const height = artboardRef.current.height;
+		if (!left || !top || !width || !height) {
+			return;
+		}
+		// calculate the center of the artboard
+		const centerX = left + width / 2;
+		const centerY = top + height / 2;
+
 		const path = new fabric.Path(shape.path, {
 			fill: DEFAULT_SHAPE_COLOR,
 			scaleX: 2,
 			scaleY: 2,
+			left: centerX,
+			top: centerY,
 			...(shape.stroke
 				? {
 						strokeLineCap: shape.strokeLineCap,

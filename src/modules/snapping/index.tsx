@@ -158,26 +158,27 @@ export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Can
 		selectable: false,
 		stroke: 'blue',
 		data: {
-			isSnappingLine: true,
+			isSaveExclude: true,
+			type: 'snapLine',
 		},
 	};
 	const guidesRef = {
-		left: new fabric.Line([0, canvasWidth, 0, 0], {
+		left: new fabric.Line([0, 0, 0, canvasHeight], {
 			...defaultSnapLineProps,
 			top,
 		}),
-		top: new fabric.Line([0, 0, canvasHeight, 0], {
+		top: new fabric.Line([0, 0, canvasWidth, 0], {
 			...defaultSnapLineProps,
 			left,
 		}),
-		right: new fabric.Line([0, canvasWidth, 0, 0], { ...defaultSnapLineProps, top }),
+		right: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top }),
 		bottom: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
-		centerX: new fabric.Line([0, canvasHeight, 0, 0], { ...defaultSnapLineProps, top }),
-		centerY: new fabric.Line([0, 0, canvasHeight, 0], { ...defaultSnapLineProps, left }),
+		centerX: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top }),
+		centerY: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
 	};
 	canvasRef.current
 		?.getObjects()
-		.filter(obj => obj?.data?.isSnappingLine)
+		.filter(obj => obj?.data?.type == 'snapLine')
 		.forEach(obj => canvasRef.current?.remove(obj));
 	canvasRef.current?.add(
 		guidesRef.left,

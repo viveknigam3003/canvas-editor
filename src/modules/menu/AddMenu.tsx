@@ -125,7 +125,7 @@ export default function AddMenu({ artboardRef, activeArtboard, canvasRef }: AddM
 						<IconPhoto size={14} />
 					</ActionIcon>
 				</Tooltip>
-				<ShapePopover canvasRef={canvasRef} />
+				<ShapePopover canvasRef={canvasRef} activeArtboard={activeArtboard} artboardRef={artboardRef} />
 			</Group>
 			<ImageModal
 				activeArtboard={activeArtboard}

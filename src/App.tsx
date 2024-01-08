@@ -58,6 +58,8 @@ import {
 	adjustRulerBackgroundPosition,
 	adjustRulerLinesPosition,
 	renderRulerOnMoveMarker,
+	deleteRulerLines,
+	updateRulerLineInStorage,
 } from './modules/ruler';
 import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
@@ -82,6 +84,85 @@ store.dispatch(appStart());
 	localStorage.setItem('artboards', JSON.stringify([]));
 	window.location.reload();
 };
+
+const useStyles = createStyles(theme => ({
+	root: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
+		width: '100vw',
+		height: '100vh',
+		overflow: 'hidden',
+	},
+	header: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
+		borderBottom: `1px solid ${theme.colors.gray[3]}`,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+	},
+	logo: {
+		fontSize: theme.fontSizes.md,
+		fontWeight: 700,
+		color: theme.colors.violet[7],
+	},
+	// Create a system where the left and the right panels are on top of the center
+	shell: {
+		height: 'calc(100vh - 4rem)',
+		position: 'relative',
+	},
+	left: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
+		borderRight: `1px solid ${theme.colors.gray[3]}`,
+		width: 300,
+		display: 'grid',
+		gridTemplateRows: '50% 50%',
+		height: '100%',
+		zIndex: 1,
+		position: 'absolute',
+		left: 0,
+		overflowY: 'auto',
+		paddingBlockEnd: '1rem',
+	},
+	right: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
+		borderLeft: `1px solid ${theme.colors.gray[3]}`,
+		zIndex: 1,
+		position: 'absolute',
+		right: 0,
+		width: 300,
+		height: '100%',
+		padding: '1rem',
+		overflowY: 'auto',
+		paddingBottom: '2rem',
+	},
+	center: {
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
+		borderLeft: `1px solid ${theme.colors.gray[3]}`,
+		borderRight: `1px solid ${theme.colors.gray[3]}`,
+		flexGrow: 1,
+		flexShrink: 1,
+		zIndex: 0,
+	},
+	artboardButton: {
+		cursor: 'pointer',
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
+		padding: '0.5rem 1rem',
+		transition: 'background-color 100ms ease',
+		height: 40,
+		width: '100%',
+		userSelect: 'none',
+		'&:hover': {
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
+		},
+	},
+	artboardListContainer: {
+		'&:focus': {
+			outline: 'none',
+		},
+	},
+	canvas: {
+		paddingTop: '2px',
+	},
+}));
 
 function App() {
 	const dispatch = useDispatch();
@@ -165,6 +246,13 @@ function App() {
 		});
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
+			const activeObjects = canvasRef?.current?.getActiveObjects() || [];
+			const filteredObjects = activeObjects.filter(item => !Object.values(RULER_LINES).includes(item.data?.type));
+			if (filteredObjects?.length > 1) {
+				//TODO: comeback and fix this
+			} else if (filteredObjects?.length === 1) {
+				canvasRef.current?.setActiveObject(activeObjects?.[0]);
+			}
 			setCurrentSelectedElements(event.selected as fabric.Object[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
@@ -205,16 +293,30 @@ function App() {
 				});
 			setCurrentSelectedElements(null);
 		});
-		// Add a click event listener to the canvas
-		canvasRef.current.on('mouse:down', options => {
-			addNewRulerLine(options, canvasRef);
-		});
 
 		return () => {
 			canvasRef.current?.dispose();
 		};
 	}, []);
 
+	useEffect(() => {
+		if (canvasRef.current) {
+			canvasRef.current.on('mouse:down', options => {
+				addNewRulerLine(options, canvasRef, activeArtboard?.id as string);
+			});
+		}
+		return () => {
+			canvasRef.current?.off('mouse:down');
+		};
+	}, [canvasRef.current, activeArtboard]);
+
+	const filterRulerLines = (objects?: fabric.Object[]) => {
+		console.log('objects', objects);
+		if (!objects) {
+			return [];
+		}
+		return objects.filter(item => Object.values(RULER_LINES).includes(item.data?.type));
+	};
 	const onMoveHandler = (options: fabric.IEvent) => {
 		const target = options.target as fabric.Object;
 		if (Object.values(RULER_LINES).includes(target.data?.type)) {
@@ -231,6 +333,10 @@ function App() {
 	};
 
 	const onModifiedHandler = () => {
+		updateRulerLineInStorage(
+			activeArtboard?.id as string,
+			filterRulerLines(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects),
+		);
 		Object.entries(guidesRef.current).forEach(([, value]) => {
 			value?.set({ opacity: 0 });
 		});
@@ -732,6 +838,10 @@ function App() {
 		activeObjects.forEach(object => {
 			canvas.remove(object);
 		});
+		deleteRulerLines(
+			canvasRef,
+			activeObjects.map(item => item.data?.id),
+		);
 		canvas.renderAll();
 		dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 		saveArtboardChanges();
@@ -919,15 +1029,15 @@ function App() {
 			}
 			canvas.requestRenderAll();
 		});
-	}, [activeArtboard, showRuler]);
+	}, [activeArtboard]);
 
 	useEffect(() => {
 		if (showRuler) {
-			initializeRuler(canvasRef, colorSchemeRef.current);
+			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard?.id as string);
 		} else {
 			removeRuler(canvasRef);
 		}
-	}, [showRuler]);
+	}, [showRuler, activeArtboard?.id]);
 
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
@@ -960,6 +1070,9 @@ function App() {
 					renderRuler();
 				}
 				canvas.renderAll();
+				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
+
+				setCanvasScrollPoints(pan[4] + pan[5]);
 			} else {
 				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
 				if (!pan) {
@@ -1381,84 +1494,5 @@ function App() {
 		</Box>
 	);
 }
-
-const useStyles = createStyles(theme => ({
-	root: {
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
-		width: '100vw',
-		height: '100vh',
-		overflow: 'hidden',
-	},
-	header: {
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		borderBottom: `1px solid ${theme.colors.gray[3]}`,
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	logo: {
-		fontSize: theme.fontSizes.md,
-		fontWeight: 700,
-		color: theme.colors.violet[7],
-	},
-	// Create a system where the left and the right panels are on top of the center
-	shell: {
-		height: 'calc(100vh - 4rem)',
-		position: 'relative',
-	},
-	left: {
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		borderRight: `1px solid ${theme.colors.gray[3]}`,
-		width: 300,
-		display: 'grid',
-		gridTemplateRows: '50% 50%',
-		height: '100%',
-		zIndex: 1,
-		position: 'absolute',
-		left: 0,
-		overflowY: 'auto',
-		paddingBlockEnd: '1rem',
-	},
-	right: {
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		borderLeft: `1px solid ${theme.colors.gray[3]}`,
-		zIndex: 1,
-		position: 'absolute',
-		right: 0,
-		width: 300,
-		height: '100%',
-		padding: '1rem',
-		overflowY: 'auto',
-		paddingBottom: '2rem',
-	},
-	center: {
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
-		borderLeft: `1px solid ${theme.colors.gray[3]}`,
-		borderRight: `1px solid ${theme.colors.gray[3]}`,
-		flexGrow: 1,
-		flexShrink: 1,
-		zIndex: 0,
-	},
-	artboardButton: {
-		cursor: 'pointer',
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		padding: '0.5rem 1rem',
-		transition: 'background-color 100ms ease',
-		height: 40,
-		width: '100%',
-		userSelect: 'none',
-		'&:hover': {
-			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2],
-		},
-	},
-	artboardListContainer: {
-		'&:focus': {
-			outline: 'none',
-		},
-	},
-	canvas: {
-		paddingTop: '2px',
-	},
-}));
 
 export default App;
