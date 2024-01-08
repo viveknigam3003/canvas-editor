@@ -6,7 +6,6 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 
 type MiscMenuProps = {
-	artboardRef: React.RefObject<fabric.Rect>;
 	canvasRef: React.RefObject<fabric.Canvas>;
 	artboards: Artboard[];
 };
@@ -51,6 +50,13 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 							...item,
 							left: item.left + leftCursor,
 							top: item.top + topCursor,
+							evented: false,
+							selectable: false,
+							objectCaching: true,
+							data: {
+								...item.data,
+								ignoreSnapping: true,
+							},
 						};
 					}),
 				},

@@ -8,28 +8,34 @@ import TextPanel from '../modules/text/Panel';
 import { RULER_LINES } from '../modules/ruler';
 import Opacity from '../modules/opacity';
 import ShapePanel from '../modules/shapes/ShapePanel';
+import { Artboard } from '../types';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
-	artboardRef: React.RefObject<fabric.Rect>;
 	saveArtboardChanges: () => void;
+	activeArtboard: Artboard | null;
 };
 
-const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChanges }: PanelProps) => {
+const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArtboard }: PanelProps) => {
 	const isVideoEnabled = localStorage.getItem('video') === 'true';
 	const isRulerLine = Object.values(RULER_LINES).includes(currentSelectedElements?.[0]?.data?.type);
 	if (!currentSelectedElements.length || isRulerLine) {
 		return null;
 	}
+
+	if (!activeArtboard) {
+		return null;
+	}
+
 	return (
 		<Stack>
 			{currentSelectedElements.length === 1 && (
 				<>
 					<AlignmentPanel
-						artboardRef={artboardRef}
 						canvas={canvas}
 						currentSelectedElements={currentSelectedElements}
+						activeArtboard={activeArtboard}
 					/>
 					<Divider />
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
@@ -43,18 +49,10 @@ const Panel = ({ canvas, currentSelectedElements, artboardRef, saveArtboardChang
 					)}
 
 					{currentSelectedElements?.[0]?.type === 'textbox' && (
-						<TextPanel
-							artboardRef={artboardRef}
-							canvas={canvas}
-							currentSelectedElements={currentSelectedElements}
-						/>
+						<TextPanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					)}
 					{currentSelectedElements?.[0]?.type === 'image' && (
-						<ImagePanel
-							artboardRef={artboardRef}
-							canvas={canvas}
-							currentSelectedElements={currentSelectedElements}
-						/>
+						<ImagePanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					)}
 					<Opacity
 						canvas={canvas}

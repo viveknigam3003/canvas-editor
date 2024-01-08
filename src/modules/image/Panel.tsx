@@ -6,15 +6,14 @@ import Reflection from '../reflection';
 interface PanelProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
-	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const ImagePanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
+const ImagePanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	return (
 		<Stack>
 			<Stack>
 				<SectionTitle>Shadow</SectionTitle>
-				<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} artboardRef={artboardRef} />
+				<Shadow currentSelectedElements={currentSelectedElements} canvas={canvas} />
 			</Stack>
 			<Divider />
 			<Stack>

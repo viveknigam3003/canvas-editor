@@ -7,6 +7,7 @@ import { updatePointer, updateStateHistory } from '../history/actions';
 import { Delta } from '../history/reducer';
 import { recordChanges } from '../history/saga';
 import {
+	addArtboard,
 	appStart,
 	applyBulkEdit,
 	initState,
@@ -19,6 +20,7 @@ import {
 } from './actions';
 import { ApplicationState } from './reducer';
 import { getBulkEditedArtboards } from './bulkEdit';
+import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
 function* initStateSaga() {
 	const savedState: string = yield call([localStorage, 'getItem'], 'artboards');
@@ -127,12 +129,36 @@ function* applyBulkEditSaga(action: Action) {
 	});
 }
 
+function* addArtboardSaga(action: Action) {
+	if (!addArtboard.match(action)) {
+		return;
+	}
+
+	const { artboard, state } = action.payload;
+	const currentArtboards: Artboard[] = yield select((state: RootState) => state.app.artboards);
+	const filteredObjects = filterSaveExcludes(state?.objects);
+	const updatedArtboards = [
+		...currentArtboards,
+		{
+			...artboard,
+			state: {
+				...state,
+				objects: filteredObjects,
+			},
+		},
+	];
+	yield put(setArtboards(updatedArtboards));
+	yield put(setActiveArtboard(artboard));
+	yield put(setSelectedArtboards([artboard.id]));
+}
+
 function* applicationSaga() {
 	yield takeEvery(appStart.type, initStateSaga);
 	yield takeEvery(setArtboards.type, setArtboardsSaga);
 	yield takeEvery(setActiveArtboard.type, setActiveArtboardSaga);
 	yield takeEvery(setSelectedArtboards.type, setSelectedArtboardsSaga);
 	yield debounce(500, applyBulkEdit.type, applyBulkEditSaga);
+	yield takeEvery(addArtboard.type, addArtboardSaga);
 }
 
 export default applicationSaga;

@@ -9,16 +9,16 @@ import { useModalStyles } from '../../styles/modal';
 import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { addVideoToCanvas, getElementScale, getScaledPosition } from './helpers';
+import { getArtboardObject } from '../artboard/helpers';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
 	closeImageModal: () => void;
 	activeArtboard?: Artboard | null;
 	canvasRef: React.MutableRefObject<fabric.Canvas | null>;
-	artboardRef: React.MutableRefObject<fabric.Rect | null>;
 };
 
-const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasRef, artboardRef }: ImageModalProps) => {
+const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasRef }: ImageModalProps) => {
 	const dispatch = useDispatch();
 	const { classes: modalClasses } = useModalStyles();
 	const imageForm = useForm<{ url: string }>({
@@ -38,8 +38,17 @@ const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasR
 		fabric.Image.fromURL(
 			url,
 			img => {
-				const { left, top } = getScaledPosition(artboardRef!);
-				const scale = getElementScale(img, artboardRef);
+				const canvas = canvasRef.current;
+				const artboardId = activeArtboard?.id;
+
+				if (!canvas || !artboardId) {
+					return;
+				}
+
+				const artboard = getArtboardObject(canvas, artboardId);
+
+				const { left, top } = getScaledPosition(artboard);
+				const scale = getElementScale(img, artboard);
 
 				console.log('Scale = ', scale);
 
@@ -70,7 +79,13 @@ const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasR
 		fabric.loadSVGFromURL(url, (objects, options) => {
 			const obj = fabric.util.groupSVGElements(objects, options);
 
-			const { left, top } = getScaledPosition(artboardRef);
+			const artboardId = activeArtboard?.id;
+			if (!canvasRef.current || !artboardId) {
+				return;
+			}
+
+			const artboard = getArtboardObject(canvasRef.current, artboardId);
+			const { left, top } = getScaledPosition(artboard);
 
 			obj.set({
 				left,
@@ -93,9 +108,7 @@ const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasR
 		const reader = new FileReader();
 		reader.onload = async function (f: ProgressEvent<FileReader>) {
 			const data = f?.target?.result as string;
-			const video = await addVideoToCanvas(data, canvasRef.current!, {
-				artboardRef,
-			});
+			const video = await addVideoToCanvas(data, canvasRef.current!);
 			canvasRef.current?.setActiveObject(video);
 			canvasRef.current?.renderAll();
 			dispatch(

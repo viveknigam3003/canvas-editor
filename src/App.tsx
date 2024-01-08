@@ -5,16 +5,12 @@ import {
 	Center,
 	Flex,
 	Group,
-	Modal,
-	NumberInput,
 	Stack,
 	Text,
-	TextInput,
 	Tooltip,
 	createStyles,
 	useMantineTheme,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
 import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
@@ -37,40 +33,40 @@ import { FABRIC_JSON_ALLOWED_KEYS } from './constants';
 import { useQueryParam } from './hooks';
 import {
 	appStart,
-	setArtboards,
 	setActiveArtboard,
+	setArtboards,
 	setSelectedArtboards,
 	updateActiveArtboardLayers,
 } from './modules/app/actions';
+import NewArtboardModal from './modules/artboard/NewArtboardModal';
 import { redo, undo } from './modules/history/actions';
 import { addVideoToCanvas } from './modules/image/helpers';
 import LayerList from './modules/layers/List';
 import AddMenu from './modules/menu/AddMenu';
 import MiscMenu from './modules/menu/MiscMenu';
+import { SmartObject } from './modules/reflection/helpers';
 import {
 	RULER_LINES,
 	addNewRulerLine,
-	renderRulerStepMarkers,
-	initializeRuler,
-	removeRulerOnMoveMarker,
-	removeRuler,
-	renderRulerAxisBackground,
 	adjustRulerBackgroundPosition,
 	adjustRulerLinesPosition,
+	initializeRuler,
+	removeRuler,
+	removeRulerOnMoveMarker,
+	renderRulerAxisBackground,
 	renderRulerOnMoveMarker,
 	deleteRulerLines,
 	updateRulerLineInStorage,
+	renderRulerStepMarkers,
 } from './modules/ruler';
-import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
-import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
-import { SmartObject } from './modules/reflection/helpers';
 import SettingsMenu from './modules/settings';
 import { createSnappingLines, snapToObject } from './modules/snapping';
+import { filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { useModalStyles } from './styles/modal';
-import { generateId, getMultiplierFor4K } from './utils';
+import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
+import { generateId } from './utils';
 
 store.dispatch(appStart());
 
@@ -182,39 +178,12 @@ function App() {
 	const [autosaveChanges, setAutoSaveChanges] = useState(true);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
-	const { classes: modalClasses } = useModalStyles();
-	const [opened, { open, close }] = useDisclosure();
+	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [canvasScrollPoints, setCanvasScrollPoints] = useState(0);
-	const newArtboardForm = useForm<Omit<Artboard, 'id'> & { number: number }>({
-		initialValues: {
-			name: '',
-			width: 500,
-			height: 500,
-			number: 1,
-		},
-		validate: values => {
-			const errors: Record<string, string> = {};
-			if (values.name.trim().length === 0) {
-				errors.name = 'Artboard name cannot be empty';
-			}
-			if (values.width < 1) {
-				errors.width = 'Artboard width cannot be less than 1px';
-			}
-			if (values.height < 1) {
-				errors.height = 'Artboard height cannot be less than 1px';
-			}
-			if (values.number < 1) {
-				errors.number = 'Number of artboards cannot be less than 1';
-			}
-			return errors;
-		},
-	});
 	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
-	const artboardRef = useRef<fabric.Rect | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
-	const [isCreatingArboards, setIsCreatingArtboards] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const guidesRef = useRef<guidesRefType>({
@@ -366,20 +335,21 @@ function App() {
 	const resetZoom = () => {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
-		centerBoardToCanvas(artboardRef);
+		centerBoardToCanvas();
 		setZoomLevel(canvasRef.current?.getZoom() || 1);
 		if (showRuler) {
 			renderRuler();
 		}
 	};
 
-	const centerBoardToCanvas = (artboardRef: React.MutableRefObject<fabric.Rect | null>) => {
+	const centerBoardToCanvas = () => {
 		const canvas = canvasRef.current;
-		const artboard = artboardRef.current;
 
 		if (!canvas) {
 			throw new Error('Canvas is not defined');
 		}
+
+		const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
 
 		if (!artboard) {
 			throw new Error('Artboard is not defined');
@@ -400,109 +370,11 @@ function App() {
 		}
 	};
 
-	const createSingleArtboard = (artboard: Omit<Artboard, 'id'>, index: number) => {
-		const id = generateId();
-		const newArtboard: Artboard = {
-			...artboard,
-			name: `${artboard.name} ${index + 1}`,
-			id,
-		};
-
-		const artboardRect = new fabric.Rect({
-			left: (window.innerWidth - 600) / 2 - artboard.width / 2,
-			top: (window.innerHeight - 60) / 2 - artboard.height / 2,
-			width: artboard.width,
-			height: artboard.height,
-			fill: '#fff',
-			selectable: false,
-			hoverCursor: 'default',
-			data: {
-				type: 'artboard',
-				id,
-			},
-		});
-
-		const offScreenCanvas = new fabric.Canvas('offscreen', {
-			width: window.innerWidth - 600,
-			height: window.innerHeight - 60,
-			backgroundColor: '#e9ecef',
-			imageSmoothingEnabled: false,
-			colorSpace: colorSpace as colorSpaceType,
-		});
-
-		offScreenCanvas.add(artboardRect);
-		const json = offScreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-		offScreenCanvas.dispose();
-		return {
-			...newArtboard,
-			state: json,
-		};
-	};
-
-	const addNewArtboard = (artboard: Omit<Artboard, 'id'>) => {
-		const validationResult = newArtboardForm.validate();
-		if (validationResult.hasErrors) {
-			console.log('Errors in new artboard form', validationResult.errors);
-			return;
-		}
-		const id = generateId();
-		const newArtboard: Artboard = { ...artboard, id };
-		dispatch(setActiveArtboard(newArtboard));
-
-		canvasRef.current?.clear();
-		const artboardRect = new fabric.Rect({
-			left: (window.innerWidth - 600) / 2 - artboard.width / 2,
-			top: (window.innerHeight - 60) / 2 - artboard.height / 2,
-			width: artboard.width,
-			height: artboard.height,
-			fill: '#fff',
-			hoverCursor: 'default',
-			selectable: false,
-			data: {
-				type: 'artboard',
-				id,
-			},
-		});
-
-		canvasRef.current?.add(artboardRect);
-		artboardRef.current = artboardRect;
-		// Save the state of the canvas
-		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-		const filteredObjects = filterSaveExcludes(json?.objects);
-		const updatedArtboards = [
-			...artboards,
-			{
-				...newArtboard,
-				state: {
-					...json,
-					objects: filteredObjects,
-				},
-			},
-		];
-		console.log(updatedArtboards);
-		dispatch(setArtboards(updatedArtboards));
-		newArtboardForm.reset();
-		close();
-	};
-
-	const createMultipleArtboards = (artboard: Omit<Artboard, 'id'>, n: number) => {
-		setIsCreatingArtboards(true);
-		// Use the addNewArtboard function to create multiple artboards
-		const allArtboards = [];
-		for (let i = 0; i < n; i++) {
-			const newArtboard = createSingleArtboard(artboard, i);
-			allArtboards.push(newArtboard);
-		}
-
-		// Update the artboards state
-		const updatedArtboards = [...artboards, ...allArtboards];
-		dispatch(setArtboards(updatedArtboards));
-		newArtboardForm.reset();
-		dispatch(setActiveArtboard(allArtboards[0]));
-		setIsCreatingArtboards(false);
-		close();
-	};
-
+	/**
+	 * Update the selected artboards array and the active artboard
+	 * @param e Mouse Event
+	 * @param artboard Artboard object
+	 */
 	const updateSelectedArtboard = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, artboard: Artboard) => {
 		e.stopPropagation();
 		e.preventDefault();
@@ -574,58 +446,49 @@ function App() {
 	};
 
 	const exportArtboard = () => {
-		const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')
-			?.left;
-		const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')?.top;
-
-		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
-			return;
-		}
-
-		// Now we need to create a new canvas and add the artboard to it
-		const offscreenCanvas = new fabric.Canvas('print', {
-			width: artboardRef.current?.width,
-			height: artboardRef.current?.height,
-			colorSpace: colorSpace as colorSpaceType,
-		});
-
-		const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-
-		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
-			return {
-				...item,
-				left: item.left - artboardLeftAdjustment,
-				top: item.top - artboardTopAdjustment,
-			};
-		});
-		const adjustedStateJSON = {
-			...stateJSON,
-			objects: filterExportExcludes(adjustedStateJSONObjects),
-		};
-
-		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
-			offscreenCanvas.renderAll();
-			console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
-
-			const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
-
-			const config = {
-				format: 'png',
-				multiplier,
-			};
-
-			// render the offscreen canvas to a dataURL
-			const dataURL = offscreenCanvas.toDataURL(config);
-
-			const link = document.createElement('a');
-			if (dataURL) {
-				link.href = dataURL;
-				link.download = 'canvas_4k.png';
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-			}
-		});
+		// const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')
+		// 	?.left;
+		// const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')?.top;
+		// if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+		// 	return;
+		// }
+		// // Now we need to create a new canvas and add the artboard to it
+		// const offscreenCanvas = new fabric.Canvas('print', {
+		// 	width: artboardRef.current?.width,
+		// 	height: artboardRef.current?.height,
+		// 	colorSpace: colorSpace as colorSpaceType,
+		// });
+		// const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		// const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
+		// 	return {
+		// 		...item,
+		// 		left: item.left - artboardLeftAdjustment,
+		// 		top: item.top - artboardTopAdjustment,
+		// 	};
+		// });
+		// const adjustedStateJSON = {
+		// 	...stateJSON,
+		// 	objects: filterExportExcludes(adjustedStateJSONObjects),
+		// };
+		// offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+		// 	offscreenCanvas.renderAll();
+		// 	console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
+		// 	const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
+		// 	const config = {
+		// 		format: 'png',
+		// 		multiplier,
+		// 	};
+		// 	// render the offscreen canvas to a dataURL
+		// 	const dataURL = offscreenCanvas.toDataURL(config);
+		// 	const link = document.createElement('a');
+		// 	if (dataURL) {
+		// 		link.href = dataURL;
+		// 		link.download = 'canvas_4k.png';
+		// 		document.body.appendChild(link);
+		// 		link.click();
+		// 		document.body.removeChild(link);
+		// 	}
+		// });
 	};
 
 	// Take selected options in the selected artboard and when this function is called, group the selected elements
@@ -775,13 +638,19 @@ function App() {
 			throw new Error('Canvas is not defined');
 		}
 
+		const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
+
+		if (!artboard) {
+			throw new Error('Artboard is not defined');
+		}
+
 		// Canvas width and height depending on if the sidebar is open or not
 		const canvasWidth = showSidebar ? window.innerWidth - 600 : window.innerWidth;
 		const canvasHeight = canvas.getHeight();
 
 		// Artboard width and height
-		const artboardWidth = artboardRef.current?.width;
-		const artboardHeight = artboardRef.current?.height;
+		const artboardWidth = artboard.width;
+		const artboardHeight = artboard.height;
 
 		if (!artboardWidth || !artboardHeight) {
 			throw new Error('Artboard width or height is not defined');
@@ -794,7 +663,7 @@ function App() {
 
 		// Zoom to the center of the canvas
 		zoomFromCenter(zoom);
-		centerBoardToCanvas(artboardRef);
+		centerBoardToCanvas();
 
 		setZoomLevel(canvasRef.current?.getZoom() || zoom);
 		if (showRuler) {
@@ -942,11 +811,6 @@ function App() {
 
 		canvasRef.current?.loadFromJSON(json, async () => {
 			console.log('Loaded from JSON');
-			const artboard = canvas.getObjects().find(item => item.data?.type === 'artboard');
-			if (artboard) {
-				artboardRef.current = artboard as fabric.Rect;
-			}
-
 			zoomToFit();
 
 			// create a style sheet
@@ -1022,9 +886,7 @@ function App() {
 			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
 			if (videoElements?.length) {
 				for (let i = 0; i < videoElements.length; i++) {
-					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!, {
-						artboardRef,
-					});
+					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!);
 				}
 			}
 			canvas.requestRenderAll();
@@ -1069,10 +931,9 @@ function App() {
 				if (showRuler) {
 					renderRuler();
 				}
-				canvas.renderAll();
 				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
-
 				setCanvasScrollPoints(pan[4] + pan[5]);
+				canvas.requestRenderAll();
 			} else {
 				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
 				if (!pan) {
@@ -1289,8 +1150,8 @@ function App() {
 						{/* <img src="/logo.png" alt="logo" width={64} height={64} /> */}
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
-					<AddMenu artboardRef={artboardRef} activeArtboard={activeArtboard} canvasRef={canvasRef} />
-					<MiscMenu artboards={artboards} artboardRef={artboardRef} canvasRef={canvasRef} />
+					<AddMenu activeArtboard={activeArtboard} canvasRef={canvasRef} />
+					<MiscMenu artboards={artboards} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
 					<SettingsMenu
@@ -1345,7 +1206,7 @@ function App() {
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<SectionTitle>Artboards ({artboards.length})</SectionTitle>
 									<Tooltip label="Create new artboard" openDelay={500}>
-										<ActionIcon onClick={open} color="violet" size={16}>
+										<ActionIcon onClick={openNewArtboardModal} color="violet" size={16}>
 											<IconPlus />
 										</ActionIcon>
 									</Tooltip>
@@ -1415,82 +1276,20 @@ function App() {
 					<Box className={classes.right}>
 						{canvasRef.current && currentSelectedElements && (
 							<Panel
-								artboardRef={artboardRef}
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 								saveArtboardChanges={saveArtboardChanges}
+								activeArtboard={activeArtboard}
 							/>
 						)}
 					</Box>
 				) : null}
 			</Flex>
-			<Modal
-				opened={opened}
-				onClose={() => {
-					newArtboardForm.reset();
-					close();
-				}}
-				title="Create new artboard"
-				classNames={{
-					content: modalClasses.content,
-					title: modalClasses.title,
-				}}
-			>
-				<Stack spacing={'lg'}>
-					<TextInput
-						label="Artboard name"
-						placeholder="Untitled artboard"
-						required
-						classNames={{ label: modalClasses.label }}
-						{...newArtboardForm.getInputProps('name')}
-						data-autofocus
-					/>
-					<Group grow>
-						<NumberInput
-							label="Width"
-							placeholder="500"
-							required
-							classNames={{ label: modalClasses.label }}
-							{...newArtboardForm.getInputProps('width')}
-						/>
-						<NumberInput
-							label="Height"
-							placeholder="500"
-							required
-							classNames={{ label: modalClasses.label }}
-							{...newArtboardForm.getInputProps('height')}
-						/>
-					</Group>
-					<NumberInput
-						label="Number of artboards"
-						placeholder="1"
-						required
-						classNames={{ label: modalClasses.label }}
-						{...newArtboardForm.getInputProps('number')}
-						min={1}
-						max={1000}
-					/>
-					<Button
-						variant="light"
-						size="sm"
-						fullWidth
-						mt={'md'}
-						loading={isCreatingArboards}
-						onClick={() => {
-							if (newArtboardForm.values.number > 1) {
-								createMultipleArtboards(newArtboardForm.values, newArtboardForm.values.number);
-								return;
-							}
-
-							addNewArtboard(newArtboardForm.values);
-						}}
-					>
-						{newArtboardForm.values.number > 1
-							? `Create ${newArtboardForm.values.number} artboards`
-							: `Create artboard`}
-					</Button>
-				</Stack>
-			</Modal>
+			<NewArtboardModal
+				opened={isNewArtboardModalOpen}
+				onClose={closeNewArtboardModal}
+				canvas={canvasRef.current}
+			/>
 		</Box>
 	);
 }

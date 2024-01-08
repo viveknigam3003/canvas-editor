@@ -38,7 +38,6 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		message: '',
 		rendering: false,
 	});
-	const artboardRef = useRef<fabric.Rect | null>(null);
 
 	const ffmpegRef = useRef(new FFmpeg());
 
@@ -279,16 +278,9 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 			renderCanvas.renderAll();
 			// Load video elements if any
 			const videoElements = renderCanvas.getObjects().filter(obj => obj.data.type === 'video');
-			const artboard = renderCanvas.getObjects().find(obj => obj.data.type === 'artboard');
-			if (!artboard) {
-				throw new Error('Artboard not found');
-			}
-			artboardRef.current = artboard as fabric.Rect;
 			if (videoElements.length) {
 				for (let i = 0; i < videoElements.length; i++) {
-					const videoObj = await addVideoToCanvas(videoElements[i].data.src, renderCanvas, {
-						artboardRef,
-					});
+					const videoObj = await addVideoToCanvas(videoElements[i].data.src, renderCanvas);
 					(videoObj.getElement() as HTMLVideoElement).load();
 				}
 			}
@@ -334,11 +326,10 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 				const totalFrames = Math.round(duration / frameDuration);
 				console.log('totalFrames', totalFrames);
 				const frameData: any[] = [];
-				htmlVideoElement.currentTime = 0;
-				// if (htmlVideoElement) {
-				// 	htmlVideoElement.currentTime = 0;
-				// 	htmlVideoElement?.play();
-				// }
+				if (htmlVideoElement) {
+					htmlVideoElement.currentTime = 0;
+				}
+
 				const animate = (currentTime: number) => {
 					if (currentTime - lastFrameTime > frameDuration) {
 						const value = interpolatePropertyValue(kf, t, 'left');

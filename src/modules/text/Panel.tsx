@@ -10,10 +10,9 @@ import SectionTitle from '../../components/SectionTitle';
 interface PanelProps {
 	canvas: fabric.Canvas;
 	currentSelectedElements: fabric.Object[];
-	artboardRef: React.RefObject<fabric.Rect>;
 }
 
-const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps) => {
+const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const [fontList, setFontList] = useState<Font[]>([]);
 	const [value, setValue] = useState('');
 	const [fontWeight, setFontWeight] = useState('regular');
@@ -354,7 +353,7 @@ const TextPanel = ({ canvas, currentSelectedElements, artboardRef }: PanelProps)
 			<Divider />
 			<Stack>
 				<SectionTitle>Shadow</SectionTitle>
-				<Shadow canvas={canvas} currentSelectedElements={currentSelectedElements} artboardRef={artboardRef} />
+				<Shadow canvas={canvas} currentSelectedElements={currentSelectedElements} />
 			</Stack>
 			<Divider />
 			<Stack>
