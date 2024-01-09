@@ -48,7 +48,8 @@ const useStyles = createStyles(() => ({
 		position: 'absolute',
 		borderLeft: '2px solid #e7e7e7',
 		left: '-7px',
-		top: '-7px',
+		top: '5px',
+		display: 'none',
 	},
 	pipeX: {
 		position: 'absolute',
@@ -57,6 +58,7 @@ const useStyles = createStyles(() => ({
 		height: '2px',
 		backgroundColor: '#e7e7e7',
 		zIndex: -1,
+		display: 'none',
 	},
 	wrapper: {
 		fontFamily: 'sans-serif',

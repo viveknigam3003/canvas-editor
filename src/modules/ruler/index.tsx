@@ -228,7 +228,7 @@ export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabri
 	const canvasHeight = canvasRef.current?.height as number;
 	const canvasWidth = canvasRef.current?.width as number;
 	allObjects
-		.filter(x => x.data.type === RULER_LINES.X_RULER_LINE)
+		.filter(x => x?.data?.type === RULER_LINES.X_RULER_LINE)
 		.forEach(x => {
 			const pan = canvasRef.current?.viewportTransform as FixedArray<number, 6>;
 			x?.set({
@@ -242,7 +242,7 @@ export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabri
 		});
 
 	allObjects
-		.filter(x => x.data.type === RULER_LINES.Y_RULER_LINE)
+		.filter(x => x?.data?.type === RULER_LINES.Y_RULER_LINE)
 		.forEach(x => {
 			const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
 			x?.set({
@@ -266,15 +266,15 @@ export function removeRulerOnMoveMarker(canvasRef: React.MutableRefObject<fabric
 }
 
 export function findXAxis(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
-	return canvasRef.current?.getObjects().find(x => x.data.type === RULER_ELEMENTS.X_RULER_BACKGROUND);
+	return canvasRef.current?.getObjects().find(x => x?.data?.type === RULER_ELEMENTS.X_RULER_BACKGROUND);
 }
 
 export function findYAxis(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
-	return canvasRef.current?.getObjects().find(x => x.data.type === RULER_ELEMENTS.Y_RULER_BACKGROUND);
+	return canvasRef.current?.getObjects().find(x => x?.data?.type === RULER_ELEMENTS.Y_RULER_BACKGROUND);
 }
 
 export function findBlock(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
-	return canvasRef.current?.getObjects().find(x => x.data.type === RULER_ELEMENTS.BLOCK);
+	return canvasRef.current?.getObjects().find(x => x?.data?.type === RULER_ELEMENTS.BLOCK);
 }
 
 export function adjustRulerBackgroundPosition(
