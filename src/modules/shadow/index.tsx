@@ -78,7 +78,7 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
 				precision={1}
 			/>
 			<ColorInput
-				label="Color"
+				label="Shadow Color"
 				value={shadowValues.color}
 				onChange={e => {
 					currentSelectedElements?.[0].set(
