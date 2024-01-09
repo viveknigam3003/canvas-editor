@@ -947,6 +947,9 @@ function App() {
 				}
 				lastPosX = e.clientX;
 				lastPosY = e.clientY;
+				if (showRuler) {
+					renderRuler();
+				}
 			}
 		};
 
