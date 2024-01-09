@@ -1,5 +1,8 @@
 import { Box, ColorInput, Group, NumberInput } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/rootReducer';
+import { applyBulkEdit } from '../app/actions';
 
 interface ShadowProps {
 	currentSelectedElements: fabric.Object[];
@@ -7,6 +10,8 @@ interface ShadowProps {
 }
 
 const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
+	const dispatch = useDispatch();
+	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const xOffset = canvas.width ?? 100;
 	const yOffset = canvas.height ?? 100;
 
@@ -39,6 +44,16 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
 							Object.assign({}, currentSelectedElements?.[0].shadow, { offsetX: e }),
 						);
 						setShadowValues(prev => ({ ...prev, offsetX: e as number }));
+						if (currentSelectedArtboards.length > 1) {
+							dispatch(
+								applyBulkEdit({
+									element: currentSelectedElements?.[0],
+									properties: {
+										shadow: Object.assign({}, currentSelectedElements?.[0].shadow, { offsetX: e }),
+									},
+								}),
+							);
+						}
 						canvas.requestRenderAll();
 					}}
 					min={-xOffset}
@@ -54,6 +69,18 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
 							Object.assign({}, currentSelectedElements?.[0].shadow, { offsetY: e }),
 						);
 						setShadowValues(prev => ({ ...prev, offsetY: e as number }));
+						if (currentSelectedArtboards.length > 1) {
+							dispatch(
+								applyBulkEdit({
+									element: currentSelectedElements?.[0],
+									properties: {
+										shadow: Object.assign({}, currentSelectedElements?.[0].shadow, {
+											offsetY: e,
+										}),
+									},
+								}),
+							);
+						}
 						canvas.requestRenderAll();
 					}}
 					min={-yOffset}
@@ -70,6 +97,16 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
 						Object.assign({}, currentSelectedElements?.[0].shadow, { blur: e }),
 					);
 					setShadowValues(prev => ({ ...prev, blur: e as number }));
+					if (currentSelectedArtboards.length > 1) {
+						dispatch(
+							applyBulkEdit({
+								element: currentSelectedElements?.[0],
+								properties: {
+									shadow: Object.assign({}, currentSelectedElements?.[0].shadow, { blur: e }),
+								},
+							}),
+						);
+					}
 					canvas.requestRenderAll();
 				}}
 				min={0}
@@ -86,6 +123,16 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
 						Object.assign({}, currentSelectedElements?.[0].shadow, { color: e }),
 					);
 					setShadowValues(prev => ({ ...prev, color: e as string }));
+					if (currentSelectedArtboards.length > 1) {
+						dispatch(
+							applyBulkEdit({
+								element: currentSelectedElements?.[0],
+								properties: {
+									shadow: Object.assign({}, currentSelectedElements?.[0].shadow, { color: e }),
+								},
+							}),
+						);
+					}
 					canvas.requestRenderAll();
 				}}
 				format="hexa"
