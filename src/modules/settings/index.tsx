@@ -4,6 +4,7 @@ import { notifications } from '@mantine/notifications';
 import {
 	IconArrowBarToLeft,
 	IconBug,
+	IconKeyboard,
 	IconLayoutSidebarLeftCollapse,
 	IconMoon,
 	IconPalette,
@@ -15,6 +16,8 @@ import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import ColorSpaceSwitch from '../../modules/colorSpace';
 import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import { useMenuStyles } from '../../styles/menu';
+import KeyboardShortcutsModal from '../keyboard/KeyboardShortcutsModal';
+import { KeyMap } from '../keyboard/shortcutMap';
 import SnapDistanceModal from '../snapping/SnapDistanceModal';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
@@ -43,6 +46,10 @@ const SettingsMenu: React.FC<Props> = ({
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
 	const [snapDistanceModalOpened, { open: openSnapDistanceModal, close: closeSnapDistanceModal }] = useDisclosure();
+	const [keyboardShortcutsModalOpened, { open: openKeyboardShortcutsModal, close: closeKeyboardShortcutsModal }] =
+		useDisclosure();
+	const keyboardShortcuts: KeyMap = JSON.parse(localStorage.getItem('keyboard-shortcuts') || '{}');
+
 	const debug = () => {
 		console.log('json=', canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS));
 		console.log('fabric-objects=', filterSaveExcludes(canvasRef.current?.getObjects()));
@@ -73,10 +80,10 @@ const SettingsMenu: React.FC<Props> = ({
 				debug();
 			},
 		],
-		['alt+R', toggleRuler],
-		['mod+.', toggleUI],
+		[keyboardShortcuts['Toggle Ruler'], toggleRuler],
+		[keyboardShortcuts['Show Sidebar'], toggleUI],
 		[
-			'alt+L',
+			keyboardShortcuts['Toggle Color Mode'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				toggleColorScheme();
@@ -147,6 +154,13 @@ const SettingsMenu: React.FC<Props> = ({
 					</Menu.Item>
 					<Menu.Item
 						className={classes.item}
+						icon={<IconKeyboard size={16} />}
+						onClick={() => openKeyboardShortcutsModal()}
+					>
+						Change keyboard shortcuts
+					</Menu.Item>
+					<Menu.Item
+						className={classes.item}
 						icon={<IconBug size={14} />}
 						color="yellow"
 						onClick={() => {
@@ -169,6 +183,7 @@ const SettingsMenu: React.FC<Props> = ({
 				snapDistance={snapDistance}
 				setSnapDistance={setSnapDistance}
 			/>
+			<KeyboardShortcutsModal open={keyboardShortcutsModalOpened} onClose={closeKeyboardShortcutsModal} />
 		</Box>
 	);
 };
