@@ -1,6 +1,9 @@
 import { Divider, Group, NumberInput, Slider, Stack } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import SectionTitle from '../../components/SectionTitle';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/rootReducer';
+import { applyBulkEdit } from '../app/actions';
 
 interface OpacityProps {
 	currentSelectedElements: fabric.Object[];
@@ -9,6 +12,8 @@ interface OpacityProps {
 }
 
 const Opacity: React.FC<OpacityProps> = ({ canvas, currentSelectedElements, saveArtboardChanges }) => {
+	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
+	const dispatch = useDispatch();
 	const [opacity, setOpacity] = useState(1);
 
 	useEffect(() => {
@@ -24,6 +29,16 @@ const Opacity: React.FC<OpacityProps> = ({ canvas, currentSelectedElements, save
 		if (!element) return;
 		element.set('opacity', opacity);
 		setOpacity(opacity);
+		if (currentSelectedArtboards.length > 1) {
+			dispatch(
+				applyBulkEdit({
+					element,
+					properties: {
+						opacity,
+					},
+				}),
+			);
+		}
 		canvas.requestRenderAll();
 	};
 

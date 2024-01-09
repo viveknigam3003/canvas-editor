@@ -6,6 +6,9 @@ import Shadow from '../shadow';
 import CustomFont from './CustomFont';
 import { Font } from './types';
 import SectionTitle from '../../components/SectionTitle';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/rootReducer';
+import { applyBulkEdit } from '../app/actions';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
@@ -13,6 +16,8 @@ interface PanelProps {
 }
 
 const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
+	const dispatch = useDispatch();
+	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const [fontList, setFontList] = useState<Font[]>([]);
 	const [value, setValue] = useState('');
 	const [fontWeight, setFontWeight] = useState('regular');
@@ -64,9 +69,31 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		if (textElement.fontWeight === 'bold') {
 			textElement.set({ fontWeight: 'normal', fontFamily: textElement?.fontFamily?.replace('_bold', '') });
 			setIsBold(false);
+			if (currentSelectedArtboards.length > 1) {
+				dispatch(
+					applyBulkEdit({
+						element: textElement,
+						properties: {
+							fontWeight: 'normal',
+							fontFamily: textElement?.fontFamily?.replace('_bold', ''),
+						},
+					}),
+				);
+			}
 		} else {
 			textElement.set({ fontWeight: 'bold', fontFamily: `${textElement.fontFamily}_bold` });
 			setIsBold(true);
+			if (currentSelectedArtboards.length > 1) {
+				dispatch(
+					applyBulkEdit({
+						element: textElement,
+						properties: {
+							fontWeight: 'bold',
+							fontFamily: `${textElement.fontFamily}_bold`,
+						},
+					}),
+				);
+			}
 		}
 		canvas.requestRenderAll();
 	};
@@ -75,9 +102,29 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		if (textElement.fontStyle === 'italic') {
 			textElement.set({ fontStyle: 'normal' });
 			setIsItalic(false);
+			if (currentSelectedArtboards.length > 1) {
+				dispatch(
+					applyBulkEdit({
+						element: textElement,
+						properties: {
+							fontStyle: 'normal',
+						},
+					}),
+				);
+			}
 		} else {
 			textElement.set({ fontStyle: 'italic' });
 			setIsItalic(true);
+			if (currentSelectedArtboards.length > 1) {
+				dispatch(
+					applyBulkEdit({
+						element: textElement,
+						properties: {
+							fontStyle: 'italic',
+						},
+					}),
+				);
+			}
 		}
 		canvas.requestRenderAll();
 	};
@@ -86,9 +133,29 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		if (textElement.underline) {
 			textElement.set({ underline: false });
 			setIsUnderline(false);
+			if (currentSelectedArtboards.length > 1) {
+				dispatch(
+					applyBulkEdit({
+						element: textElement,
+						properties: {
+							underline: false,
+						},
+					}),
+				);
+			}
 		} else {
 			textElement.set({ underline: true });
 			setIsUnderline(true);
+			if (currentSelectedArtboards.length > 1) {
+				dispatch(
+					applyBulkEdit({
+						element: textElement,
+						properties: {
+							underline: true,
+						},
+					}),
+				);
+			}
 		}
 		canvas.requestRenderAll();
 	};
@@ -218,6 +285,16 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 							styleElement.appendChild(document.createTextNode(fontFaceRule));
 							document.head.appendChild(styleElement);
 							(currentSelectedElements?.[0] as fabric.Text)?.set('fontFamily', font.family);
+							if (currentSelectedArtboards.length > 1) {
+								dispatch(
+									applyBulkEdit({
+										element: currentSelectedElements?.[0],
+										properties: {
+											fontFamily: font.family,
+										},
+									}),
+								);
+							}
 							canvas.requestRenderAll();
 						})
 						.catch(error => console.error('Error loading font:', error));
@@ -250,6 +327,16 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 									styleElement.appendChild(document.createTextNode(fontFaceRule));
 									document.head.appendChild(styleElement);
 									(currentSelectedElements?.[0] as fabric.Text)?.set('fontWeight', e as string);
+									if (currentSelectedArtboards.length > 1) {
+										dispatch(
+											applyBulkEdit({
+												element: currentSelectedElements?.[0],
+												properties: {
+													fontWeight: e as string,
+												},
+											}),
+										);
+									}
 									canvas.requestRenderAll();
 								})
 								.catch(error => console.error('Error loading font:', error));
@@ -269,6 +356,16 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 					onChange={e => {
 						currentSelectedElements?.[0].set('fill', e);
 						setSelectedFontColor(e as string);
+						if (currentSelectedArtboards.length > 1) {
+							dispatch(
+								applyBulkEdit({
+									element: currentSelectedElements?.[0],
+									properties: {
+										fill: e,
+									},
+								}),
+							);
+						}
 						canvas.requestRenderAll();
 					}}
 					format="hexa"

@@ -120,13 +120,7 @@ function* applyBulkEditSaga(action: Action) {
 		selectedArtboards,
 	});
 
-	yield put(updateArtboards(nextState));
-	yield recordChanges({
-		previousState,
-		nextState,
-		action: updateArtboards(nextState),
-		key: 'app.artboards',
-	});
+	yield put(setArtboards(nextState));
 }
 
 function* addArtboardSaga(action: Action) {
