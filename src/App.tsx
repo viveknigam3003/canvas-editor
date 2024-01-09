@@ -178,6 +178,7 @@ function App() {
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+	const [isSpacePressed, setIsSpacePressed] = useState(false);
 	const guidesRef = useRef<guidesRefType>({
 		left: null,
 		top: null,
@@ -881,6 +882,92 @@ function App() {
 		}
 	}, [showRuler, activeArtboard?.id]);
 
+	// Handle spacebar press and release
+	useEffect(() => {
+		const handleSpacebarPress = (e: KeyboardEvent) => {
+			if (e.key === ' ') {
+				setIsSpacePressed(true);
+			}
+		};
+
+		const handleSpacebarRelease = (e: KeyboardEvent) => {
+			if (e.key === ' ') {
+				setIsSpacePressed(false);
+			}
+		};
+
+		window.addEventListener('keydown', handleSpacebarPress);
+		window.addEventListener('keyup', handleSpacebarRelease);
+
+		return () => {
+			window.removeEventListener('keydown', handleSpacebarPress);
+
+			window.removeEventListener('keyup', handleSpacebarRelease);
+		};
+	}, []);
+
+	// Handle dragging of canvas with mouse down and spacebar pressed
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		if (!canvas) {
+			return;
+		}
+
+		const whileSpacePressed = () => {
+			if (isSpacePressed) {
+				canvas.setCursor('grab');
+				canvas.selection = false;
+			}
+		};
+
+		let lastPosX: number | null = null;
+		let lastPosY: number | null = null;
+
+		const handleMouseDown = (opt: any) => {
+			if (isSpacePressed) {
+				const e = opt.e;
+				lastPosX = e.clientX;
+				lastPosY = e.clientY;
+				canvas.setCursor('grab');
+			}
+		};
+
+		const handleMouseMove = (opt: any) => {
+			whileSpacePressed();
+			if (isSpacePressed && lastPosX !== null && lastPosY !== null) {
+				canvas.setCursor('grabbing');
+				const e = opt.e;
+				const deltaX = e.clientX - lastPosX;
+				const deltaY = e.clientY - lastPosY;
+				const pan = canvas.viewportTransform as FixedArray<number, 6>;
+				if (pan) {
+					pan[4] += deltaX;
+					pan[5] += deltaY;
+					canvas.requestRenderAll();
+				}
+				lastPosX = e.clientX;
+				lastPosY = e.clientY;
+			}
+		};
+
+		const handleMouseUp = () => {
+			lastPosX = null;
+			lastPosY = null;
+			canvas.setCursor(isSpacePressed ? 'grab' : 'default');
+		};
+
+		canvas.on('mouse:down', handleMouseDown);
+		canvas.on('mouse:move', handleMouseMove);
+		canvas.on('mouse:up', handleMouseUp);
+		canvas.setCursor(isSpacePressed ? 'grab' : 'default');
+
+		return () => {
+			canvas.off('mouse:down', handleMouseDown);
+			canvas.off('mouse:move', handleMouseMove);
+			canvas.off('mouse:up', handleMouseUp);
+		};
+	}, [isSpacePressed, showRuler]);
+
 	// Handle dragging of canvas with mouse down and alt key pressed
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -888,7 +975,7 @@ function App() {
 			return;
 		}
 
-		const handlePan = (opt: any) => {
+		const handleZoomAndPan = (opt: any) => {
 			// Handle panning based on deltaX and deltaY but prevent zooming
 			const e = opt.e;
 			e.preventDefault();
@@ -928,9 +1015,11 @@ function App() {
 				canvas.requestRenderAll();
 			}
 		};
-		canvas.on('mouse:wheel', handlePan);
+
+		canvas.on('mouse:wheel', handleZoomAndPan);
+
 		return () => {
-			canvas.off('mouse:wheel', handlePan);
+			canvas.off('mouse:wheel', handleZoomAndPan);
 		};
 	}, [activeArtboard?.height, activeArtboard?.width, showRuler]);
 
