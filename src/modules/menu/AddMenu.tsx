@@ -14,9 +14,10 @@ import ShapePopover from '../shapes/ShapePopover';
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
 	canvasRef: React.RefObject<fabric.Canvas>;
+	saveArtboardChanges: () => void;
 };
 
-export default function AddMenu({ activeArtboard, canvasRef }: AddMenuProps) {
+export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges }: AddMenuProps) {
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
 	const dispatch = useDispatch();
 
@@ -44,6 +45,7 @@ export default function AddMenu({ activeArtboard, canvasRef }: AddMenuProps) {
 		text.enterEditing();
 		text.selectAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
+		saveArtboardChanges();
 	};
 
 	useHotkeys([
@@ -91,6 +93,7 @@ export default function AddMenu({ activeArtboard, canvasRef }: AddMenuProps) {
 		canvasRef.current?.add(rect);
 		canvasRef.current?.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
+		saveArtboardChanges();
 	};
 
 	return (
@@ -113,6 +116,7 @@ export default function AddMenu({ activeArtboard, canvasRef }: AddMenuProps) {
 				canvasRef={canvasRef}
 				imageModalOpened={imageModalOpened}
 				closeImageModal={closeImageModal}
+				saveArtboardChanges={saveArtboardChanges}
 			/>
 		</>
 	);
