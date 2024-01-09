@@ -16,9 +16,16 @@ type ImageModalProps = {
 	closeImageModal: () => void;
 	activeArtboard?: Artboard | null;
 	canvasRef: React.MutableRefObject<fabric.Canvas | null>;
+	saveArtboardChanges: () => void;
 };
 
-const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasRef }: ImageModalProps) => {
+const ImageModal = ({
+	imageModalOpened,
+	closeImageModal,
+	activeArtboard,
+	canvasRef,
+	saveArtboardChanges,
+}: ImageModalProps) => {
 	const dispatch = useDispatch();
 	const { classes: modalClasses } = useModalStyles();
 	const imageForm = useForm<{ url: string }>({
@@ -67,6 +74,7 @@ const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasR
 				canvasRef.current?.setActiveObject(img);
 				imageForm.reset();
 				dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
+				saveArtboardChanges();
 				closeImageModal();
 			},
 			{
@@ -100,6 +108,7 @@ const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasR
 			dispatch(
 				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
 			);
+			saveArtboardChanges();
 			closeImageModal();
 		});
 	};
@@ -114,6 +123,7 @@ const ImageModal = ({ imageModalOpened, closeImageModal, activeArtboard, canvasR
 			dispatch(
 				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
 			);
+			saveArtboardChanges();
 			closeImageModal();
 		};
 		reader.onerror = function (e) {

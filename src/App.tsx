@@ -1219,7 +1219,11 @@ function App() {
 						{/* <img src="/logo.png" alt="logo" width={64} height={64} /> */}
 						<Text className={classes.logo}>Phoenix Editor</Text>
 					</Flex>
-					<AddMenu activeArtboard={activeArtboard} canvasRef={canvasRef} />
+					<AddMenu
+						activeArtboard={activeArtboard}
+						canvasRef={canvasRef}
+						saveArtboardChanges={saveArtboardChanges}
+					/>
 					<MiscMenu artboards={artboards} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
