@@ -13,16 +13,7 @@ import {
 } from '@mantine/core';
 import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import {
-	IconCircleCheck,
-	IconCopy,
-	IconDeviceFloppy,
-	IconDownload,
-	IconFileDownload,
-	IconPlus,
-	IconTrash,
-} from '@tabler/icons-react';
-import axios from 'axios';
+import { IconCircleCheck, IconCopy, IconDeviceFloppy, IconDownload, IconPlus, IconTrash } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
@@ -59,12 +50,13 @@ import {
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 import { createSnappingLines, snapToObject } from './modules/snapping';
-import { filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
+import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
-import { generateId } from './utils';
+import { generateId, getMultiplierFor4K } from './utils';
+import { getArtboardDimensions, getArtboardPosition } from './modules/artboard/helpers';
 
 store.dispatch(appStart());
 
@@ -100,7 +92,6 @@ function App() {
 	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [canvasScrollPoints, setCanvasScrollPoints] = useState(0);
-	const [isDownloading, setIsDownloading] = useState(false);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
@@ -308,81 +299,55 @@ function App() {
 		}
 	};
 
-	const exportAllArtboards = async () => {
-		try {
-			// Download all artboards as zip from backend
-			setIsDownloading(true);
-			const res = await axios.post(
-				'http://localhost:5000/api/download',
-				{ artboards, origin: window.location.origin },
-				{
-					responseType: 'blob',
-				},
-			);
-
-			if (!res.data) {
-				throw new Error('Response data is undefined');
-			}
-
-			const url = window.URL.createObjectURL(new Blob([res.data]));
-			const link = document.createElement('a');
-			link.href = url;
-			link.setAttribute('download', 'artboards.zip');
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			console.log(res.data);
-		} catch (error) {
-			console.log(error);
-		} finally {
-			setIsDownloading(false);
-		}
-	};
-
 	const exportArtboard = () => {
-		// const artboardLeftAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')
-		// 	?.left;
-		// const artboardTopAdjustment = canvasRef.current?.getObjects().find(item => item.data?.type === 'artboard')?.top;
-		// if (!artboardLeftAdjustment || !artboardTopAdjustment) {
-		// 	return;
-		// }
-		// // Now we need to create a new canvas and add the artboard to it
-		// const offscreenCanvas = new fabric.Canvas('print', {
-		// 	width: artboardRef.current?.width,
-		// 	height: artboardRef.current?.height,
-		// 	colorSpace: colorSpace as colorSpaceType,
-		// });
-		// const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-		// const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
-		// 	return {
-		// 		...item,
-		// 		left: item.left - artboardLeftAdjustment,
-		// 		top: item.top - artboardTopAdjustment,
-		// 	};
-		// });
-		// const adjustedStateJSON = {
-		// 	...stateJSON,
-		// 	objects: filterExportExcludes(adjustedStateJSONObjects),
-		// };
-		// offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
-		// 	offscreenCanvas.renderAll();
-		// 	console.log('Offscreen canvas = ', offscreenCanvas.toJSON(FABRIC_JSON_ALLOWED_KEYS));
-		// 	const multiplier = getMultiplierFor4K(artboardRef.current?.width, artboardRef.current?.height);
-		// 	const config = {
-		// 		format: 'png',
-		// 		multiplier,
-		// 	};
-		// 	// render the offscreen canvas to a dataURL
-		// 	const dataURL = offscreenCanvas.toDataURL(config);
-		// 	const link = document.createElement('a');
-		// 	if (dataURL) {
-		// 		link.href = dataURL;
-		// 		link.download = 'canvas_4k.png';
-		// 		document.body.appendChild(link);
-		// 		link.click();
-		// 		document.body.removeChild(link);
-		// 	}
-		// });
+		const activeArtboardId = activeArtboard?.id;
+		if (!activeArtboardId) {
+			return;
+		}
+		const artboardPosition = getArtboardPosition(canvasRef.current, activeArtboardId);
+		const artboardLeftAdjustment = artboardPosition.left;
+		const artboardTopAdjustment = artboardPosition.top;
+
+		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+			return;
+		}
+		const artboardDimensions = getArtboardDimensions(canvasRef.current, activeArtboardId);
+		// Now we need to create a new canvas and add the artboard to it
+		const offscreenCanvas = new fabric.Canvas('print', {
+			width: artboardDimensions.width,
+			height: artboardDimensions.height,
+			colorSpace: colorSpace as colorSpaceType,
+		});
+		const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
+			return {
+				...item,
+				left: item.left - artboardLeftAdjustment,
+				top: item.top - artboardTopAdjustment,
+			};
+		});
+		const adjustedStateJSON = {
+			...stateJSON,
+			objects: filterExportExcludes(adjustedStateJSONObjects),
+		};
+		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+			offscreenCanvas.renderAll();
+			const multiplier = getMultiplierFor4K(artboardDimensions.width, artboardDimensions.height);
+			const config = {
+				format: 'png',
+				multiplier,
+			};
+			// render the offscreen canvas to a dataURL
+			const dataURL = offscreenCanvas.toDataURL(config);
+			const link = document.createElement('a');
+			if (dataURL) {
+				link.href = dataURL;
+				link.download = `${activeArtboard.name}.png`;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
+		});
 	};
 
 	// Take selected options in the selected artboard and when this function is called, group the selected elements
@@ -1065,17 +1030,7 @@ function App() {
 						zoomToFit={zoomToFit}
 					/>
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
-						Export artboard
-					</Button>
-					<Button
-						size="xs"
-						leftIcon={<IconFileDownload size={14} />}
-						variant="light"
-						onClick={exportAllArtboards}
-						loading={isDownloading}
-						disabled={window.location.hostname.includes('vercel')}
-					>
-						Export all
+						Export
 					</Button>
 				</Group>
 			</Box>
