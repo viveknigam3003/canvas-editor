@@ -3,6 +3,7 @@ import { fabric } from 'fabric';
 import React from 'react';
 import { guidesRefType, snappingObjectType } from '../../types';
 import { getCanvasVisibleTopLeft } from '../utils/canvasUtils';
+import { getExtremePoints } from '../position/helpers';
 
 export function snapToObject(
 	target: snappingObjectType,
@@ -19,131 +20,198 @@ export function snapToObject(
 	let centerY = false;
 	objects.forEach(function (obj) {
 		if (obj === target) return;
+		target.setCoords();
+		obj.setCoords();
+		const targetPoints = getExtremePoints(target);
+		const objPoints = getExtremePoints(obj);
 
-		// Snap to the top edge
-		if (Math.abs(target.top - obj?.top - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() });
-			top = true;
-		}
-		if (Math.abs(target.top - obj.top) < snapDistance) {
-			target.set({ top: obj.top });
-			top = true;
-		}
-
-		if (Math.abs(target.top - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-			top = true;
-			target.set({ top: obj.top + obj.getScaledHeight() / 2 });
-		}
-		if (Math.abs(target.top + target.getScaledHeight() - obj.top) < snapDistance) {
-			target.set({ top: obj.top - target.getScaledHeight() });
-			bottom = true;
-		}
-
-		if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() });
-			bottom = true;
-		}
-
-		if (Math.abs(target.top + target.getScaledHeight() - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-			bottom = true;
-			target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() });
-		}
-
-		if (Math.abs(target.left - obj.left - obj.getScaledWidth()) < snapDistance) {
+		//  *target left with object right
+		if (Math.abs(targetPoints.left - objPoints.right) < snapDistance) {
 			left = true;
-			target.set({ left: obj.left + obj.getScaledWidth() });
+			const leftt =
+				target.angle > 180
+					? objPoints.right - Math.abs(targetPoints.left - target.left)
+					: objPoints.right + Math.abs(targetPoints.left - target.left);
+			target.set({ left: leftt });
 		}
-		if (Math.abs(target.left - obj.left) < snapDistance) {
+
+		// target left wiht object left
+		if (Math.abs(targetPoints.left - objPoints.left) < snapDistance) {
 			left = true;
-			target.set({ left: obj.left });
+			const leftt =
+				target.angle > 180
+					? objPoints.left - Math.abs(targetPoints.left - target.left)
+					: objPoints.left + Math.abs(targetPoints.left - target.left);
+			target.set({ left: leftt });
 		}
-		if (Math.abs(target.left - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
+		// target right with object right
+		if (Math.abs(targetPoints.right - objPoints.right) < snapDistance) {
+			right = true;
+			const leftt = objPoints.right - Math.abs(targetPoints.right - target.left);
+			target.set({ left: leftt });
+		}
+		// target right with object left
+		if (Math.abs(targetPoints.right - objPoints.left) < snapDistance) {
+			right = true;
+			const leftt = objPoints.left - Math.abs(targetPoints.right - target.left);
+			target.set({ left: leftt });
+		}
+
+		// target left with object center
+		const objcenter = (obj as fabric.Object).getCenterPoint();
+		if (Math.abs(targetPoints.left - objcenter.x) < snapDistance) {
 			left = true;
-			target.set({ left: obj.left + obj.getScaledWidth() / 2 });
+			const leftt =
+				target.angle > 180
+					? objcenter.x - Math.abs(targetPoints.left - target.left)
+					: objcenter.x + Math.abs(targetPoints.left - target.left);
+			target.set({ left: leftt });
 		}
-		// Snap to the right edge
-		if (Math.abs(target.left + target.getScaledWidth() - obj.left) < snapDistance) {
-			target.set({ left: obj.left - target.getScaledWidth() });
+		// target right with object center
+		if (Math.abs(targetPoints.right - objcenter.x) < snapDistance) {
 			right = true;
+			const leftt = objcenter.x - Math.abs(targetPoints.right - target.left);
+			target.set({ left: leftt });
 		}
 
-		if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth()) < snapDistance) {
-			target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() });
-			right = true;
-		}
-
-		if (Math.abs(target.left + target.getScaledWidth() - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
-			right = true;
-			target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() });
-		}
-
-		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth() / 2) < snapDistance) {
-			target.set({ left: obj.left + obj.getScaledWidth() / 2 - target.getScaledWidth() / 2 });
+		// target center with object left
+		if (Math.abs(target.getCenterPoint().x - objPoints.left) < snapDistance) {
 			centerX = true;
+			const leftt = objPoints.left - Math.abs(target.getCenterPoint().x - target.left);
+			target.set({ left: leftt });
 		}
 
-		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left) < snapDistance) {
-			target.set({ left: obj.left - target.getScaledWidth() / 2 });
+		// target center with object right
+		if (Math.abs(target.getCenterPoint().x - objPoints.right) < snapDistance) {
 			centerX = true;
+			const leftt = objPoints.right - Math.abs(target.getCenterPoint().x - target.left);
+			target.set({ left: leftt });
 		}
-		if (Math.abs(target.left + target.getScaledWidth() / 2 - obj.left - obj.getScaledWidth()) < snapDistance) {
-			target.set({ left: obj.left + obj.getScaledWidth() - target.getScaledWidth() / 2 });
+		// target center with object center
+		if (Math.abs(target.getCenterPoint().x - objcenter.x) < snapDistance) {
 			centerX = true;
+			const leftt = objcenter.x - Math.abs(target.getCenterPoint().x - target.left);
+			target.set({ left: leftt });
+		}
+		// target top with object top
+		if (Math.abs(targetPoints.top - objPoints.top) < snapDistance) {
+			top = true;
+			const topt =
+				target.angle > 180
+					? objPoints.top + Math.abs(targetPoints.top - target.top)
+					: objPoints.top - Math.abs(targetPoints.top - target.top);
+			target.set({ top: topt });
+		}
+		// target top with object bottom
+		if (Math.abs(targetPoints.top - objPoints.bottom) < snapDistance) {
+			top = true;
+			const topt =
+				target.angle > 180
+					? objPoints.bottom + Math.abs(targetPoints.top - target.top)
+					: objPoints.bottom - Math.abs(targetPoints.top - target.top);
+			target.set({ top: topt });
+		}
+		// target top with object center
+		if (Math.abs(targetPoints.top - objcenter.y) < snapDistance) {
+			top = true;
+			const topt =
+				target.angle > 180
+					? objcenter.y + Math.abs(targetPoints.top - target.top)
+					: objcenter.y - Math.abs(targetPoints.top - target.top);
+			target.set({ top: topt });
+		}
+		// target bottom with object top
+		if (Math.abs(targetPoints.bottom - objPoints.top) < snapDistance) {
+			bottom = true;
+			const topt = objPoints.top - Math.abs(targetPoints.bottom - target.top);
+			target.set({ top: topt });
+		}
+		// target bottom with object bottom
+		if (Math.abs(targetPoints.bottom - objPoints.bottom) < snapDistance) {
+			bottom = true;
+			const topt = objPoints.bottom - Math.abs(targetPoints.bottom - target.top);
+			target.set({ top: topt });
+		}
+		// target bottom with object center
+		if (Math.abs(targetPoints.bottom - objcenter.y) < snapDistance) {
+			bottom = true;
+			const topt = objcenter.y - Math.abs(targetPoints.bottom - target.top);
+			target.set({ top: topt });
 		}
 
-		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight() / 2) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() / 2 - target.getScaledHeight() / 2 });
+		// target center with object top
+		if (Math.abs(target.getCenterPoint().y - objPoints.top) < snapDistance) {
 			centerY = true;
-		}
-		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top) < snapDistance) {
-			target.set({ top: obj.top - target.getScaledHeight() / 2 });
-			centerY = true;
-		}
+			const topt =
+				target.angle > 180
+					? objPoints.top + Math.abs(target.getCenterPoint().y - target.top)
+					: objPoints.top - Math.abs(target.getCenterPoint().y - target.top);
 
-		if (Math.abs(target.top + target.getScaledHeight() / 2 - obj.top - obj.getScaledHeight()) < snapDistance) {
-			target.set({ top: obj.top + obj.getScaledHeight() - target.getScaledHeight() / 2 });
+			target.set({ top: topt });
+		}
+		// target center with object bottom
+		if (Math.abs(target.getCenterPoint().y - objPoints.bottom) < snapDistance) {
 			centerY = true;
+			const topt =
+				target.angle > 180
+					? objPoints.bottom + Math.abs(target.getCenterPoint().y - target.top)
+					: objPoints.bottom - Math.abs(target.getCenterPoint().y - target.top);
+			target.set({ top: topt });
+		}
+		// target center with object center
+		if (Math.abs(target.getCenterPoint().y - objcenter.y) < snapDistance) {
+			centerY = true;
+			const topt =
+				target.angle > 180
+					? objcenter.y + Math.abs(target.getCenterPoint().y - target.top)
+					: objcenter.y - Math.abs(target.getCenterPoint().y - target.top);
+			target.set({ top: topt });
 		}
 
 		if (left) {
-			guidesRef?.current?.left?.set({ opacity: 1, left: target.left });
+			const targetPoints = getExtremePoints(target);
+			guidesRef?.current?.left?.set({ opacity: 1, left: targetPoints.left });
 		} else {
 			guidesRef?.current?.left?.set({ opacity: 0, left: target.left });
 		}
 
 		if (right) {
-			guidesRef?.current?.right?.set({ opacity: 1, left: target.left + target.getScaledWidth() });
+			const targetPoints = getExtremePoints(target);
+			// guidesRef?.current?.left?.set({ opacity: 1, left: targetPoints.left });
+			guidesRef?.current?.right?.set({ opacity: 1, left: targetPoints.right });
 		} else {
 			guidesRef?.current?.right?.set({ opacity: 0 });
 		}
 
 		if (top) {
-			guidesRef?.current?.top?.set({ opacity: 1, top: target.top });
+			const targetPoints = getExtremePoints(target);
+			guidesRef?.current?.top?.set({ opacity: 1, top: targetPoints.top });
 		} else {
 			guidesRef?.current?.top?.set({ opacity: 0 });
 		}
 
 		if (bottom) {
-			guidesRef?.current?.bottom?.set({ opacity: 1, top: target.top + target.getScaledHeight() });
+			const targetPoints = getExtremePoints(target);
+			guidesRef?.current?.bottom?.set({ opacity: 1, top: targetPoints.bottom });
 		} else {
 			guidesRef?.current?.bottom?.set({ opacity: 0 });
 		}
 		if (centerX) {
-			guidesRef?.current?.centerX?.set({ opacity: 1, left: target.left + target.getScaledWidth() / 2 });
+			guidesRef?.current?.centerX?.set({ opacity: 1, left: target.getCenterPoint().x });
 		} else {
 			guidesRef?.current?.centerX?.set({ opacity: 0 });
 		}
 		if (centerY) {
-			guidesRef?.current?.centerY?.set({ opacity: 1, top: target.top + target.getScaledHeight() / 2 });
+			guidesRef?.current?.centerY?.set({ opacity: 1, top: target.getCenterPoint().y });
 		} else {
 			guidesRef?.current?.centerY?.set({ opacity: 0 });
 		}
-		guidesRef?.current?.left?.setCoords();
-		guidesRef?.current?.right?.setCoords();
-		guidesRef?.current?.top?.setCoords();
-		guidesRef?.current?.bottom?.setCoords();
-		guidesRef?.current?.centerX?.setCoords();
-		guidesRef?.current?.centerY?.setCoords();
+		// guidesRef?.current?.left?.setCoords();
+		// guidesRef?.current?.right?.setCoords();
+		// guidesRef?.current?.top?.setCoords();
+		// guidesRef?.current?.bottom?.setCoords();
+		// guidesRef?.current?.centerX?.setCoords();
+		// guidesRef?.current?.centerY?.setCoords();
 		canvasRef.current?.renderAll();
 	});
 }
@@ -166,15 +234,17 @@ export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Can
 		left: new fabric.Line([0, 0, 0, canvasHeight], {
 			...defaultSnapLineProps,
 			top,
+			stroke: 'red',
 		}),
 		top: new fabric.Line([0, 0, canvasWidth, 0], {
 			...defaultSnapLineProps,
 			left,
+			stroke: 'green',
 		}),
-		right: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top }),
-		bottom: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
-		centerX: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top }),
-		centerY: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
+		right: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top, stroke: 'black' }),
+		bottom: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left, stroke: 'purple' }),
+		centerX: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top, stroke: 'orange' }),
+		centerY: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left, stroke: 'pink' }),
 	};
 	canvasRef.current
 		?.getObjects()

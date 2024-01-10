@@ -287,7 +287,9 @@ function App() {
 		}
 		snapToObject(
 			target as snappingObjectType,
-			filterSnappingExcludes(canvasRef.current?.getObjects()) as snappingObjectType[],
+			filterSnappingExcludes(
+				canvasRef.current?.getObjects().filter(x => x.data.type !== '1'),
+			) as snappingObjectType[],
 			guidesRef,
 			canvasRef,
 			Number(snapDistance),
