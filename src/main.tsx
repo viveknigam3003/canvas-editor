@@ -10,12 +10,18 @@ import App from './App.tsx';
 import ArtboardPage from './Artboard.tsx';
 import './index.css';
 import store from './store/index.ts';
+import ErrorElement from './errors/ErrorElement.tsx';
+import ErrorBoundary from './errors/ErrorBoundary.tsx';
 
 const router = createBrowserRouter([
 	{
 		path: '/',
-		element: <App />,
-		errorElement: <div>Oops, error occured while loading Media Library</div>,
+		element: (
+			<ErrorBoundary>
+				<App />
+			</ErrorBoundary>
+		),
+		errorElement: <ErrorElement />,
 	},
 	{
 		path: '/artboard',
