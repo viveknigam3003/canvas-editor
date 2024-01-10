@@ -1,11 +1,9 @@
 import { getArtboardObject } from '../artboard/helpers';
 
 export const getExtremePoints = (object: fabric.Object) => {
-	const { aCoords, oCoords } = object;
-	console.log(aCoords, oCoords);
+	const { aCoords } = object;
 	if (!aCoords) throw new Error('Invalid object while finding extreme points');
 	const { tl, tr, bl, br } = aCoords;
-
 	const left = Math.min(tl.x, tr.x, bl.x, br.x);
 	const top = Math.min(tl.y, tr.y, bl.y, br.y);
 	const right = Math.max(tl.x, tr.x, bl.x, br.x);

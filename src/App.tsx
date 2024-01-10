@@ -258,22 +258,6 @@ function App() {
 				});
 			setCurrentSelectedElements(null);
 		});
-		canvasRef.current.on('after:render', function () {
-			canvasRef.current.contextContainer.strokeStyle = '#555';
-
-			canvasRef.current.forEachObject(function (obj) {
-				const bound = obj.getBoundingRect();
-
-				if (obj.data?.type === 'shape') {
-					canvasRef.current.contextContainer.strokeRect(
-						bound.left + 0.5,
-						bound.top + 0.5,
-						bound.width,
-						bound.height,
-					);
-				}
-			});
-		});
 
 		return () => {
 			canvasRef.current?.dispose();
@@ -306,9 +290,7 @@ function App() {
 		}
 		snapToObject(
 			target as snappingObjectType,
-			filterSnappingExcludes(
-				canvasRef.current?.getObjects().filter(x => x.data.type !== '1'),
-			) as snappingObjectType[],
+			filterSnappingExcludes(canvasRef.current?.getObjects()) as snappingObjectType[],
 			guidesRef,
 			canvasRef,
 			Number(snapDistance),
@@ -1044,7 +1026,6 @@ function App() {
 				}
 				pan[4] -= e.deltaX;
 				pan[5] -= e.deltaY;
-				// canvas.setViewportTransform(pan);
 				if (showRuler) {
 					renderRuler();
 				}
