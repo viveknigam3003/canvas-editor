@@ -33,9 +33,15 @@ export function convertFabricObjectsToLayers(objects: { [key: string]: any }) {
 
 		if (object.type === 'group') {
 			const groupId = elementId;
-			Object.values(object.objects).forEach((element: any) => {
-				processObject(element, groupId);
-			});
+			if (object.objects) {
+				Object.values(object.objects).forEach((element: any) => {
+					processObject(element, groupId);
+				});
+			} else if (object._objects) {
+				Object.values(object._objects).forEach((element: any) => {
+					processObject(element, groupId);
+				});
+			}
 		}
 	}
 

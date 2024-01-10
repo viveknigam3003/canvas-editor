@@ -487,6 +487,7 @@ function App() {
 		});
 
 		canvas.add(group);
+		dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 		canvas.renderAll();
 	};
 
@@ -512,7 +513,7 @@ function App() {
 		for (let i = 0; i < items.length; i++) {
 			canvas.add(items[i]);
 		}
-
+		dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 		canvas.renderAll();
 	};
 
