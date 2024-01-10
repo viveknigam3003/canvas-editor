@@ -12,6 +12,7 @@ import SectionTitle from '../../components/SectionTitle';
 import { getAltKey } from '../../modules/utils/keyboard';
 import { Artboard } from '../../types';
 import { alignElementToRect } from './helpers';
+import { getKeyboardShortcuts } from '../keyboard/helpers';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -20,45 +21,45 @@ type PanelProps = {
 };
 
 const AlignmentPanel = ({ canvas, currentSelectedElements, activeArtboard }: PanelProps) => {
-	//TODO: fix this
+	const keyboardShortcuts = getKeyboardShortcuts();
 	useHotkeys([
 		[
-			'alt+a',
+			keyboardShortcuts['Align left'],
 			e => {
 				e.preventDefault();
 				alignElementToRect(currentSelectedElements, activeArtboard.id, 'left', canvas);
 			},
 		],
 		[
-			'alt+d',
+			keyboardShortcuts['Align right'],
 			e => {
 				e.preventDefault();
 				alignElementToRect(currentSelectedElements, activeArtboard.id, 'right', canvas);
 			},
 		],
 		[
-			'alt+h',
+			keyboardShortcuts['Align center'],
 			e => {
 				e.preventDefault();
 				alignElementToRect(currentSelectedElements, activeArtboard.id, 'center', canvas);
 			},
 		],
 		[
-			'alt+w',
+			keyboardShortcuts['Align top'],
 			e => {
 				e.preventDefault();
 				alignElementToRect(currentSelectedElements, activeArtboard.id, 'top', canvas);
 			},
 		],
 		[
-			'alt+s',
+			keyboardShortcuts['Align bottom'],
 			e => {
 				e.preventDefault();
 				alignElementToRect(currentSelectedElements, activeArtboard.id, 'bottom', canvas);
 			},
 		],
 		[
-			'alt+v',
+			keyboardShortcuts['Align middle'],
 			e => {
 				e.preventDefault();
 				alignElementToRect(currentSelectedElements, activeArtboard.id, 'middle', canvas);

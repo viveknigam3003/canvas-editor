@@ -4,6 +4,7 @@ import { notifications } from '@mantine/notifications';
 import {
 	IconArrowBarToLeft,
 	IconBug,
+	IconKeyboard,
 	IconLayoutSidebarLeftCollapse,
 	IconMoon,
 	IconPalette,
@@ -13,8 +14,9 @@ import {
 } from '@tabler/icons-react';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import ColorSpaceSwitch from '../../modules/colorSpace';
-import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import { useMenuStyles } from '../../styles/menu';
+import KeyboardShortcutsModal from '../keyboard/KeyboardShortcutsModal';
+import { getKeyboardShortcuts, parseKeyString } from '../keyboard/helpers';
 import SnapDistanceModal from '../snapping/SnapDistanceModal';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
@@ -43,6 +45,10 @@ const SettingsMenu: React.FC<Props> = ({
 	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const [colorSpaceModalOpened, { open: openColorSpaceModal, close: closeColorSpaceModal }] = useDisclosure();
 	const [snapDistanceModalOpened, { open: openSnapDistanceModal, close: closeSnapDistanceModal }] = useDisclosure();
+	const [keyboardShortcutsModalOpened, { open: openKeyboardShortcutsModal, close: closeKeyboardShortcutsModal }] =
+		useDisclosure();
+	const keyboardShortcuts = getKeyboardShortcuts();
+
 	const debug = () => {
 		console.log('json=', canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS));
 		console.log('fabric-objects=', filterSaveExcludes(canvasRef.current?.getObjects()));
@@ -67,16 +73,22 @@ const SettingsMenu: React.FC<Props> = ({
 
 	useHotkeys([
 		[
-			'alt+shift+D',
+			keyboardShortcuts.Debug,
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				debug();
 			},
 		],
-		['alt+R', toggleRuler],
-		['mod+.', toggleUI],
 		[
-			'alt+L',
+			keyboardShortcuts['Toggle ruler'],
+			() => {
+				console.log(keyboardShortcuts['Toggle ruler']);
+				toggleRuler();
+			},
+		],
+		[keyboardShortcuts['Show sidebar'], toggleUI],
+		[
+			keyboardShortcuts['Toggle color mode'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				toggleColorScheme();
@@ -102,7 +114,7 @@ const SettingsMenu: React.FC<Props> = ({
 					<Menu.Item
 						icon={<IconLayoutSidebarLeftCollapse size={14} />}
 						className={classes.item}
-						rightSection={<Text size={11}>{getModKey()} + .</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Show sidebar'])}</Text>}
 						onClick={() => toggleUI()}
 					>
 						Show/hide UI
@@ -110,7 +122,7 @@ const SettingsMenu: React.FC<Props> = ({
 					<Menu.Item
 						icon={<IconRuler size={14} />}
 						className={classes.item}
-						rightSection={<Text size={11}>{getAltKey()} + R</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Toggle ruler'])}</Text>}
 						onClick={() => toggleRuler()}
 					>
 						Show/hide Ruler
@@ -141,9 +153,16 @@ const SettingsMenu: React.FC<Props> = ({
 						className={classes.item}
 						icon={colorScheme === 'light' ? <IconMoon size={16} /> : <IconSun size={14} />}
 						onClick={() => toggleColorScheme()}
-						rightSection={<Text size={11}>{getAltKey()} + L</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Toggle color mode'])}</Text>}
 					>
 						Switch to {colorScheme === 'dark' ? 'light' : 'dark'} mode
+					</Menu.Item>
+					<Menu.Item
+						className={classes.item}
+						icon={<IconKeyboard size={16} />}
+						onClick={() => openKeyboardShortcutsModal()}
+					>
+						Keyboard shortcuts
 					</Menu.Item>
 					<Menu.Item
 						className={classes.item}
@@ -152,7 +171,7 @@ const SettingsMenu: React.FC<Props> = ({
 						onClick={() => {
 							debug();
 						}}
-						rightSection={<Text size={11}>{getAltKey()} + Shift + D</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts.Debug)}</Text>}
 					>
 						Log state
 					</Menu.Item>
@@ -169,6 +188,7 @@ const SettingsMenu: React.FC<Props> = ({
 				snapDistance={snapDistance}
 				setSnapDistance={setSnapDistance}
 			/>
+			<KeyboardShortcutsModal open={keyboardShortcutsModalOpened} onClose={closeKeyboardShortcutsModal} />
 		</Box>
 	);
 };

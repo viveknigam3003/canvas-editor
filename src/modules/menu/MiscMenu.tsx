@@ -1,7 +1,8 @@
-import { ActionIcon, Group, Tooltip } from '@mantine/core';
-import { IconArtboard } from '@tabler/icons-react';
+import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconArtboard, IconEye } from '@tabler/icons-react';
 import { fabric } from 'fabric';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 
@@ -12,7 +13,9 @@ type MiscMenuProps = {
 const RENDER_N = 2500;
 
 export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
-	const [isRendering, setRendering] = useState(false);
+	const theme = useMantineTheme();
+	const [isPreviewing, setPreviewing] = useState(false);
+	const [isSimulating, setSimulating] = useState(false);
 
 	const renderMultipleArtboards = (artboards: Artboard[]) => {
 		// Render all artboards on the canvas
@@ -72,7 +75,20 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 		canvasRef.current?.loadFromJSON(json, () => {
 			canvasRef.current?.renderAll();
 			console.log('Performance', window.performance);
-			setRendering(false);
+
+			const title = isPreviewing
+				? `Previewing ${artboards.length} artboards`
+				: `Rendered ${artboards.length / RENDER_N} artboards with ${RENDER_N} duplicates`;
+
+			const message = 'Total artboards: ' + artboards.length;
+
+			notifications.show({
+				icon: <IconArtboard size={14} />,
+				title,
+				message,
+				color: 'green',
+				autoClose: 3000,
+			});
 		});
 	};
 
@@ -90,22 +106,48 @@ export default function MiscMenu({ artboards, canvasRef }: MiscMenuProps) {
 			}
 		}
 
-		console.log('Total artboards = ', allArtboards.length);
 		return allArtboards;
 	};
 
+	useEffect(() => {
+		if (isPreviewing && artboards.length > 0) {
+			renderMultipleArtboards(artboards);
+		}
+	}, [isPreviewing, artboards]);
+
+	useEffect(() => {
+		if (isSimulating) {
+			const data = createBulkData();
+			renderMultipleArtboards(data);
+		}
+	}, [isSimulating]);
+
 	return (
-		<Group>
-			<Tooltip label="Simulate multiple artboards" openDelay={500}>
+		<Group spacing={4}>
+			<Tooltip label="Mulitple preview" openDelay={500}>
 				<ActionIcon
-					disabled={isRendering}
 					onClick={() => {
-						setRendering(true);
-						const data = createBulkData();
-						renderMultipleArtboards(data);
+						setPreviewing(p => !p);
+						setSimulating(false);
 					}}
 				>
-					<IconArtboard size={14} />
+					<IconEye
+						size={14}
+						color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
+					/>
+				</ActionIcon>
+			</Tooltip>
+			<Tooltip label="Simulate multiple artboards" openDelay={500}>
+				<ActionIcon
+					onClick={() => {
+						setSimulating(p => !p);
+						setPreviewing(false);
+					}}
+				>
+					<IconArtboard
+						size={14}
+						color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
+					/>
 				</ActionIcon>
 			</Tooltip>
 		</Group>

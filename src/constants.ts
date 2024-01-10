@@ -3,6 +3,7 @@ export const FABRIC_JSON_ALLOWED_KEYS = [
 	'selectable',
 	'effects',
 	'hoverCursor',
+	'moveCursor',
 	'stroke',
 	'strokeWidth',
 	'hasControls',

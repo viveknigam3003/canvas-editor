@@ -1,4 +1,4 @@
-import { Popover, ActionIcon, Grid, Box, createStyles, Tooltip } from '@mantine/core';
+import { Popover, ActionIcon, Grid, Box, createStyles, Tooltip, useMantineTheme } from '@mantine/core';
 import { IconSquare } from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import { shapesData } from './shapesPath';
@@ -38,6 +38,7 @@ type ShapePopoverProps = {
 	activeArtboard: Artboard | null;
 };
 export default function ShapePopover({ canvasRef, activeArtboard }: ShapePopoverProps) {
+	const theme = useMantineTheme();
 	const [opened, setOpened] = useState(false);
 	const { classes } = useStyles();
 	const addShape = (shape: shapeType, name: string) => {
@@ -78,7 +79,10 @@ export default function ShapePopover({ canvasRef, activeArtboard }: ShapePopover
 								setOpened(p => !p);
 							}}
 						>
-							<IconSquare size={14} />
+							<IconSquare
+								size={14}
+								color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
+							/>
 						</ActionIcon>
 					</Tooltip>
 				</Popover.Target>
