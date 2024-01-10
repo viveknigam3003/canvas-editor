@@ -11,12 +11,12 @@ const ShortcutKeys = ({ keyString }: ShortcutKeysProps) => {
 
 	const parsedKeys = keys.map(key => {
 		if (key === 'mod' || key.toLowerCase() === 'meta' || key.toLowerCase() === 'ctrl') {
-			return <Kbd>{getModKey()}</Kbd>;
+			return <Kbd key={key}>{getModKey()}</Kbd>;
 		}
 		if (key.toLowerCase() === 'alt') {
-			return <Kbd>{getAltKey()}</Kbd>;
+			return <Kbd key={key}>{getAltKey()}</Kbd>;
 		}
-		return <Kbd>{key.toUpperCase()}</Kbd>;
+		return <Kbd key={key}>{key.toUpperCase()}</Kbd>;
 	});
 
 	// Insert a + between each key

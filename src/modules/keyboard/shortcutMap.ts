@@ -7,6 +7,7 @@ export enum UserKeyboardShortcut {
 	toggleRuler = 'Toggle ruler',
 	toggleColorMode = 'Toggle color mode',
 	debug = 'Debug',
+
 	alignLeft = 'Align left',
 	alignRight = 'Align right',
 	alignTop = 'Align top',
@@ -20,6 +21,7 @@ export const UserShortcutMap: UserKeyMap = {
 	[UserKeyboardShortcut.toggleRuler]: 'alt+r',
 	[UserKeyboardShortcut.toggleColorMode]: 'alt+l',
 	[UserKeyboardShortcut.debug]: 'alt+shift+D',
+
 	[UserKeyboardShortcut.alignLeft]: 'alt+a',
 	[UserKeyboardShortcut.alignRight]: 'alt+d',
 	[UserKeyboardShortcut.alignTop]: 'alt+w',
