@@ -480,6 +480,7 @@ function App() {
 		const group = new fabric.Group(activeObjects, {
 			left: activeSelection.left,
 			top: activeSelection.top,
+			data: { id: generateId(), type: 'group' },
 		});
 
 		activeObjects.forEach(object => {
