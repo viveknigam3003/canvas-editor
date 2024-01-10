@@ -6,7 +6,7 @@ import { useModalStyles } from '../../styles/modal';
 import { getAltKey, getModKey } from '../utils/keyboard';
 import ShortcutKeys from './ShortcutKeys';
 import { KeyCodeMap } from './keycodemap';
-import { DefaultKeyboardShortcuts, KeyMap, KeyboardShortcutMap } from './shortcutMap';
+import { DefaultKeyboardShortcuts, UserKeyMap, UserShortcutMap } from './shortcutMap';
 import { validateKeyCode } from './helpers';
 
 const useStyles = createStyles(theme => ({
@@ -42,8 +42,8 @@ interface KeyboardShortcutsModalProps {
 const KeyboardShortcutsModal = ({ open, onClose }: KeyboardShortcutsModalProps) => {
 	const { classes } = useStyles();
 	const { classes: modalClasses } = useModalStyles();
-	const [keyboardShortcuts, setKeyboardShortcuts] = useLocalStorage<KeyMap>({
-		defaultValue: KeyboardShortcutMap,
+	const [keyboardShortcuts, setKeyboardShortcuts] = useLocalStorage<UserKeyMap>({
+		defaultValue: UserShortcutMap,
 		key: 'keyboard-shortcuts',
 	});
 	const [selectedShortcut, setSelectedShortcut] = useState<string | null>(null);

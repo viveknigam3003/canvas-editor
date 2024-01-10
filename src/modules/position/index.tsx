@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SectionTitle from '../../components/SectionTitle';
 import { RootState } from '../../store/rootReducer';
 import { applyBulkEdit } from '../app/actions';
+import { getKeyboardShortcuts } from '../keyboard/helpers';
 
 interface PositionProps {
 	canvas: fabric.Canvas;
@@ -13,6 +14,7 @@ interface PositionProps {
 }
 
 const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) => {
+	const keyboardShortcuts = getKeyboardShortcuts();
 	const dispatch = useDispatch();
 	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	const [positionValues, setPositionValues] = useState({
@@ -129,7 +131,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 
 	useHotkeys([
 		[
-			'ArrowUp',
+			keyboardShortcuts['Move up'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -149,7 +151,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'ArrowDown',
+			keyboardShortcuts['Move down'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -169,7 +171,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'ArrowLeft',
+			keyboardShortcuts['Move left'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -189,7 +191,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'ArrowRight',
+			keyboardShortcuts['Move right'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -209,7 +211,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'Alt+ArrowUp',
+			keyboardShortcuts['Move up fast'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -229,7 +231,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'Alt+ArrowDown',
+			keyboardShortcuts['Move down fast'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -249,7 +251,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'Alt+ArrowLeft',
+			keyboardShortcuts['Move left fast'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
@@ -269,7 +271,7 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 			},
 		],
 		[
-			'Alt+ArrowRight',
+			keyboardShortcuts['Move right fast'],
 			() => {
 				const element = currentSelectedElements?.[0];
 				if (!element) return;

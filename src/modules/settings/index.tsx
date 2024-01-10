@@ -17,7 +17,7 @@ import ColorSpaceSwitch from '../../modules/colorSpace';
 import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import { useMenuStyles } from '../../styles/menu';
 import KeyboardShortcutsModal from '../keyboard/KeyboardShortcutsModal';
-import { KeyMap } from '../keyboard/shortcutMap';
+import { getKeyboardShortcuts } from '../keyboard/helpers';
 import SnapDistanceModal from '../snapping/SnapDistanceModal';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
@@ -48,7 +48,7 @@ const SettingsMenu: React.FC<Props> = ({
 	const [snapDistanceModalOpened, { open: openSnapDistanceModal, close: closeSnapDistanceModal }] = useDisclosure();
 	const [keyboardShortcutsModalOpened, { open: openKeyboardShortcutsModal, close: closeKeyboardShortcutsModal }] =
 		useDisclosure();
-	const keyboardShortcuts: KeyMap = JSON.parse(localStorage.getItem('keyboard-shortcuts') || '{}');
+	const keyboardShortcuts = getKeyboardShortcuts();
 
 	const debug = () => {
 		console.log('json=', canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS));
@@ -74,13 +74,19 @@ const SettingsMenu: React.FC<Props> = ({
 
 	useHotkeys([
 		[
-			'alt+shift+D',
+			keyboardShortcuts.Debug,
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				debug();
 			},
 		],
-		[keyboardShortcuts['Toggle ruler'], toggleRuler],
+		[
+			keyboardShortcuts['Toggle ruler'],
+			() => {
+				console.log(keyboardShortcuts['Toggle ruler']);
+				toggleRuler();
+			},
+		],
 		[keyboardShortcuts['Show sidebar'], toggleUI],
 		[
 			keyboardShortcuts['Toggle color mode'],
