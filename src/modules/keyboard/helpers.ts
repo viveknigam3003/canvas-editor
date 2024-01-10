@@ -12,10 +12,10 @@ export const validateKeyCode = (code: string) => {
 };
 
 export const getKeyboardShortcuts = (): KeyMap => {
-	const userShortcuts = JSON.parse(localStorage.getItem('keyboard-shortcuts') || '{}');
+	const userShortcuts = JSON.parse(localStorage.getItem('keyboard-shortcuts') || JSON.stringify(UserShortcutMap));
 	const systemShortcuts = DefaultKeyboardShortcuts;
 
-	return { ...systemShortcuts, ...{ ...UserShortcutMap, ...userShortcuts } };
+	return { ...systemShortcuts, ...userShortcuts };
 };
 
 export const getActionForKeystring = (keystring: string): string => {
