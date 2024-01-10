@@ -9,7 +9,7 @@ interface ErrorElementProps {
 const ErrorElement: React.FC<ErrorElementProps> = ({ error }) => {
 	const theme = useMantineTheme();
 	const routeError = useRouteError();
-	const foundError = error || routeError;
+	const foundError = error || new Error((routeError as any).error.message);
 
 	return (
 		<Center h={'100vh'}>
@@ -39,7 +39,7 @@ const ErrorElement: React.FC<ErrorElementProps> = ({ error }) => {
 								weight={500}
 								color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
 							>
-								Error :{' '}
+								Error:{' '}
 								<span style={{ fontFamily: 'monospace', fontSize: '12px' }}>
 									{(foundError as Error)?.message}
 								</span>
