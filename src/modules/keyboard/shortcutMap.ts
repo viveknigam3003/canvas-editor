@@ -85,13 +85,13 @@ export const DefaultKeyboardShortcuts: SystemKeyMap = {
 	[SystemKeyboardShortcut.groupElements]: 'mod+g',
 	[SystemKeyboardShortcut.ungroupElements]: 'mod+shift+g',
 
-	[SystemKeyboardShortcut.moveUp]: 'ArrowUp',
-	[SystemKeyboardShortcut.moveDown]: 'ArrowDown',
-	[SystemKeyboardShortcut.moveLeft]: 'ArrowLeft',
-	[SystemKeyboardShortcut.moveRight]: 'ArrowRight',
+	[SystemKeyboardShortcut.moveUp]: 'arrowup',
+	[SystemKeyboardShortcut.moveDown]: 'arrowdown',
+	[SystemKeyboardShortcut.moveLeft]: 'arrowleft',
+	[SystemKeyboardShortcut.moveRight]: 'arrowright',
 
 	[SystemKeyboardShortcut.moveUpFast]: 'alt+ArrowUp',
-	[SystemKeyboardShortcut.moveDownFast]: 'alt+ArrowDown',
-	[SystemKeyboardShortcut.moveLeftFast]: 'alt+ArrowLeft',
-	[SystemKeyboardShortcut.moveRightFast]: 'alt+ArrowRight',
+	[SystemKeyboardShortcut.moveDownFast]: 'alt+arrowdown',
+	[SystemKeyboardShortcut.moveLeftFast]: 'alt+arrowleft',
+	[SystemKeyboardShortcut.moveRightFast]: 'alt+arrowright',
 };

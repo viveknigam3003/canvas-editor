@@ -125,11 +125,19 @@ const KeyboardShortcutsModal = ({ open, onClose }: KeyboardShortcutsModalProps) 
 			.join('+');
 
 		// 2. The shortcut should not be a system shortcut
-		const systemShortcut = Object.values(DefaultKeyboardShortcuts).includes(santisedShortcut);
-		if (systemShortcut) return `ERROR: Shortcut cannot be a system shortcut. Use a different key combination.`;
+		console.log(santisedShortcut);
+		const systemShortcut = Object.values(DefaultKeyboardShortcuts)
+			.map(s => s.toLowerCase())
+			.includes(santisedShortcut);
+		if (systemShortcut)
+			return `ERROR: Shortcut cannot be a system shortcut. ${parseKeyString(
+				santisedShortcut,
+			)} is being used by '${getActionForKeystring(santisedShortcut)}'`;
 
 		// 3. The shortcut should not be a duplicate of another shortcut
-		const duplicateShortcut = Object.values(keyboardShortcuts).includes(santisedShortcut);
+		const duplicateShortcut = Object.values(keyboardShortcuts)
+			.map(s => s.toLowerCase())
+			.includes(santisedShortcut);
 		if (duplicateShortcut)
 			return `ERROR: Duplicate shortcut recorded. ${parseKeyString(
 				santisedShortcut,

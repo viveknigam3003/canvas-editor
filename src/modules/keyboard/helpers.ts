@@ -20,45 +20,48 @@ export const getKeyboardShortcuts = (): KeyMap => {
 
 export const getActionForKeystring = (keystring: string): string => {
 	const shortcuts = getKeyboardShortcuts();
-	const action = Object.keys(shortcuts).find(action => shortcuts[action as keyof typeof shortcuts] === keystring);
+	const action = Object.keys(shortcuts).find(
+		action => shortcuts[action as keyof typeof shortcuts].toLowerCase() === keystring.toLowerCase(),
+	);
 	return action || '';
 };
 
 export const parseShortcutKey = (key: string): string => {
-	if (key === 'mod' || key.toLowerCase() === 'meta' || key.toLowerCase() === 'ctrl') {
+	const _key = key.toLowerCase();
+	if (['mod', 'meta', 'ctrl'].includes(_key)) {
 		return getModKey();
 	}
-	if (key.toLowerCase() === 'alt') {
+	if (_key === 'alt') {
 		return getAltKey();
 	}
 
-	if (key.toLowerCase() === 'shift') {
+	if (_key === 'shift') {
 		return '⇧ Shift';
 	}
 
-	if (key.toLowerCase() === 'enter') {
+	if (_key === 'enter') {
 		return 'Enter ↵';
 	}
 
-	if (key === ' ') return 'Space';
+	if (_key === ' ') return 'Space';
 
-	if (key === 'left' || key === 'ArrowLeft') {
+	if (_key === 'left' || _key === 'arrowleft') {
 		return '←';
 	}
 
-	if (key === 'right' || key === 'ArrowRight') {
+	if (_key === 'right' || _key === 'arrowright') {
 		return '→';
 	}
 
-	if (key === 'up' || key === 'ArrowUp') {
+	if (_key === 'up' || _key === 'arrowup') {
 		return '↑';
 	}
 
-	if (key === 'down' || key === 'ArrowDown') {
+	if (_key === 'down' || _key === 'arrowdown') {
 		return '↓';
 	}
 
-	return key.toUpperCase();
+	return _key.toUpperCase();
 };
 
 export const parseKeyString = (keystring: string): string => {
