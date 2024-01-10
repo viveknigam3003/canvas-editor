@@ -696,11 +696,19 @@ function App() {
 		}
 
 		activeObjects[0].clone((cloned: fabric.Object) => {
+			const id = generateId();
+			cloned.set({
+				left: cloned.left! + 20,
+				data: {
+					...cloned.data,
+					id,
+				},
+			});
 			canvas.add(cloned);
 			canvas.renderAll();
 			dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 			saveArtboardChanges();
-		});
+		}, FABRIC_JSON_ALLOWED_KEYS);
 	};
 
 	const getNextArtboardName = (artboards: Artboard[]) => {
