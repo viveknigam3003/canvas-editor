@@ -7,7 +7,7 @@ import { getAltKey, getModKey } from '../utils/keyboard';
 import ShortcutKeys from './ShortcutKeys';
 import { KeyCodeMap } from './keycodemap';
 import { DefaultKeyboardShortcuts, UserKeyMap, UserShortcutMap } from './shortcutMap';
-import { validateKeyCode } from './helpers';
+import { getActionForKeystring, parseKeyString, validateKeyCode } from './helpers';
 
 const useStyles = createStyles(theme => ({
 	row: {
@@ -131,7 +131,9 @@ const KeyboardShortcutsModal = ({ open, onClose }: KeyboardShortcutsModalProps) 
 		// 3. The shortcut should not be a duplicate of another shortcut
 		const duplicateShortcut = Object.values(keyboardShortcuts).includes(santisedShortcut);
 		if (duplicateShortcut)
-			return `ERROR: Shortcut cannot be a duplicate of another shortcut. Use a different key combination.`;
+			return `ERROR: Duplicate shortcut recorded. ${parseKeyString(
+				santisedShortcut,
+			)} is being used by '${getActionForKeystring(santisedShortcut)}'`;
 
 		// 4. The shortcut should always have another key if it has a mod key (ctrl, alt, shift, meta)
 		if (modKey && shortcut.length === 1) return `ERROR: Shortcut cannot be just ${getModKey()}`;
