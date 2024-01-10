@@ -14,10 +14,9 @@ import {
 } from '@tabler/icons-react';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import ColorSpaceSwitch from '../../modules/colorSpace';
-import { getAltKey, getModKey } from '../../modules/utils/keyboard';
 import { useMenuStyles } from '../../styles/menu';
 import KeyboardShortcutsModal from '../keyboard/KeyboardShortcutsModal';
-import { getKeyboardShortcuts } from '../keyboard/helpers';
+import { getKeyboardShortcuts, parseKeyString } from '../keyboard/helpers';
 import SnapDistanceModal from '../snapping/SnapDistanceModal';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
@@ -115,7 +114,7 @@ const SettingsMenu: React.FC<Props> = ({
 					<Menu.Item
 						icon={<IconLayoutSidebarLeftCollapse size={14} />}
 						className={classes.item}
-						rightSection={<Text size={11}>{getModKey()} + .</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Show sidebar'])}</Text>}
 						onClick={() => toggleUI()}
 					>
 						Show/hide UI
@@ -123,7 +122,7 @@ const SettingsMenu: React.FC<Props> = ({
 					<Menu.Item
 						icon={<IconRuler size={14} />}
 						className={classes.item}
-						rightSection={<Text size={11}>{getAltKey()} + R</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Toggle ruler'])}</Text>}
 						onClick={() => toggleRuler()}
 					>
 						Show/hide Ruler
@@ -154,7 +153,7 @@ const SettingsMenu: React.FC<Props> = ({
 						className={classes.item}
 						icon={colorScheme === 'light' ? <IconMoon size={16} /> : <IconSun size={14} />}
 						onClick={() => toggleColorScheme()}
-						rightSection={<Text size={11}>{getAltKey()} + L</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Toggle color mode'])}</Text>}
 					>
 						Switch to {colorScheme === 'dark' ? 'light' : 'dark'} mode
 					</Menu.Item>
@@ -172,7 +171,7 @@ const SettingsMenu: React.FC<Props> = ({
 						onClick={() => {
 							debug();
 						}}
-						rightSection={<Text size={11}>{getAltKey()} + Shift + D</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts.Debug)}</Text>}
 					>
 						Log state
 					</Menu.Item>
