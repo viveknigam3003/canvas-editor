@@ -80,10 +80,10 @@ const SettingsMenu: React.FC<Props> = ({
 				debug();
 			},
 		],
-		[keyboardShortcuts['Toggle Ruler'], toggleRuler],
-		[keyboardShortcuts['Show Sidebar'], toggleUI],
+		[keyboardShortcuts['Toggle ruler'], toggleRuler],
+		[keyboardShortcuts['Show sidebar'], toggleUI],
 		[
-			keyboardShortcuts['Toggle Color Mode'],
+			keyboardShortcuts['Toggle color mode'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				toggleColorScheme();
@@ -157,7 +157,7 @@ const SettingsMenu: React.FC<Props> = ({
 						icon={<IconKeyboard size={16} />}
 						onClick={() => openKeyboardShortcutsModal()}
 					>
-						Change keyboard shortcuts
+						Keyboard shortcuts
 					</Menu.Item>
 					<Menu.Item
 						className={classes.item}
