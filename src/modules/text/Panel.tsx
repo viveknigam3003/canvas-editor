@@ -1,10 +1,9 @@
-import { ActionIcon, Box, ColorInput, Divider, Select, Stack } from '@mantine/core';
+import { ActionIcon, Divider, Stack } from '@mantine/core';
 import { IconBold, IconItalic, IconSubscript, IconSuperscript, IconUnderline } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Reflection from '../reflection';
 import Shadow from '../shadow';
 import CustomFont from './CustomFont';
-import { Font } from './types';
 import SectionTitle from '../../components/SectionTitle';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/rootReducer';
@@ -18,17 +17,12 @@ interface PanelProps {
 const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const dispatch = useDispatch();
 	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
-	const [fontList, setFontList] = useState<Font[]>([]);
-	const [value, setValue] = useState('');
-	const [fontWeight, setFontWeight] = useState('regular');
-	const currentFont = fontList.find(font => font.family === value) as Font;
 	// Add these states at the beginning of your component
 	const [isBold, setIsBold] = useState(false);
 	const [isItalic, setIsItalic] = useState(false);
 	const [isUnderline, setIsUnderline] = useState(false);
 	const [isSuperscript, setIsSuperscript] = useState(false);
 	const [isSubscript, setIsSubscript] = useState(false);
-	const [selectedFontColor, setSelectedFontColor] = useState('#000000');
 
 	useEffect(() => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
@@ -49,20 +43,8 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 
 			const isSubscript = selectedStyles.some(style => style.fontSize && style.deltaY > 0);
 			setIsSubscript(isSubscript);
-
-			const fontColor = textElement.fill;
-			setSelectedFontColor(fontColor as string);
 		}
 	}, [currentSelectedElements]);
-
-	useEffect(() => {
-		fetch('/fonts.json')
-			.then(response => response.json())
-			.then(fonts => {
-				setFontList(fonts.items);
-			})
-			.catch(error => console.error(error));
-	}, []);
 
 	const toggleBold = () => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
