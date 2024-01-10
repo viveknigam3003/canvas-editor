@@ -84,7 +84,6 @@ const useStyles = createStyles(theme => ({
 	},
 	header: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		borderBottom: `1px solid ${theme.colors.gray[3]}`,
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'space-between',
@@ -101,7 +100,8 @@ const useStyles = createStyles(theme => ({
 	},
 	left: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		borderRight: `1px solid ${theme.colors.gray[3]}`,
+		borderTop: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+
 		width: 300,
 		display: 'grid',
 		gridTemplateRows: '50% 50%',
@@ -114,7 +114,8 @@ const useStyles = createStyles(theme => ({
 	},
 	right: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
-		borderLeft: `1px solid ${theme.colors.gray[3]}`,
+		borderTop: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+
 		zIndex: 1,
 		position: 'absolute',
 		right: 0,
@@ -126,8 +127,8 @@ const useStyles = createStyles(theme => ({
 	},
 	center: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
-		borderLeft: `1px solid ${theme.colors.gray[3]}`,
-		borderRight: `1px solid ${theme.colors.gray[3]}`,
+		// borderLeft: `1px solid ${theme.colors.gray[3]}`,
+		// borderRight: `1px solid ${theme.colors.gray[3]}`,
 		flexGrow: 1,
 		flexShrink: 1,
 		zIndex: 0,
@@ -1207,20 +1208,20 @@ function App() {
 		if (isArtboardActive) {
 			if (isArtboardSelected) {
 				if (selectedArtboards.length === 1) {
-					return theme.colors.violet[1];
+					return theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.violet[1];
 				}
-				return theme.colors.violet[2];
+				return theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.violet[2];
 			}
 
-			return theme.colors.violet[1];
+			return theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.violet[1];
 		}
 
 		if (isArtboardSelected) {
 			if (activeElement && !isElementInCurrentArtboard) {
-				return theme.colors.gray[2];
+				return theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2];
 			}
 
-			return theme.colors.violet[1];
+			return theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.violet[1];
 		}
 
 		return 'transparent';
@@ -1312,7 +1313,14 @@ function App() {
 											>
 												<Group w={'70%'}>
 													<Text size={14}>{artboard.name}</Text>
-													<Text size={12} color="gray">
+													<Text
+														size={12}
+														color={
+															theme.colorScheme === 'dark'
+																? theme.colors.gray[5]
+																: theme.colors.gray[6]
+														}
+													>
 														{artboard.width}x{artboard.height}
 													</Text>
 												</Group>

@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Tooltip } from '@mantine/core';
+import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { IconLetterT, IconPhoto } from '@tabler/icons-react';
 import { fabric } from 'fabric';
@@ -21,6 +21,7 @@ type AddMenuProps = {
 export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges }: AddMenuProps) {
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
 	const keyboardShortcuts = getKeyboardShortcuts();
+	const theme = useMantineTheme();
 	const dispatch = useDispatch();
 
 	const addText = () => {
@@ -104,12 +105,18 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			<Group spacing={4}>
 				<Tooltip label="Add text (T)" openDelay={500}>
 					<ActionIcon onClick={addText}>
-						<IconLetterT size={14} />
+						<IconLetterT
+							size={14}
+							color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
+						/>
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label="Add image (I)" openDelay={500}>
 					<ActionIcon onClick={openImageModal}>
-						<IconPhoto size={14} />
+						<IconPhoto
+							size={14}
+							color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
+						/>
 					</ActionIcon>
 				</Tooltip>
 				<ShapePopover canvasRef={canvasRef} activeArtboard={activeArtboard} />
