@@ -1,8 +1,8 @@
 import { Box, Button, Menu, Text } from '@mantine/core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut, IconZoomReset } from '@tabler/icons-react';
 import React from 'react';
-import { getModKey } from '../../modules/utils/keyboard';
 import { useMenuStyles } from '../../styles/menu';
+import { getKeyboardShortcuts, parseKeyString } from '../keyboard/helpers';
 
 interface Props {
 	/**
@@ -30,6 +30,7 @@ interface Props {
 const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit }) => {
 	const { classes } = useMenuStyles();
 	const zoomPercentage = Math.round(zoom * 100);
+	const keyboardShortcuts = getKeyboardShortcuts();
 
 	return (
 		<Box>
@@ -45,7 +46,7 @@ const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit
 						className={classes.item}
 						icon={<IconZoomIn size={14} />}
 						closeMenuOnClick={false}
-						rightSection={<Text size={11}>{getModKey()} +</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Zoom in'])}</Text>}
 						onClick={() => zoomIn()}
 					>
 						Zoom in
@@ -54,7 +55,7 @@ const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit
 						className={classes.item}
 						icon={<IconZoomOut size={14} />}
 						closeMenuOnClick={false}
-						rightSection={<Text size={11}>{getModKey()} -</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Zoom out'])}</Text>}
 						onClick={() => zoomOut()}
 					>
 						Zoom out
@@ -63,7 +64,7 @@ const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit
 						className={classes.item}
 						icon={<IconZoomReset size={14} />}
 						closeMenuOnClick={false}
-						rightSection={<Text size={11}>{getModKey()} 0</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Reset zoom'])}</Text>}
 						onClick={() => zoomReset()}
 					>
 						Reset zoom
@@ -73,7 +74,7 @@ const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit
 						className={classes.item}
 						icon={<IconFocusCentered size={14} />}
 						closeMenuOnClick={false}
-						rightSection={<Text size={11}>{getModKey()} /</Text>}
+						rightSection={<Text size={11}>{parseKeyString(keyboardShortcuts['Zoom to fit'])}</Text>}
 						onClick={() => zoomToFit()}
 					>
 						Zoom to fit canvas

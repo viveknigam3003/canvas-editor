@@ -10,6 +10,7 @@ import { updateActiveArtboardLayers } from '../app/actions';
 import { getArtboardCenter } from '../artboard/helpers';
 import ImageModal from '../image/AddImage';
 import ShapePopover from '../shapes/ShapePopover';
+import { getKeyboardShortcuts } from '../keyboard/helpers';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -19,6 +20,7 @@ type AddMenuProps = {
 
 export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges }: AddMenuProps) {
 	const [imageModalOpened, { open: openImageModal, close: closeImageModal }] = useDisclosure();
+	const keyboardShortcuts = getKeyboardShortcuts();
 	const dispatch = useDispatch();
 
 	const addText = () => {
@@ -50,21 +52,21 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 
 	useHotkeys([
 		[
-			'T',
+			keyboardShortcuts['Add text element'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				addText();
 			},
 		],
 		[
-			'I',
+			keyboardShortcuts['Add image element'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				openImageModal();
 			},
 		],
 		[
-			'R',
+			keyboardShortcuts['Add rectangle element'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				addRectangle();
@@ -86,6 +88,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			width: 100,
 			height: 100,
 			data: {
+				type: 'shape',
 				displayText: 'Shape',
 				id: generateId(),
 			},

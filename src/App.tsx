@@ -30,8 +30,10 @@ import {
 	updateActiveArtboardLayers,
 } from './modules/app/actions';
 import NewArtboardModal from './modules/artboard/NewArtboardModal';
+import { getArtboardDimensions, getArtboardPosition } from './modules/artboard/helpers';
 import { redo, undo } from './modules/history/actions';
 import { addVideoToCanvas } from './modules/image/helpers';
+import { getKeyboardShortcuts } from './modules/keyboard/helpers';
 import LayerList from './modules/layers/List';
 import AddMenu from './modules/menu/AddMenu';
 import MiscMenu from './modules/menu/MiscMenu';
@@ -41,15 +43,15 @@ import {
 	addNewRulerLine,
 	adjustRulerBackgroundPosition,
 	adjustRulerLinesPosition,
+	deleteRulerLineForArtboard,
+	deleteRulerLines,
 	initializeRuler,
 	removeRuler,
 	removeRulerOnMoveMarker,
 	renderRulerAxisBackground,
 	renderRulerOnMoveMarker,
-	deleteRulerLines,
-	updateRulerLineInStorage,
 	renderRulerStepMarkers,
-	deleteRulerLineForArtboard,
+	updateRulerLineInStorage,
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 import { createSnappingLines, snapToObject } from './modules/snapping';
@@ -59,7 +61,6 @@ import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
-import { getArtboardDimensions, getArtboardPosition } from './modules/artboard/helpers';
 
 store.dispatch(appStart());
 
@@ -189,6 +190,7 @@ function App() {
 	});
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
+	const keyboardShortcuts = getKeyboardShortcuts();
 
 	useEffect(() => {
 		if (canvasRef.current && colorSchemeRef.current !== theme.colorScheme) {
@@ -221,7 +223,7 @@ function App() {
 			event?.deselected
 				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
 				.forEach(item => {
-					item.set({ stroke: '#000', fill: '#000' });
+					item.set({ stroke: '#D92D20', fill: '#D92D20' });
 				});
 			removeRulerOnMoveMarker(canvasRef);
 			setCurrentSelectedElements(arr => {
@@ -250,7 +252,7 @@ function App() {
 			e?.deselected
 				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
 				.forEach(item => {
-					item.set({ stroke: '#000', fill: '#000' });
+					item.set({ stroke: '#F97066', fill: '#F97066' });
 					item.setCoords();
 				});
 			setCurrentSelectedElements(null);
@@ -696,11 +698,19 @@ function App() {
 		}
 
 		activeObjects[0].clone((cloned: fabric.Object) => {
+			const id = generateId();
+			cloned.set({
+				left: cloned.left! + 20,
+				data: {
+					...cloned.data,
+					id,
+				},
+			});
 			canvas.add(cloned);
 			canvas.renderAll();
 			dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 			saveArtboardChanges();
-		});
+		}, FABRIC_JSON_ALLOWED_KEYS);
 	};
 
 	const getNextArtboardName = (artboards: Artboard[]) => {
@@ -1096,7 +1106,7 @@ function App() {
 
 	useHotkeys([
 		[
-			'mod+shift+z',
+			keyboardShortcuts.Redo,
 			() => {
 				if (redoable) {
 					canvasRef.current?.discardActiveObject();
@@ -1105,7 +1115,7 @@ function App() {
 			},
 		],
 		[
-			'mod+z',
+			keyboardShortcuts.Undo,
 			() => {
 				if (undoable) {
 					canvasRef.current?.discardActiveObject();
@@ -1114,7 +1124,7 @@ function App() {
 			},
 		],
 		[
-			'mod+s',
+			keyboardShortcuts['Save changes'],
 			e => {
 				e.preventDefault();
 				saveArtboardChanges();
@@ -1128,56 +1138,56 @@ function App() {
 			},
 		],
 		[
-			'mod+=',
+			keyboardShortcuts['Zoom in'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				zoomIn();
 			},
 		],
 		[
-			'mod+-',
+			keyboardShortcuts['Zoom out'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				zoomOut();
 			},
 		],
 		[
-			'mod+0',
+			keyboardShortcuts['Reset zoom'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				resetZoom();
 			},
 		],
 		[
-			'mod+/',
+			keyboardShortcuts['Zoom to fit'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				zoomToFit();
 			},
 		],
 		[
-			'mod+g',
+			keyboardShortcuts['Group elements'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				createGroup();
 			},
 		],
 		[
-			'mod+shift+g',
+			keyboardShortcuts['Ungroup elements'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				ungroup();
 			},
 		],
 		[
-			'backspace',
+			keyboardShortcuts['Delete element'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				deleteElement();
 			},
 		],
 		[
-			'mod+d',
+			keyboardShortcuts['Duplicate element'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				duplicateElement();
