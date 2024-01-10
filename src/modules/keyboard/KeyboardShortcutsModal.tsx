@@ -51,6 +51,7 @@ const KeyboardShortcutsModal = ({ open, onClose }: KeyboardShortcutsModalProps) 
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const recordShortcut = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>, shortcut: string) => {
+		e.preventDefault();
 		setErrorMessage(null);
 		// If already recording, set to null
 		if (selectedShortcut === shortcut) {
