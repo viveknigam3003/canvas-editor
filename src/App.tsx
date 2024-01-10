@@ -91,7 +91,7 @@ const useStyles = createStyles(theme => ({
 	logo: {
 		fontSize: theme.fontSizes.md,
 		fontWeight: 700,
-		color: theme.colors.violet[7],
+		color: theme.colorScheme === 'dark' ? theme.colors.violet[5] : theme.colors.violet[7],
 	},
 	// Create a system where the left and the right panels are on top of the center
 	shell: {
