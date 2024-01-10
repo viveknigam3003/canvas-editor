@@ -69,8 +69,8 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 	const canvasWidth = canvasRef.current?.width as number;
 	for (let i = nearest; i < (canvasWidth + -pan[4]) / zoom; i += interval) {
 		const line = new fabric.Line([i, 0, i, 5 / zoom], {
-			stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
-			strokeWidth: 2 / zoom,
+			stroke: colorScheme === 'dark' ? '#5C5F66' : '#98A2B3',
+			strokeWidth: 1 / zoom,
 			left: i,
 			selectable: false,
 			hoverCursor: 'default',
@@ -87,7 +87,7 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 			top: -pan[5] / zoom,
 			fontSize: 10 / zoom,
 			strokeWidth: 2 / zoom,
-			fill: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
+			fill: colorScheme === 'dark' ? '#5C5F66' : '#98A2B3',
 			fontFamily: 'Inter',
 			selectable: false,
 			hoverCursor: 'default',
@@ -105,8 +105,8 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 	const canvasHeight = canvasRef.current?.height as number;
 	for (let i = nearestTop; i < (canvasHeight + -pan[5]) / zoom; i += interval) {
 		const line = new fabric.Line([0, i, 5 / zoom, i], {
-			stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
-			strokeWidth: 2 / zoom,
+			stroke: colorScheme === 'dark' ? '#5C5F66' : '#98A2B3',
+			strokeWidth: 1 / zoom,
 			top: i,
 			selectable: false,
 			hoverCursor: 'default',
@@ -124,7 +124,7 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 			fontSize: 10 / zoom,
 			strokeWidth: 2 / zoom,
 			fontFamily: 'Inter',
-			fill: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
+			fill: colorScheme === 'dark' ? '#5C5F66' : '#98A2B3',
 			selectable: false,
 			angle: 270,
 			hoverCursor: 'default',
@@ -144,8 +144,8 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 		strokeWidth: 1 / zoom,
 		width: 20 / zoom,
 		height: 20 / zoom,
-		stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
-		fill: colorScheme === 'dark' ? '#2c2c2c' : '#fff',
+		stroke: colorScheme === 'dark' ? '#5C5F66' : '#D0D5DD',
+		fill: colorScheme === 'dark' ? '#1A1B1E' : '#fff',
 	});
 	block?.moveTo((canvasRef.current?.getObjects()?.length as number) - 1);
 	block?.setCoords();
@@ -160,12 +160,12 @@ export function renderRulerAxisBackground(
 	const xaxis = new fabric.Rect({
 		left: 0,
 		top: 0,
-		fill: colorScheme === 'dark' ? '#2c2c2c' : '#fff',
+		fill: colorScheme === 'dark' ? '#1A1B1E' : '#fff',
 		width: canvasRef.current?.width,
 		height: 20,
 		selectable: false,
 		hoverCursor: 'default',
-		stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
+		stroke: colorScheme === 'dark' ? '#5C5F66' : '#D0D5DD',
 		strokeWidth: 1 / zoom,
 		data: {
 			ignoreSnapping: true,
@@ -177,12 +177,12 @@ export function renderRulerAxisBackground(
 	const yaxis = new fabric.Rect({
 		left: 0,
 		top: 0,
-		fill: colorScheme === 'dark' ? '#2c2c2c' : '#fff',
+		fill: colorScheme === 'dark' ? '#1A1B1E' : '#fff',
 		width: 20,
 		selectable: false,
 		hoverCursor: 'default',
 		height: canvasRef.current?.height,
-		stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
+		stroke: colorScheme === 'dark' ? '#5C5F66' : '#D0D5DD',
 		strokeWidth: 1 / zoom,
 		data: {
 			id: generateId(),
@@ -194,12 +194,12 @@ export function renderRulerAxisBackground(
 	const block = new fabric.Rect({
 		left: 0,
 		top: 0,
-		fill: colorScheme === 'dark' ? '#2c2c2c' : '#fff',
+		fill: colorScheme === 'dark' ? '#1A1B1E' : '#fff',
 		width: 20 / zoom,
 		selectable: false,
 		height: 20 / zoom,
 		hoverCursor: 'default',
-		stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
+		stroke: colorScheme === 'dark' ? '#5C5F66' : '#D0D5DD',
 		strokeWidth: 1 / zoom,
 		data: {
 			id: generateId(),
@@ -227,16 +227,18 @@ export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabri
 	const zoom = canvasRef.current?.getZoom() as number;
 	const canvasHeight = canvasRef.current?.height as number;
 	const canvasWidth = canvasRef.current?.width as number;
+	const padding = zoom > 1 ? 10 / zoom : zoom * 10;
 	allObjects
 		.filter(x => x?.data?.type === RULER_LINES.X_RULER_LINE)
 		.forEach(x => {
 			const pan = canvasRef.current?.viewportTransform as FixedArray<number, 6>;
 			x?.set({
-				strokeWidth: 2 / zoom,
+				strokeWidth: 1 / zoom,
 				top: (-pan[5] + 20) / zoom,
 				height: canvasHeight / zoom,
-				padding: 10 / zoom,
+				// padding: 10 / zoom,
 				width: 0,
+				padding,
 			});
 			x.setCoords();
 		});
@@ -246,11 +248,12 @@ export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabri
 		.forEach(x => {
 			const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
 			x?.set({
-				strokeWidth: 2 / zoom,
+				strokeWidth: 1 / zoom,
 				left: (-pan[4] + 20) / zoom,
 				width: canvasWidth / zoom,
-				padding: 10 / zoom,
+				// padding: 10 / zoom,
 				height: 0,
+				padding,
 			});
 			x.setCoords();
 		});
@@ -292,8 +295,8 @@ export function adjustRulerBackgroundPosition(
 		left: -pan[4] / zoom,
 		top: -pan[5] / zoom,
 		strokeWidth: 1 / zoom,
-		fill: colorScheme === 'dark' ? '#2c2c2c' : '#fff',
-		stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
+		stroke: colorScheme === 'dark' ? '#5C5F66' : '#D0D5DD',
+		fill: colorScheme === 'dark' ? '#1A1B1E' : '#fff',
 		width: canvasWidth / zoom,
 		height: 20 / zoom,
 	});
@@ -302,8 +305,8 @@ export function adjustRulerBackgroundPosition(
 		top: -pan[5] / zoom,
 		strokeWidth: 1 / zoom,
 		width: 20 / zoom,
-		stroke: colorScheme === 'dark' ? '#fff' : '#2c2c2c',
-		fill: colorScheme === 'dark' ? '#2c2c2c' : '#fff',
+		stroke: colorScheme === 'dark' ? '#5C5F66' : '#D0D5DD',
+		fill: colorScheme === 'dark' ? '#1A1B1E' : '#fff',
 		height: canvasHeight / zoom,
 	});
 	xaxis?.moveTo((canvasRef.current?.getObjects()?.length as number) + 1);
@@ -339,8 +342,8 @@ export function loadRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas |
 				? [item.left, (-pan[5] + 20) / zoom, item.left, canvasHeight]
 				: [(-pan[4] + 20) / zoom, item.top, canvasWidth, item.top];
 		const line = new fabric.Line(points as number[], {
-			stroke: '#000',
-			strokeWidth: 2 / zoom,
+			stroke: '#F97066',
+			strokeWidth: 1 / zoom,
 			hasControls: false,
 			hasBorders: false,
 			lockRotation: true,
@@ -350,7 +353,9 @@ export function loadRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas |
 			lockSkewingX: true,
 			lockSkewingY: true,
 			lockScalingFlip: true,
-			...(axis === 'x' ? { lockMovementY: true } : { lockMovementX: true }),
+			...(axis === 'x'
+				? { lockMovementY: true, hoverCursor: 'ew-resize', moveCursor: 'ew-resize' }
+				: { lockMovementX: true, hoverCursor: 'ns-resize', moveCursor: 'ns-resize' }),
 			data: {
 				isSaveExclude: true,
 				type: item.data.type,
@@ -408,9 +413,10 @@ export function addNewRulerLine(
 		const canvasHeight =
 			zoom > 1 ? (canvasRef.current?.height as number) : (canvasRef.current?.height as number) / zoom;
 		const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
+		const padding = zoom > 1 ? 10 / zoom : zoom * 10;
 		const line = new fabric.Line([pointer.x, (-pan[5] + 20) / zoom, pointer.x, canvasHeight], {
-			stroke: '#000',
-			strokeWidth: 2 / zoom,
+			stroke: '#F97066',
+			strokeWidth: 1 / zoom,
 			hasControls: false,
 			hasBorders: false,
 			lockRotation: true,
@@ -421,6 +427,9 @@ export function addNewRulerLine(
 			lockSkewingX: true,
 			lockSkewingY: true,
 			lockScalingFlip: true,
+			padding,
+			hoverCursor: 'ew-resize',
+			moveCursor: 'ew-resize',
 			data: {
 				type: RULER_LINES.X_RULER_LINE,
 				id: generateId(),
@@ -443,9 +452,11 @@ export function addNewRulerLine(
 		const canvasWidth =
 			zoom > 1 ? (canvasRef.current?.width as number) : (canvasRef.current?.width as number) / zoom;
 		const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
+		const padding = zoom > 1 ? 10 / zoom : zoom * 10;
+		console.log('padding', padding);
 		const line = new fabric.Line([(-pan[4] + 20) / zoom, pointer.y, canvasWidth, pointer.y], {
-			stroke: '#000',
-			strokeWidth: 2 / zoom,
+			stroke: '#F97066',
+			strokeWidth: 1 / zoom,
 			lockMovementX: true,
 			hasControls: false,
 			lockRotation: true,
@@ -456,6 +467,9 @@ export function addNewRulerLine(
 			lockSkewingX: true,
 			lockSkewingY: true,
 			lockScalingFlip: true,
+			hoverCursor: 'ns-resize',
+			moveCursor: 'ns-resize',
+			padding,
 			data: {
 				isSaveExclude: true,
 				type: RULER_LINES.Y_RULER_LINE,
@@ -490,7 +504,7 @@ export function renderRulerOnMoveMarker(
 			new fabric.Text(`${Math.round(target.left as number)}`, {
 				left: (target.left as number) + 5 / zoom,
 				top: (-pan[5] + 20) / zoom,
-				fill: 'red',
+				fill: '#F04438',
 				fontFamily: 'Inter',
 				fontSize: 12 / zoom,
 				data: { type: RULER_ELEMENTS.X_ON_MOVE_MARKER, id: generateId(), isSaveExclude: true },
@@ -504,7 +518,7 @@ export function renderRulerOnMoveMarker(
 			new fabric.Text(`${Math.round(target.top as number)}`, {
 				left: (-pan[4] + 20) / zoom,
 				top: (target.top as number) - 5 / zoom,
-				fill: 'red',
+				fill: '#F04438',
 				fontFamily: 'Inter',
 				angle: 270,
 				fontSize: 12 / zoom,

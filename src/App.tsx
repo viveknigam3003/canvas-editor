@@ -221,7 +221,7 @@ function App() {
 			event?.deselected
 				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
 				.forEach(item => {
-					item.set({ stroke: '#000', fill: '#000' });
+					item.set({ stroke: '#D92D20', fill: '#D92D20' });
 				});
 			removeRulerOnMoveMarker(canvasRef);
 			setCurrentSelectedElements(arr => {
@@ -250,7 +250,7 @@ function App() {
 			e?.deselected
 				?.filter(item => Object.values(RULER_LINES).includes(item.data?.type))
 				.forEach(item => {
-					item.set({ stroke: '#000', fill: '#000' });
+					item.set({ stroke: '#F97066', fill: '#F97066' });
 					item.setCoords();
 				});
 			setCurrentSelectedElements(null);
