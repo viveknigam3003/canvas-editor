@@ -44,27 +44,3 @@ export function convertFabricObjectsToLayers(objects: { [key: string]: any }) {
 	});
 	return layers;
 }
-export function convertLayersToFabricObjects(layers: layer[]) {
-	const fabricObjects: { [key: number]: any } = {};
-	const rootObjectIds: number[] = [];
-
-	// First pass: create fabricObjects for all layers
-	layers.forEach(layer => {
-		fabricObjects[layer.id as number] = layer.data ? { ...layer.data, objects: [] } : { objects: [] };
-		if (layer.parent === 0) {
-			rootObjectIds.push(layer.id as number);
-		}
-	});
-
-	// Second pass: build the nested structure
-	layers.forEach(layer => {
-		if (layer.parent !== 0) {
-			fabricObjects[layer.parent as number].objects.push(fabricObjects[layer.id as number]);
-		}
-	});
-
-	// Filter out the root objects
-	const rootObjects = rootObjectIds.map(id => fabricObjects[id]);
-	console.log('object', rootObjects);
-	return rootObjects;
-}

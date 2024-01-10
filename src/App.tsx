@@ -799,6 +799,26 @@ function App() {
 			// take all texts and then loop over. Read data property inside and get font from it
 			const fontPromises = artboardTexts?.map((item: any) => {
 				const textItem = item as fabric.Text;
+
+				if (
+					textItem.data &&
+					typeof textItem.data.boldFont === 'string' &&
+					typeof textItem.fontFamily === 'string'
+				) {
+					const boldFont = textItem.data.boldFont;
+					console.log('boldFont', boldFont, textItem.fontFamily);
+					const style = document.createElement('style');
+
+					style.appendChild(document.createTextNode(boldFont));
+					document.head.appendChild(style);
+
+					const observer = new FontFaceObserver(textItem.fontFamily || '');
+
+					// load the font
+					return observer.load().catch(err => {
+						console.log('Bold Font is not available', err);
+					});
+				}
 				if (
 					textItem.data &&
 					typeof textItem.data.font === 'string' &&
@@ -816,24 +836,6 @@ function App() {
 					// load the font
 					return observer.load().catch(err => {
 						console.log('Font is not available', err);
-					});
-				} else if (
-					textItem.data &&
-					typeof textItem.data.boldFont === 'string' &&
-					typeof textItem.fontFamily === 'object'
-				) {
-					const boldFont = textItem.data.boldFont;
-					console.debug('boldFont', boldFont, textItem.fontFamily);
-					const style = document.createElement('style');
-
-					style.appendChild(document.createTextNode(boldFont));
-					document.head.appendChild(style);
-
-					const observer = new FontFaceObserver(textItem.fontFamily || '');
-
-					// load the font
-					return observer.load().catch(err => {
-						console.log('Bold Font is not available', err);
 					});
 				}
 			});
@@ -947,6 +949,9 @@ function App() {
 				}
 				lastPosX = e.clientX;
 				lastPosY = e.clientY;
+				if (showRuler) {
+					renderRuler();
+				}
 			}
 		};
 

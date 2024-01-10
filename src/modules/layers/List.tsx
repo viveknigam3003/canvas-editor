@@ -15,7 +15,7 @@ import {
 import Node from './Folders/Node';
 import Placeholder from './Folders/Placeholder';
 import useTreeOpenHandler from './Folders/useTreeOpenHandler';
-import { convertFabricObjectsToLayers, convertLayersToFabricObjects } from './helpers';
+import { convertFabricObjectsToLayers } from './helpers';
 import { fabric } from 'fabric';
 import SectionTitle from '../../components/SectionTitle';
 import { filterLayerPanelExcludes } from '../utils/fabricObjectUtils';
@@ -37,80 +37,6 @@ export default function LayerList({ canvas }: LayerListProp) {
 	const layers = useSelector((state: RootState) => state.app.activeArtboardLayers);
 	const { ref, getPipeHeight, toggle } = useTreeOpenHandler();
 	const [treeData, setTreeData] = React.useState<NodeModel[]>([]);
-
-	const updateFabricCanvas = (canvas: any, newObjects: any[]) => {
-		console.log('Updating canvas', newObjects, canvas);
-		// let rect;
-		// // Remove all objects that are not rectangles
-		// canvas.getObjects().forEach((object: any) => {
-		// 	if (object?.data?.type !== 'artboard') canvas.remove(object);
-		// });
-
-		// // Add new objects to the canvas
-		// newObjects.forEach(object => {
-		// 	let fabricObject;
-		// 	switch (object.type) {
-		// 		case 'rect':
-		// 			fabricObject = new fabric.Rect(object);
-		// 			break;
-		// 		case 'textbox':
-		// 			fabricObject = new fabric.Textbox(object.text, object);
-		// 			break;
-		// 		case 'group':
-		// 			// eslint-disable-next-line no-case-declarations
-		// 			const groupObjects = object.objects
-		// 				.map((obj: any) => {
-		// 					switch (obj.type) {
-		// 						case 'rect':
-		// 							return new fabric.Rect({
-		// 								...obj,
-		// 								left: obj.left - object.left,
-		// 								top: obj.top - object.top,
-		// 							});
-		// 						case 'textbox':
-		// 							return new fabric.Textbox(obj.text, {
-		// 								...obj,
-		// 								left: obj.left - object.left,
-		// 								top: obj.top - object.top,
-		// 							});
-		// 						case 'image':
-		// 							fabric.Image.fromURL(object.url, img => {
-		// 								img.set(object);
-		// 								canvas.add(img);
-		// 							});
-		// 							return;
-		// 						default:
-		// 							console.error(`Unsupported object type: ${obj.type}`);
-		// 							return null;
-		// 					}
-		// 				})
-		// 				.filter((obj: any) => obj !== null);
-		// 			fabricObject = new fabric.Group(groupObjects, object);
-		// 			break;
-		// 		case 'image':
-		// 			fabric.Image.fromURL(object.url, img => {
-		// 				img.set(object);
-		// 				canvas.add(img);
-		// 			});
-		// 			return;
-		// 		// Add more cases as needed...
-		// 		default:
-		// 			console.error(`Unsupported object type: ${object.type}`);
-		// 			return;
-		// 	}
-
-		// 	// Add the object to the canvas
-		// 	canvas.add(fabricObject);
-		// });
-
-		// // Send the rectangle to the back
-		// if (rect) {
-		// 	canvas.sendToBack(rect);
-		// }
-
-		// // Render the canvas
-		// canvas.requestRenderAll();
-	};
 
 	useEffect(() => {
 		if (layers.length === 0) return;
@@ -148,9 +74,64 @@ export default function LayerList({ canvas }: LayerListProp) {
 				return output;
 			});
 		}
-		const newCanvasObject = convertLayersToFabricObjects(newTree);
-		updateFabricCanvas(canvas, newCanvasObject);
+		convertLayersToFabricObjects(newTree);
+		// updateFabricCanvas(canvas, newCanvasObject);
 	};
+	interface layer {
+		id: number | string;
+		parent: number | string;
+		text: string;
+		droppable?: boolean | undefined;
+		data?: any | undefined;
+	}
+
+	function convertLayersToFabricObjects(layers: layer[]) {
+		const fabricObjects: { [key: number]: any } = {};
+		const rootObjectIds: { [key: number]: boolean } = {}; // Changed from number[] to { [key: number]: boolean }
+
+		// First pass: create fabricObjects for all layers
+		layers.forEach(layer => {
+			fabricObjects[layer.id as number] = layer.data ? { ...layer.data, objects: [] } : { objects: [] };
+			if (layer.parent === 0) {
+				rootObjectIds[layer.id as number] = true;
+			}
+		});
+
+		console.log(rootObjectIds, fabricObjects);
+
+		// Second pass: build the nested structure and adjust left/top values
+		layers.forEach(layer => {
+			if (layer.parent !== 0) {
+				const parent = fabricObjects[layer.parent as number];
+				const parentId = parent.data.id as number;
+
+				const layerId = layer.data.data.id;
+				console.log(layerId);
+
+				console.log(parentId);
+				const textbox = canvas?.getObjects().find(obj => obj.data.id === layerId);
+				const group = canvas?.getObjects('group').find(obj => obj.data.id === parentId);
+
+				if (textbox && group) {
+					// Check if the textbox is already part of a group
+					if (textbox.group != null) {
+						console.log('Textbox is already part of a group');
+						return;
+					}
+
+					// Add the textbox to the group
+					(group as fabric.Group).addWithUpdate(textbox);
+
+					// Remove the textbox from the canvas
+					canvas?.remove(textbox);
+
+					// Rerender the canvas
+					canvas?.renderAll();
+				}
+			}
+		});
+		console.log(fabricObjects);
+	}
 
 	return (
 		<div>
@@ -170,7 +151,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 						insertDroppableFirst={false}
 						enableAnimateExpand={true}
 						onDrop={handleDrop}
-						canDrop={() => false}
+						canDrop={() => true}
 						dropTargetOffset={5}
 						placeholderRender={(node, { depth }) => <Placeholder node={node} depth={depth} />}
 						render={(node, { depth, isOpen, isDropTarget }) => (
@@ -263,10 +244,10 @@ const useStyles = createStyles(theme => ({
 		height: '2px',
 		backgroundColor: '#e7e7e7',
 		zIndex: -1,
+		display: 'none',
 	},
 	wrapper: {
 		fontFamily: 'sans-serif',
-		padding: '20px',
 	},
 	treeRoot: {
 		listStyleType: 'none',
