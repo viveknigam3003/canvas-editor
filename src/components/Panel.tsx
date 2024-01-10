@@ -40,7 +40,7 @@ const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArt
 					<Divider />
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
 
-					{currentSelectedElements?.[0]?.data.type === 'shape' && (
+					{currentSelectedElements?.[0]?.data?.type === 'shape' && (
 						<ShapePanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					)}
 
