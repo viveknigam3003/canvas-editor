@@ -21,6 +21,7 @@ import {
 import { ApplicationState } from './reducer';
 import { getBulkEditedArtboards } from './bulkEdit';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
+import { loadFontsFromArtboards } from './FontLoader';
 
 function* initStateSaga() {
 	const savedState: string = yield call([localStorage, 'getItem'], 'artboards');
@@ -31,6 +32,13 @@ function* initStateSaga() {
 		// Set state to local storage
 		const serializedState = JSON.stringify(artboards);
 		yield call([localStorage, 'setItem'], 'artboards', serializedState);
+	}
+
+	// Load fonts from artboards
+	try {
+		yield call(loadFontsFromArtboards, artboards);
+	} catch (error) {
+		console.error('Error loading fonts:', error);
 	}
 
 	yield put(

@@ -15,7 +15,6 @@ import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@m
 import { notifications } from '@mantine/notifications';
 import { IconCircleCheck, IconCopy, IconDeviceFloppy, IconDownload, IconPlus, IconTrash } from '@tabler/icons-react';
 import { fabric } from 'fabric';
-import FontFaceObserver from 'fontfaceobserver';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Panel from './components/Panel';
@@ -804,59 +803,7 @@ function App() {
 		}
 
 		canvasRef.current?.loadFromJSON(json, async () => {
-			console.log('Loaded from JSON');
 			zoomToFit();
-
-			// create a style sheet
-			const artboardTexts = canvas.getObjects().filter(item => item.type === 'textbox');
-			// take all texts and then loop over. Read data property inside and get font from it
-			const fontPromises = artboardTexts?.map((item: any) => {
-				const textItem = item as fabric.Text;
-
-				if (
-					textItem.data &&
-					typeof textItem.data.boldFont === 'string' &&
-					typeof textItem.fontFamily === 'string'
-				) {
-					const boldFont = textItem.data.boldFont;
-					console.log('boldFont', boldFont, textItem.fontFamily);
-					const style = document.createElement('style');
-
-					style.appendChild(document.createTextNode(boldFont));
-					document.head.appendChild(style);
-
-					const observer = new FontFaceObserver(textItem.fontFamily || '');
-
-					// load the font
-					return observer.load().catch(err => {
-						console.log('Bold Font is not available', err);
-					});
-				}
-				if (
-					textItem.data &&
-					typeof textItem.data.font === 'string' &&
-					typeof textItem.fontFamily === 'string'
-				) {
-					const font = textItem.data.font;
-					console.debug('font', font, textItem.fontFamily);
-					const style = document.createElement('style');
-
-					style.appendChild(document.createTextNode(font));
-					document.head.appendChild(style);
-
-					const observer = new FontFaceObserver(textItem.fontFamily || '');
-
-					// load the font
-					return observer.load().catch(err => {
-						console.log('Font is not available', err);
-					});
-				}
-			});
-
-			// Wait for all the fonts to load
-			if (fontPromises) {
-				await Promise.all(fontPromises);
-			}
 
 			// Attach the reference for reflection object back to the parent object
 			(canvas.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
