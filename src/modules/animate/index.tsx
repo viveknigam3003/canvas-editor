@@ -58,7 +58,7 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		const res = await ffmpeg.load({
 			coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
 			wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-			workerURL: `${baseURL}/ffmpeg-core.worker.js`,
+			workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
 		});
 		console.log('ffmpeg loaded', res);
 		setLoaded(true);
