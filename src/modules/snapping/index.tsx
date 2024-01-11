@@ -4,9 +4,11 @@ import React from 'react';
 import { guidesRefType, snappingObjectType } from '../../types';
 import { getCanvasVisibleTopLeft } from '../utils/canvasUtils';
 import { getExtremePoints } from '../position/helpers';
+
 const inRange = (num: number, min: number, max: number) => num >= min && num <= max;
+
 export function snapToObject(
-	targeter: snappingObjectType,
+	target: snappingObjectType,
 	objects: snappingObjectType[],
 	guidesRef: React.MutableRefObject<guidesRefType>,
 	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
@@ -18,7 +20,6 @@ export function snapToObject(
 	let bottom = false;
 	let centerX = false;
 	let centerY = false;
-	const target = canvasRef.current?.getObjects().find(obj => obj?.data?.id == targeter?.data?.id) as fabric.Object;
 	objects.forEach(function (obj) {
 		if (obj === target) return;
 		target.setCoords();
@@ -114,101 +115,98 @@ export function snapToObject(
 		if (Math.abs(targetPoints.top - objPoints.top) < snapDistance) {
 			top = true;
 			topSnapper.push(obj);
-			const topt =
+			const currentTop =
 				angle > 180
 					? objPoints.top + Math.abs(targetPoints.top - targetTop)
 					: objPoints.top - Math.abs(targetPoints.top - targetTop);
-			target.set({ top: topt });
+			target.set({ top: currentTop });
 		}
 		// target top with object bottom
 		else if (Math.abs(targetPoints.top - objPoints.bottom) < snapDistance) {
 			top = true;
 			topSnapper.push(obj);
-			const topt =
+			const currentTop =
 				angle > 180
 					? objPoints.bottom + Math.abs(targetPoints.top - targetTop)
 					: objPoints.bottom - Math.abs(targetPoints.top - targetTop);
-			target.set({ top: topt });
+			target.set({ top: currentTop });
 		}
 		// target top with object center
 		else if (Math.abs(targetPoints.top - objcenter.y) < snapDistance) {
 			top = true;
 			topSnapper.push(obj);
-			const topt =
+			const currentTop =
 				angle > 180
 					? objcenter.y + Math.abs(targetPoints.top - targetTop)
 					: objcenter.y - Math.abs(targetPoints.top - targetTop);
-			target.set({ top: topt });
+			target.set({ top: currentTop });
 		}
 		// target bottom with object top
 		if (Math.abs(targetPoints.bottom - objPoints.top) < snapDistance) {
 			bottom = true;
 			bottomSnapper.push(obj);
-			const topt = objPoints.top - Math.abs(targetPoints.bottom - targetTop);
-			target.set({ top: topt });
+			const currentTop = objPoints.top - Math.abs(targetPoints.bottom - targetTop);
+			target.set({ top: currentTop });
 		}
 		// target bottom with object bottom
 		else if (Math.abs(targetPoints.bottom - objPoints.bottom) < snapDistance) {
 			bottom = true;
 			bottomSnapper.push(obj);
-			const topt = objPoints.bottom - Math.abs(targetPoints.bottom - targetTop);
-			target.set({ top: topt });
+			const currentTop = objPoints.bottom - Math.abs(targetPoints.bottom - targetTop);
+			target.set({ top: currentTop });
 		}
 		// target bottom with object center
 		else if (Math.abs(targetPoints.bottom - objcenter.y) < snapDistance) {
 			bottom = true;
 			bottomSnapper.push(obj);
-			const topt = objcenter.y - Math.abs(targetPoints.bottom - targetTop);
-			target.set({ top: topt });
+			const currentTop = objcenter.y - Math.abs(targetPoints.bottom - targetTop);
+			target.set({ top: currentTop });
 		}
 
 		// target center with object top
 		if (Math.abs(target.getCenterPoint().y - objPoints.top) < snapDistance) {
 			centerY = true;
 			centerYSnapper.push(obj);
-			const topt =
+			const currentTop =
 				angle < 180
 					? objPoints.top - Math.abs(target.getCenterPoint().y - targetTop)
 					: objPoints.top + Math.abs(target.getCenterPoint().y - targetTop);
-			target.set({ top: topt });
+			target.set({ top: currentTop });
 		}
 		// target center with object bottom
 		else if (Math.abs(target.getCenterPoint().y - objPoints.bottom) < snapDistance) {
 			centerY = true;
 			centerYSnapper.push(obj);
-			const topt =
+			const currentTop =
 				angle < 180
 					? objPoints.bottom - Math.abs(target.getCenterPoint().y - targetTop)
 					: objPoints.bottom + Math.abs(target.getCenterPoint().y - targetTop);
-			target.set({ top: topt });
+			target.set({ top: currentTop });
 		}
 		// target center with object center
 		else if (Math.abs(target.getCenterPoint().y - objcenter.y) < snapDistance) {
 			centerY = true;
 			centerYSnapper.push(obj);
-			const topt =
+			const currentTop =
 				angle < 180
 					? objcenter.y - Math.abs(target.getCenterPoint().y - targetTop)
 					: objcenter.y + Math.abs(target.getCenterPoint().y - targetTop);
-			target.set({ top: topt });
+			target.set({ top: currentTop });
 		}
 
 		target.setCoords();
 		if (left) {
 			const targetPoints = getExtremePoints(target);
 			if (leftSnapper.length > 0) {
-				const sss = leftSnapper.find(
+				const snappedObject = leftSnapper.find(
 					objj =>
 						inRange(getExtremePoints(objj).left - targetPoints.left, 0, 1) ||
 						inRange(getExtremePoints(objj).right - targetPoints.left, 0, 1) ||
 						inRange(objj.getCenterPoint().x - targetPoints.left, 0, 1),
 				);
-				if (sss) {
+				if (snappedObject) {
 					guidesRef?.current?.left?.set({ opacity: 1, left: targetPoints.left });
 				}
-			} else {
-				const targetPoints = getExtremePoints(target);
-				// guidesRef?.current?.left?.set({ opacity: 1, left: targetPoints.left });
 			}
 		} else {
 			guidesRef?.current?.left?.set({ opacity: 0, left: target.left });
@@ -217,34 +215,29 @@ export function snapToObject(
 		if (right) {
 			const targetPoints = getExtremePoints(target);
 			if (rightSnapper.length > 0) {
-				const sss = rightSnapper.find(
+				const snappedObject = rightSnapper.find(
 					objj =>
 						inRange(getExtremePoints(objj).left - targetPoints.right, 0, 1) ||
 						inRange(getExtremePoints(objj).right - targetPoints.right, 0, 1) ||
 						inRange(objj.getCenterPoint().x - targetPoints.right, 0, 1),
 				);
-				if (sss) {
+				if (snappedObject) {
 					guidesRef?.current?.right?.set({ opacity: 1, left: targetPoints.right });
 				}
-			} else {
-				const targetPoints = getExtremePoints(target);
-				// guidesRef?.current?.right?.set({ opacity: 1, left: targetPoints.right });
 			}
-			// guidesRef?.current?.left?.set({ opacity: 1, left: targetPoints.left });
 		} else {
 			guidesRef?.current?.right?.set({ opacity: 0 });
 		}
-
 		if (top) {
 			const targetPoints = getExtremePoints(target);
 			if (topSnapper.length > 0) {
-				const sss = topSnapper.find(
+				const snappedObject = topSnapper.find(
 					objj =>
 						inRange(getExtremePoints(objj).top - targetPoints.top, 0, 1) ||
 						inRange(getExtremePoints(objj).bottom - targetPoints.top, 0, 1) ||
 						inRange(objj.getCenterPoint().y - targetPoints.top, 0, 1),
 				);
-				if (sss) {
+				if (snappedObject) {
 					guidesRef?.current?.top?.set({ opacity: 1, top: targetPoints.top });
 				}
 			}
@@ -255,13 +248,13 @@ export function snapToObject(
 		if (bottom) {
 			const targetPoints = getExtremePoints(target);
 			if (bottomSnapper.length > 0) {
-				const sss = bottomSnapper.find(
+				const snappedObject = bottomSnapper.find(
 					objj =>
 						inRange(getExtremePoints(objj).top - targetPoints.bottom, 0, 1) ||
 						inRange(getExtremePoints(objj).bottom - targetPoints.bottom, 0, 1) ||
 						inRange(objj.getCenterPoint().y - targetPoints.bottom, 0, 1),
 				);
-				if (sss) {
+				if (snappedObject) {
 					guidesRef?.current?.bottom?.set({ opacity: 1, top: targetPoints.bottom });
 				}
 			}
@@ -270,13 +263,13 @@ export function snapToObject(
 		}
 		if (centerX) {
 			if (centerXSnapper.length > 0) {
-				const sss = centerXSnapper.find(
+				const snappedObject = centerXSnapper.find(
 					objj =>
 						inRange(getExtremePoints(objj).left - target.getCenterPoint().x, 0, 1) ||
 						inRange(getExtremePoints(objj).right - target.getCenterPoint().x, 0, 1) ||
 						inRange(objj.getCenterPoint().x - target.getCenterPoint().x, 0, 1),
 				);
-				if (sss) {
+				if (snappedObject) {
 					guidesRef?.current?.centerX?.set({ opacity: 1, left: target.getCenterPoint().x });
 				}
 			}
@@ -285,13 +278,13 @@ export function snapToObject(
 		}
 		if (centerY) {
 			if (centerYSnapper.length > 0) {
-				const sss = centerYSnapper.find(
+				const snappedObject = centerYSnapper.find(
 					objj =>
 						inRange(getExtremePoints(objj).top - target.getCenterPoint().y, 0, 1) ||
 						inRange(getExtremePoints(objj).bottom - target.getCenterPoint().y, 0, 1) ||
 						inRange(objj.getCenterPoint().y - target.getCenterPoint().y, 0, 1),
 				);
-				if (sss) {
+				if (snappedObject) {
 					guidesRef?.current?.centerY?.set({ opacity: 1, top: target.getCenterPoint().y });
 				}
 			}
@@ -326,17 +319,15 @@ export function createSnappingLines(canvasRef: React.MutableRefObject<fabric.Can
 		left: new fabric.Line([0, 0, 0, canvasHeight], {
 			...defaultSnapLineProps,
 			top,
-			stroke: 'red',
 		}),
 		top: new fabric.Line([0, 0, canvasWidth, 0], {
 			...defaultSnapLineProps,
 			left,
-			stroke: 'green',
 		}),
-		right: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top, stroke: 'black' }),
-		bottom: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left, stroke: 'purple' }),
-		centerX: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top, stroke: 'orange' }),
-		centerY: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left, stroke: 'pink' }),
+		right: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top }),
+		bottom: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
+		centerX: new fabric.Line([0, 0, 0, canvasHeight], { ...defaultSnapLineProps, top }),
+		centerY: new fabric.Line([0, 0, canvasWidth, 0], { ...defaultSnapLineProps, left }),
 	};
 	canvasRef.current
 		?.getObjects()
