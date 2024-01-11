@@ -273,23 +273,26 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 							.then(response => response.arrayBuffer())
 							.then(arrayBuffer => {
 								const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-								const fontFaceRule = `
-										@font-face {
-											font-family:  ${font.family};
-											src: url(data:font/woff;base64,${fontBase64}) format('woff');
-										}
-									`;
-								const styleElement = document.createElement('style');
-								styleElement.appendChild(document.createTextNode(fontFaceRule));
-								document.head.appendChild(styleElement);
+								const fontFace = new FontFace(
+									font.family,
+									`url(data:font/woff;base64,${fontBase64}) format('woff')`,
+								);
+								document.fonts.add(fontFace);
+
+								return fontFace.load(); // Load the font
+							})
+							.then(() => {
+								// Font is now loaded and can be used
 								(currentSelectedElements?.[0] as fabric.Text)?.set('fontFamily', font.family);
+
 								if (currentSelectedElements && currentSelectedElements) {
 									const textElement = currentSelectedElements?.[0] as fabric.Text;
 									textElement.set({
-										data: { ...textElement.data, googleFont: fontFaceRule },
+										data: { ...textElement.data, googleFont: `font-family: ${font.family};` },
 									});
 									canvas.renderAll();
 								}
+
 								if (currentSelectedArtboards.length > 1) {
 									dispatch(
 										applyBulkEdit({
@@ -300,6 +303,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 										}),
 									);
 								}
+
 								canvas.requestRenderAll();
 							})
 							.catch(error => console.error('Error loading font:', error));
@@ -322,27 +326,31 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 									.then(response => response.arrayBuffer())
 									.then(arrayBuffer => {
 										const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-										const fontFaceRule = `
-											@font-face {
-												font-family:  ${currentFont.family};
-												src: url(data:font/woff;base64,${fontBase64}) format('woff');
-												font-weight: ${e};
-											}
-										`;
-										const styleElement = document.createElement('style');
-										styleElement.appendChild(document.createTextNode(fontFaceRule));
-										document.head.appendChild(styleElement);
+										const fontFace = new FontFace(
+											currentFont.family,
+											`url(data:font/woff;base64,${fontBase64}) format('woff')`,
+											{ weight: e as string },
+										);
+
+										document.fonts.add(fontFace);
+
+										return fontFace.load(); // Load the font
+									})
+									.then(() => {
+										// Font is now loaded and can be used
 										(currentSelectedElements?.[0] as fabric.Text)?.set('fontWeight', e as string);
-										if (currentSelectedElements && currentSelectedElements) {
-											const textElement = currentSelectedElements?.[0] as fabric.Text;
+
+										if (currentSelectedElements) {
+											const textElement = currentSelectedElements[0] as fabric.Text;
 											textElement.set({
 												data: {
 													...textElement.data,
-													weightGoogleFont: fontFaceRule,
+													weightGoogleFont: `font-family: ${currentFont.family}; font-weight: ${e};`,
 												},
 											});
 											canvas.renderAll();
 										}
+
 										if (currentSelectedArtboards.length > 1) {
 											dispatch(
 												applyBulkEdit({
@@ -353,6 +361,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 												}),
 											);
 										}
+
 										canvas.requestRenderAll();
 									})
 									.catch(error => console.error('Error loading font:', error));
