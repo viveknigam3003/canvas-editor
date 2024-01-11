@@ -1,4 +1,4 @@
-import { ActionIcon, Divider, Stack } from '@mantine/core';
+import { ActionIcon, Box, Divider, Select, Stack } from '@mantine/core';
 import { IconBold, IconItalic, IconSubscript, IconSuperscript, IconUnderline } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Reflection from '../reflection';
@@ -8,6 +8,7 @@ import SectionTitle from '../../components/SectionTitle';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/rootReducer';
 import { applyBulkEdit } from '../app/actions';
+import { Font } from './types';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
@@ -19,14 +20,20 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
 	// Add these states at the beginning of your component
 	const [isBold, setIsBold] = useState(false);
+	const [value, setValue] = useState('');
 	const [isItalic, setIsItalic] = useState(false);
 	const [isUnderline, setIsUnderline] = useState(false);
 	const [isSuperscript, setIsSuperscript] = useState(false);
 	const [isSubscript, setIsSubscript] = useState(false);
+	const [fontList, setFontList] = useState<Font[]>([]);
+	const currentFont = fontList.find(font => font.family === value) as Font;
+	const [fontWeight, setFontWeight] = useState('regular');
 
 	useEffect(() => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement) {
+			const fontFamily = textElement.fontFamily;
+			setValue(fontFamily || '');
 			const isBold = textElement.fontWeight === 'bold';
 			setIsBold(isBold);
 
@@ -79,6 +86,14 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		}
 		canvas.requestRenderAll();
 	};
+	useEffect(() => {
+		fetch('/fonts.json')
+			.then(response => response.json())
+			.then(fonts => {
+				setFontList(fonts.items);
+			})
+			.catch(error => console.error(error));
+	}, []);
 	const toggleItalic = () => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement.fontStyle === 'italic') {
@@ -245,7 +260,111 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		<Stack spacing={16}>
 			<SectionTitle>Font Family</SectionTitle>
 			<CustomFont onLoad={() => {}} canvas={canvas} currentSelectedElements={currentSelectedElements} />
+			<Stack>
+				<Select
+					searchable
+					value={value}
+					nothingFound="No options"
+					onChange={e => {
+						console.log('change', e);
+						const font = fontList.find(font => font.family === e) as Font;
+						setValue(font.family);
+						fetch(font.files.regular)
+							.then(response => response.arrayBuffer())
+							.then(arrayBuffer => {
+								const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+								const fontFaceRule = `
+										@font-face {
+											font-family:  ${font.family};
+											src: url(data:font/woff;base64,${fontBase64}) format('woff');
+										}
+									`;
+								const styleElement = document.createElement('style');
+								styleElement.appendChild(document.createTextNode(fontFaceRule));
+								document.head.appendChild(styleElement);
+								(currentSelectedElements?.[0] as fabric.Text)?.set('fontFamily', font.family);
+								if (currentSelectedElements && currentSelectedElements) {
+									const textElement = currentSelectedElements?.[0] as fabric.Text;
+									textElement.set({
+										data: { ...textElement.data, googleFont: fontFaceRule },
+									});
+									canvas.renderAll();
+								}
+								if (currentSelectedArtboards.length > 1) {
+									dispatch(
+										applyBulkEdit({
+											element: currentSelectedElements?.[0],
+											properties: {
+												fontFamily: font.family,
+											},
+										}),
+									);
+								}
+								canvas.requestRenderAll();
+							})
+							.catch(error => console.error('Error loading font:', error));
+					}}
+					data={fontList.map(font => ({
+						value: font?.family,
+						label: font?.family,
+					}))}
+				/>
+				{currentFont && (
+					<Box style={{ marginTop: '1rem' }}>
+						<SectionTitle>Font Weight</SectionTitle>
 
+						<Select
+							style={{ marginTop: '1rem' }}
+							value={fontWeight}
+							onChange={e => {
+								setFontWeight(e as string);
+								fetch(currentFont.files?.[e as string])
+									.then(response => response.arrayBuffer())
+									.then(arrayBuffer => {
+										const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+										const fontFaceRule = `
+											@font-face {
+												font-family:  ${currentFont.family};
+												src: url(data:font/woff;base64,${fontBase64}) format('woff');
+												font-weight: ${e};
+											}
+										`;
+										const styleElement = document.createElement('style');
+										styleElement.appendChild(document.createTextNode(fontFaceRule));
+										document.head.appendChild(styleElement);
+										(currentSelectedElements?.[0] as fabric.Text)?.set('fontWeight', e as string);
+										if (currentSelectedElements && currentSelectedElements) {
+											const textElement = currentSelectedElements?.[0] as fabric.Text;
+											textElement.set({
+												data: {
+													...textElement.data,
+													weightGoogleFont: fontFaceRule,
+												},
+											});
+											canvas.renderAll();
+										}
+										if (currentSelectedArtboards.length > 1) {
+											dispatch(
+												applyBulkEdit({
+													element: currentSelectedElements?.[0],
+													properties: {
+														fontWeight: e as string,
+													},
+												}),
+											);
+										}
+										canvas.requestRenderAll();
+									})
+									.catch(error => console.error('Error loading font:', error));
+							}}
+							data={Object.entries(currentFont?.files)?.map(([fontName]) => ({
+								value: fontName,
+								label: fontName,
+							}))}
+						/>
+					</Box>
+				)}
+			</Stack>
 			<Divider />
 			<Stack>
 				<SectionTitle>Font Styling</SectionTitle>
