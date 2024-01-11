@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Divider, Select, Stack } from '@mantine/core';
+import { ActionIcon, Box, ColorInput, Divider, Select, Stack } from '@mantine/core';
 import { IconBold, IconItalic, IconSubscript, IconSuperscript, IconUnderline } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Reflection from '../reflection';
@@ -28,7 +28,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const [fontList, setFontList] = useState<Font[]>([]);
 	const currentFont = fontList.find(font => font.family === value) as Font;
 	const [fontWeight, setFontWeight] = useState('regular');
-
+	const [selectedFontColor, setSelectedFontColor] = useState('#000000');
 	useEffect(() => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
 		if (textElement) {
@@ -47,7 +47,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 			const selectedStyles = textElement.getSelectionStyles(0, textElement?.text?.length);
 			const isSuperscript = selectedStyles.some(style => style.fontSize && style.deltaY < 0);
 			setIsSuperscript(isSuperscript);
-
+			setSelectedFontColor(textElement.fill as string);
 			const isSubscript = selectedStyles.some(style => style.fontSize && style.deltaY > 0);
 			setIsSubscript(isSubscript);
 		}
@@ -442,6 +442,28 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 				</div>
 			</Stack>
 			<Divider />
+			<Stack>
+				<SectionTitle>Color</SectionTitle>
+				<ColorInput
+					value={selectedFontColor}
+					onChange={e => {
+						currentSelectedElements?.[0].set('fill', e);
+						setSelectedFontColor(e as string);
+						if (currentSelectedArtboards.length > 1) {
+							dispatch(
+								applyBulkEdit({
+									element: currentSelectedElements?.[0],
+									properties: {
+										fill: e,
+									},
+								}),
+							);
+						}
+						canvas.requestRenderAll();
+					}}
+					format="hexa"
+				/>
+			</Stack>
 			<Stack>
 				<SectionTitle>Shadow</SectionTitle>
 				<Shadow canvas={canvas} currentSelectedElements={currentSelectedElements} />
