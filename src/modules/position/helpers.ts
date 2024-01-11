@@ -8,7 +8,6 @@ export const getExtremePoints = (object: fabric.Object) => {
 	const top = Math.min(tl.y, tr.y, bl.y, br.y);
 	const right = Math.max(tl.x, tr.x, bl.x, br.x);
 	const bottom = Math.max(tl.y, tr.y, bl.y, br.y);
-	console.log(aCoords, object);
 	return {
 		left,
 		top,

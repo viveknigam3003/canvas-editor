@@ -14,7 +14,7 @@ export type snappingObjectType = {
 	getScaledHeight: () => number;
 	getScaledWidth: () => number;
 	set(props: { top?: number; left?: number }): void;
-};
+} & fabric.Object;
 
 export type guidesRefType = {
 	left: null | fabric.Line;

@@ -5,6 +5,7 @@ import { shapesData } from './shapesPath';
 import { useState } from 'react';
 import { Artboard } from '../../types';
 import { getArtboardCenter } from '../artboard/helpers';
+import { generateId } from '../../utils';
 
 const DEFAULT_SHAPE_COLOR = '#C4C4C4';
 
@@ -61,6 +62,7 @@ export default function ShapePopover({ canvasRef, activeArtboard }: ShapePopover
 				  }
 				: {}),
 			data: {
+				id: generateId(),
 				type: 'shape',
 				displayName: name,
 			},
