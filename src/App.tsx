@@ -1285,7 +1285,7 @@ function App() {
 						>
 							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
-									<SectionTitle>Artboards ({artboards.length})</SectionTitle>
+									<SectionTitle>Variants ({artboards.length})</SectionTitle>
 									<Tooltip label="Create new artboard" openDelay={500}>
 										<ActionIcon onClick={openNewArtboardModal} color="violet" size={16}>
 											<IconPlus />

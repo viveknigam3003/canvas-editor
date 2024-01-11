@@ -1,10 +1,9 @@
-import { ActionIcon, Box, ColorInput, Divider, Select, Stack } from '@mantine/core';
+import { ActionIcon, Divider, Stack } from '@mantine/core';
 import { IconBold, IconItalic, IconSubscript, IconSuperscript, IconUnderline } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Reflection from '../reflection';
 import Shadow from '../shadow';
 import CustomFont from './CustomFont';
-import { Font } from './types';
 import SectionTitle from '../../components/SectionTitle';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/rootReducer';
@@ -18,17 +17,12 @@ interface PanelProps {
 const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const dispatch = useDispatch();
 	const currentSelectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
-	const [fontList, setFontList] = useState<Font[]>([]);
-	const [value, setValue] = useState('');
-	const [fontWeight, setFontWeight] = useState('regular');
-	const currentFont = fontList.find(font => font.family === value) as Font;
 	// Add these states at the beginning of your component
 	const [isBold, setIsBold] = useState(false);
 	const [isItalic, setIsItalic] = useState(false);
 	const [isUnderline, setIsUnderline] = useState(false);
 	const [isSuperscript, setIsSuperscript] = useState(false);
 	const [isSubscript, setIsSubscript] = useState(false);
-	const [selectedFontColor, setSelectedFontColor] = useState('#000000');
 
 	useEffect(() => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
@@ -49,20 +43,8 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 
 			const isSubscript = selectedStyles.some(style => style.fontSize && style.deltaY > 0);
 			setIsSubscript(isSubscript);
-
-			const fontColor = textElement.fill;
-			setSelectedFontColor(fontColor as string);
 		}
 	}, [currentSelectedElements]);
-
-	useEffect(() => {
-		fetch('/fonts.json')
-			.then(response => response.json())
-			.then(fonts => {
-				setFontList(fonts.items);
-			})
-			.catch(error => console.error(error));
-	}, []);
 
 	const toggleBold = () => {
 		const textElement = currentSelectedElements?.[0] as fabric.Text;
@@ -263,114 +245,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		<Stack spacing={16}>
 			<SectionTitle>Font Family</SectionTitle>
 			<CustomFont onLoad={() => {}} canvas={canvas} currentSelectedElements={currentSelectedElements} />
-			<Select
-				searchable
-				value={value}
-				nothingFound="No options"
-				onChange={e => {
-					console.log('change', e);
-					const font = fontList.find(font => font.family === e) as Font;
-					setValue(font.family);
-					fetch(font.files.regular)
-						.then(response => response.arrayBuffer())
-						.then(arrayBuffer => {
-							const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-							const fontFaceRule = `
-								@font-face {
-									font-family:  ${font.family};
-									src: url(data:font/woff;base64,${fontBase64}) format('woff');
-								}
-           					`;
-							const styleElement = document.createElement('style');
-							styleElement.appendChild(document.createTextNode(fontFaceRule));
-							document.head.appendChild(styleElement);
-							(currentSelectedElements?.[0] as fabric.Text)?.set('fontFamily', font.family);
-							if (currentSelectedArtboards.length > 1) {
-								dispatch(
-									applyBulkEdit({
-										element: currentSelectedElements?.[0],
-										properties: {
-											fontFamily: font.family,
-										},
-									}),
-								);
-							}
-							canvas.requestRenderAll();
-						})
-						.catch(error => console.error('Error loading font:', error));
-				}}
-				data={fontList.map(font => ({
-					value: font.family,
-					label: font.family,
-				}))}
-			/>
-			{currentFont && (
-				<Box>
-					<SectionTitle>Font Weight</SectionTitle>
 
-					<Select
-						value={fontWeight}
-						onChange={e => {
-							setFontWeight(e as string);
-							fetch(currentFont.files?.[e as string])
-								.then(response => response.arrayBuffer())
-								.then(arrayBuffer => {
-									const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-									const fontFaceRule = `
-											@font-face {
-												font-family:  ${currentFont.family};
-												src: url(data:font/woff;base64,${fontBase64}) format('woff');
-												font-weight: ${e};
-											}
-										`;
-									const styleElement = document.createElement('style');
-									styleElement.appendChild(document.createTextNode(fontFaceRule));
-									document.head.appendChild(styleElement);
-									(currentSelectedElements?.[0] as fabric.Text)?.set('fontWeight', e as string);
-									if (currentSelectedArtboards.length > 1) {
-										dispatch(
-											applyBulkEdit({
-												element: currentSelectedElements?.[0],
-												properties: {
-													fontWeight: e as string,
-												},
-											}),
-										);
-									}
-									canvas.requestRenderAll();
-								})
-								.catch(error => console.error('Error loading font:', error));
-						}}
-						data={Object.entries(currentFont?.files)?.map(([fontName]) => ({
-							value: fontName,
-							label: fontName,
-						}))}
-					/>
-				</Box>
-			)}
-			<Divider />
-			<Stack>
-				<SectionTitle>Color</SectionTitle>
-				<ColorInput
-					value={selectedFontColor}
-					onChange={e => {
-						currentSelectedElements?.[0].set('fill', e);
-						setSelectedFontColor(e as string);
-						if (currentSelectedArtboards.length > 1) {
-							dispatch(
-								applyBulkEdit({
-									element: currentSelectedElements?.[0],
-									properties: {
-										fill: e,
-									},
-								}),
-							);
-						}
-						canvas.requestRenderAll();
-					}}
-					format="hexa"
-				/>
-			</Stack>
 			<Divider />
 			<Stack>
 				<SectionTitle>Font Styling</SectionTitle>
