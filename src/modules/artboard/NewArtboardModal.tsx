@@ -8,6 +8,7 @@ import { useModalStyles } from '../../styles/modal';
 import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { addArtboard } from '../app/actions';
+import { getHotkeyHandler } from '@mantine/hooks';
 
 interface NewArtboardModalProps {
 	opened: boolean;
@@ -28,13 +29,13 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 		validate: values => {
 			const errors: Record<string, string> = {};
 			if (values.name.trim().length === 0) {
-				errors.name = 'Artboard name cannot be empty';
+				errors.name = 'Variant name cannot be empty';
 			}
 			if (values.width < 1) {
-				errors.width = 'Artboard width cannot be less than 1px';
+				errors.width = 'Variant width cannot be less than 1px';
 			}
 			if (values.height < 1) {
-				errors.height = 'Artboard height cannot be less than 1px';
+				errors.height = 'Variant height cannot be less than 1px';
 			}
 			if (values.number < 1) {
 				errors.number = 'Number of artboards cannot be less than 1';
@@ -95,7 +96,7 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 				newArtboardForm.reset();
 				onClose();
 			}}
-			title="Create new artboard"
+			title="Create new variant"
 			classNames={{
 				content: modalClasses.content,
 				title: modalClasses.title,
@@ -103,11 +104,12 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 		>
 			<Stack spacing={'lg'}>
 				<TextInput
-					label="Artboard name"
-					placeholder="Untitled artboard"
+					label="Variant name"
+					placeholder="Variant 1"
 					required
 					classNames={{ label: modalClasses.label }}
 					{...newArtboardForm.getInputProps('name')}
+					onKeyDown={getHotkeyHandler([['enter', () => addNewArtboard(newArtboardForm.values)]])}
 					data-autofocus
 				/>
 				<Group grow>
@@ -145,8 +147,8 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 					}}
 				>
 					{newArtboardForm.values.number > 1
-						? `Create ${newArtboardForm.values.number} artboards`
-						: `Create artboard`}
+						? `Create ${newArtboardForm.values.number} variant`
+						: `Create variant`}
 				</Button>
 			</Stack>
 		</Modal>
