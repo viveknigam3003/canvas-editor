@@ -1179,6 +1179,14 @@ function App() {
 				});
 			},
 		],
+		[
+			'mod+3',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				const isVideoEnabled = JSON.parse(localStorage.getItem('video') || 'false');
+				localStorage.setItem('video', JSON.stringify(!isVideoEnabled));
+			},
+		],
 	]);
 
 	const getBackgroundColor = (artboard: Artboard) => {
