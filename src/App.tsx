@@ -829,6 +829,7 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef);
+			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard?.id as string);
 			if (showRuler) {
 				renderRuler();
 			}
