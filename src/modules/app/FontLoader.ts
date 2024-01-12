@@ -1,5 +1,48 @@
 import { Artboard } from '../../types';
 
+// Function to extract font family names from TextItem
+const extractGoogleFontFamilies = (artboardTexts: fabric.Textbox[]): Set<string> => {
+	const googleFontFamilies = new Set<string>();
+
+	artboardTexts.forEach(textItem => {
+		if (textItem.data?.googleFont) {
+			const match = textItem.data.googleFont.match(/font-family: (.*?);/);
+			if (match) {
+				googleFontFamilies.add(match[1].trim());
+			}
+		}
+	});
+
+	return googleFontFamilies;
+};
+
+// Function to load Google Fonts
+async function loadGoogleFonts(fontFamilies: Set<string>): Promise<void> {
+	const response = await fetch('/fonts.json');
+	const fontsJson = await response.json();
+
+	const styleElement = document.createElement('style');
+	document.head.appendChild(styleElement);
+
+	fontFamilies.forEach(fontFamily => {
+		const font = fontsJson.items.find((item: any) => item.family === fontFamily);
+		if (font) {
+			// Construct @font-face rules for each variant
+			Object.entries(font.files).forEach(([weight, url]) => {
+				const fontFaceRule = `
+			@font-face {
+			  font-family: '${fontFamily}';
+			  font-style: ${weight.includes('italic') ? 'italic' : 'normal'};
+			  font-weight: ${weight.replace('italic', '')};
+			  src: url('${url}') format('woff2');
+			}
+		  `;
+				styleElement.appendChild(document.createTextNode(fontFaceRule));
+			});
+		}
+	});
+}
+
 const isFontLoadingApiSupported = () => {
 	return 'fonts' in document;
 };
@@ -49,6 +92,12 @@ export const loadFontsFromArtboards = async (artboards: Artboard[]) => {
 		.filter(item => item.type === 'textbox');
 
 	const uniqueFonts = extractUniqueFonts(artboardTexts);
+	const googleFontFamilies = extractGoogleFontFamilies(artboardTexts);
+
+	// Load Google Fonts
+	await loadGoogleFonts(googleFontFamilies);
+
+	// Load local fonts
 	const fontLoaders = Array.from(uniqueFonts).map(fontFamily => {
 		return isFontLoadingApiSupported() ? loadFontWithApi(fontFamily) : loadFontWithObserver(fontFamily);
 	});
