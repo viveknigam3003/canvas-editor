@@ -60,6 +60,8 @@ import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
+import demoJson from './data/demo.json';
+import creative from './data/creative.json';
 
 store.dispatch(appStart());
 
@@ -71,6 +73,11 @@ store.dispatch(appStart());
 
 (window as any).hardReset = () => {
 	localStorage.setItem('artboards', JSON.stringify([]));
+	window.location.reload();
+};
+
+(window as any).loadDemo = () => {
+	localStorage.setItem('artboards', JSON.stringify(demoJson));
 	window.location.reload();
 };
 
@@ -1141,6 +1148,34 @@ function App() {
 			(event: KeyboardEvent) => {
 				event.preventDefault();
 				duplicateElement();
+			},
+		],
+		[
+			'mod+1',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				dispatch(setArtboards(demoJson));
+				notifications.show({
+					title: 'Demo project loaded',
+					message: 'You can now start editing the demo project',
+					icon: <IconCircleCheck size={20} />,
+					color: 'green',
+					autoClose: 1500,
+				});
+			},
+		],
+		[
+			'mod+2',
+			(event: KeyboardEvent) => {
+				event.preventDefault();
+				dispatch(setArtboards(creative as Artboard[]));
+				notifications.show({
+					title: 'Creative project loaded',
+					message: 'You can now start editing the creative project',
+					icon: <IconCircleCheck size={20} />,
+					color: 'green',
+					autoClose: 1500,
+				});
 			},
 		],
 	]);
