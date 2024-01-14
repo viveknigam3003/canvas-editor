@@ -208,13 +208,6 @@ function App() {
 		});
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
-			const activeObjects = canvasRef?.current?.getActiveObjects() || [];
-			const filteredObjects = activeObjects.filter(item => !Object.values(RULER_LINES).includes(item.data?.type));
-			if (filteredObjects?.length > 1) {
-				//TODO: comeback and fix this
-			} else if (filteredObjects?.length === 1) {
-				canvasRef.current?.setActiveObject(activeObjects?.[0]);
-			}
 			setCurrentSelectedElements(event.selected as fabric.Object[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
@@ -826,7 +819,7 @@ function App() {
 			});
 
 			guidesRef.current = createSnappingLines(canvasRef);
-			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard?.id as string);
+			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard.id as string);
 			if (showRuler) {
 				renderRuler();
 			}
@@ -842,7 +835,7 @@ function App() {
 	}, [activeArtboard]);
 
 	useEffect(() => {
-		if (showRuler) {
+		if (showRuler && activeArtboard?.id) {
 			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard?.id as string);
 		} else {
 			removeRuler(canvasRef);
@@ -978,6 +971,7 @@ function App() {
 				}
 				pan[4] -= e.deltaX;
 				pan[5] -= e.deltaY;
+				canvas.setViewportTransform(pan);
 				if (showRuler) {
 					renderRuler();
 				}
