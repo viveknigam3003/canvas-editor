@@ -2,7 +2,6 @@ import {
 	ActionIcon,
 	Box,
 	Button,
-	Center,
 	Flex,
 	Group,
 	Stack,
@@ -86,7 +85,6 @@ const useStyles = createStyles(theme => ({
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
 		width: '100vw',
 		height: '100vh',
-		overflow: 'hidden',
 	},
 	header: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
@@ -99,32 +97,28 @@ const useStyles = createStyles(theme => ({
 		fontWeight: 700,
 		color: theme.colorScheme === 'dark' ? theme.colors.violet[5] : theme.colors.violet[7],
 	},
-	// Create a system where the left and the right panels are on top of the center
-	shell: {
+	shellFull: {
 		height: 'calc(100vh - 4rem)',
-		position: 'relative',
+		display: 'grid',
+	},
+	shell: {
+		display: 'grid',
+		gridTemplateColumns: '300px 1fr 300px',
+		height: 'calc(100vh - 4rem)',
 	},
 	left: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderTop: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-
 		width: 300,
 		display: 'grid',
 		gridTemplateRows: '50% 50%',
 		height: '100%',
-		zIndex: 1,
-		position: 'absolute',
-		left: 0,
 		overflowY: 'auto',
 		paddingBlockEnd: '1rem',
 	},
 	right: {
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0],
 		borderTop: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-
-		zIndex: 1,
-		position: 'absolute',
-		right: 0,
 		width: 300,
 		height: '100%',
 		padding: '1rem',
@@ -132,12 +126,11 @@ const useStyles = createStyles(theme => ({
 		paddingBottom: '2rem',
 	},
 	center: {
+		height: '100%',
+		width: '100%',
 		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2],
 		// borderLeft: `1px solid ${theme.colors.gray[3]}`,
 		// borderRight: `1px solid ${theme.colors.gray[3]}`,
-		flexGrow: 1,
-		flexShrink: 1,
-		zIndex: 0,
 	},
 	artboardButton: {
 		cursor: 'pointer',
@@ -210,8 +203,6 @@ function App() {
 	useEffect(() => {
 		canvasRef.current = new fabric.Canvas('canvas', {
 			// create a canvas with clientWidth and clientHeight
-			width: window.innerWidth - 600,
-			height: window.innerHeight - 60,
 			backgroundColor: '#e9ecef',
 			colorSpace: colorSpace as colorSpaceType,
 		});
@@ -281,6 +272,12 @@ function App() {
 		};
 	}, [canvasRef.current, activeArtboard]);
 
+	useEffect(() => {
+		fitCanvasContainer();
+		if (showRuler) {
+			renderRuler();
+		}
+	}, [showSidebar]);
 	const filterRulerLines = (objects?: fabric.Object[]) => {
 		console.log('objects', objects);
 		if (!objects) {
@@ -996,13 +993,18 @@ function App() {
 		};
 	}, [activeArtboard?.height, activeArtboard?.width, showRuler]);
 
+	function fitCanvasContainer() {
+		const containerSize = {
+			width: window.innerWidth - (showSidebar ? 600 : 0),
+			height: canvasContainerRef.current?.offsetHeight,
+		};
+		canvasRef.current?.setHeight(containerSize.height as number);
+		canvasRef.current?.setWidth(containerSize.width as number);
+	}
 	// Update canvas size when viewport size changes
 	useEffect(() => {
 		const handleResize = () => {
-			canvasRef.current?.setDimensions({
-				width: window.innerWidth,
-				height: window.innerHeight - 60,
-			});
+			fitCanvasContainer();
 			if (showRuler) {
 				renderRuler();
 			}
@@ -1263,7 +1265,7 @@ function App() {
 					</Button>
 				</Group>
 			</Box>
-			<Flex className={classes.shell}>
+			<Box className={showSidebar ? classes.shell : classes.shellFull}>
 				{showSidebar ? (
 					<Box className={classes.left}>
 						<Stack
@@ -1341,16 +1343,16 @@ function App() {
 							</Group>
 						</Stack>
 
-						<Stack spacing={16} sx={{ padding: '0.5rem 1rem' }}>
+						<Stack spacing={16}>
 							<Stack spacing={8}>
 								<LayerList canvas={canvasRef.current} />
 							</Stack>
 						</Stack>
 					</Box>
 				) : null}
-				<Center className={classes.center} ref={canvasContainerRef}>
+				<Box className={classes.center} ref={canvasContainerRef}>
 					<canvas className={classes.canvas} id="canvas" />
-				</Center>
+				</Box>
 				{showSidebar ? (
 					<Box className={classes.right}>
 						{canvasRef.current && currentSelectedElements && (
@@ -1363,7 +1365,7 @@ function App() {
 						)}
 					</Box>
 				) : null}
-			</Flex>
+			</Box>
 			<NewArtboardModal
 				opened={isNewArtboardModalOpen}
 				onClose={closeNewArtboardModal}
