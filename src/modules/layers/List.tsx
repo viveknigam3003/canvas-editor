@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/rootReducer';
 
-import { createStyles } from '@mantine/core';
+import { createStyles, Box } from '@mantine/core';
 import {
 	DndProvider,
 	DropOptions,
@@ -134,7 +134,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 	}
 
 	return (
-		<div>
+		<Box className={classes.listContainer}>
 			<SectionTitle>Layers ({treeData.length})</SectionTitle>
 			<DndProvider backend={MultiBackend} options={getBackendOptions()}>
 				<div className={classes.wrapper}>
@@ -179,7 +179,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 					/>
 				</div>
 			</DndProvider>
-		</div>
+		</Box>
 	);
 }
 
@@ -276,5 +276,9 @@ const useStyles = createStyles(theme => ({
 	hasDropTarget: {
 		outline: '3px solid #e8f0fe',
 		borderRadius: '4px',
+	},
+	listContainer: {
+		padding: '0.5rem 1rem',
+		borderTop: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
 	},
 }));
