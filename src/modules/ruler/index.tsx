@@ -523,7 +523,10 @@ export function addNewRulerLine(
 	const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
 	const rulerLines = json?.objects.filter((x: fabric.Object) => Object.values(RULER_LINES).includes(x.data?.type));
 	const rulerState = readRulerDataFromStorage();
-	localStorage.setItem('ruler', JSON.stringify({ ...rulerState, [id]: removeDuplicateRulerLines(rulerLines) }));
+	localStorage.setItem(
+		'ruler',
+		JSON.stringify({ ...rulerState, [id]: removeDuplicateRulerLines(rulerLines as fabric.Object[]) }),
+	);
 }
 
 export function renderRulerOnMoveMarker(
