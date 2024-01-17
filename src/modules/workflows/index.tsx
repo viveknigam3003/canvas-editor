@@ -1,21 +1,10 @@
-import {
-	ActionIcon,
-	Box,
-	Flex,
-	Group,
-	MultiSelect,
-	Select,
-	Stack,
-	Text,
-	TextInput,
-	Tooltip,
-	createStyles,
-} from '@mantine/core';
+import { ActionIcon, Box, Flex, Group, Select, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
-import { Workflow, executor, getSavedWorkflow } from './engine';
-import { Conditional, When } from './types';
 import { useEffect } from 'react';
+import { Workflow, executor, getSavedWorkflow } from './engine';
+import ConditionNode from './nodes/ConditionNode';
+import { Conditional, When } from './types';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -171,34 +160,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 								{currentSelectedFlow &&
 									currentSelectedFlow.values.nodes.map((node, nodeIndex) => (
 										<>
-											<Select
-												data={[
-													{ value: When.ACTIVE_ELEMENT, label: 'Active element' },
-													{ value: When.SELECTED_ELEMENT, label: 'Selected element' },
-												]}
-												{...currentSelectedFlow.getInputProps(
-													`nodes.${nodeIndex}.condition.when`,
-												)}
-											/>
-											<Select
-												data={[
-													{ value: Conditional.IS, label: 'is equal to' },
-													{ value: Conditional.CONTAIN, label: 'contains' },
-												]}
-												{...currentSelectedFlow.getInputProps(
-													`nodes.${nodeIndex}.condition.conditional`,
-												)}
-											/>
-											<MultiSelect
-												data={[
-													{ value: 'image', label: 'Image' },
-													{ value: 'textbox', label: 'Text' },
-													{ value: 'path', label: 'Shape' },
-												]}
-												{...currentSelectedFlow.getInputProps(
-													`nodes.${nodeIndex}.condition.targets`,
-												)}
-											/>
+											<ConditionNode nodeIndex={nodeIndex} workflow={currentSelectedFlow} />
 											{node.actions.map((action, actionIndex) => (
 												<Group className={classes.node} key={action.id}>
 													<Select
