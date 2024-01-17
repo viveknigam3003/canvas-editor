@@ -1,114 +1,169 @@
-import { Box, Button, Group } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { generateId } from '../../utils';
-import WorkflowEngine from './engine';
-import TriggerNode from './nodes/TriggerNode';
-import { Conditional, IActionNode, INode, ITriggerNode, IWorkflow, Target, When } from './types';
-import ActionNode from './nodes/ActionNode';
-import { useEffect } from 'react';
-import { IconBolt, IconPlayerPlay } from '@tabler/icons-react';
+import { Box, Group, Stack, Text, TextInput, createStyles } from '@mantine/core';
+import { IconPuzzle } from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
 	currentSelectedElements: fabric.Object[] | null;
 }
 
-// React Component
-const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
-	const workflow = useForm<IWorkflow | null>({
-		initialValues: {
-			nodes: [],
-		},
-	});
+interface Node {
+	action: string[];
+}
 
-	const handleButtonClick = async () => {
-		try {
-			if (!workflow) {
-				return;
-			}
+interface Workflow {
+	id: string;
+	name: string;
+	nodes: Node[];
+}
 
-			const workflowEngine = new WorkflowEngine(workflow.values as IWorkflow, currentSelectedElements, canvas);
-			await workflowEngine.execute();
-			// Optionally, handle something after workflow execution
-		} catch (error) {
-			console.error('Error executing workflow:', error);
-			// Optionally, handle error UI feedback
-		}
-	};
-
-	const createNewTrigger = () => {
-		const newTrigger: ITriggerNode = {
-			id: generateId(),
-			type: 'trigger',
-			label: 'Trigger',
-			condition: {
-				when: When.SELECTED_ELEMENT,
-				conditional: Conditional.IS,
-				target: Target.IMAGE,
+const workflows: Workflow[] = [
+	{
+		id: '1',
+		name: 'Center element',
+		nodes: [
+			{
+				action: ['a', 'b', 'c'],
 			},
-			next: [],
-		};
+		],
+	},
+	{
+		id: '2',
+		name: 'Create CTA',
+		nodes: [
+			{
+				action: ['a', 'b'],
+			},
+		],
+	},
+];
 
-		const newNodes = workflow.values?.nodes.concat(newTrigger);
-		workflow.setFieldValue('nodes', newNodes);
-	};
-
-	const createNewAction = () => {
-		const newAction: IActionNode = {
-			id: generateId(),
-			type: 'action',
-			label: 'Action',
-			execute: () => {},
-			next: [],
-		};
-
-		// Set the id of the action node as 'next' of the last node
-		const lastTriggerNode = workflow.values?.nodes[workflow.values?.nodes.length - 1] as INode;
-		const newTriggerNode = { ...lastTriggerNode, next: [newAction.id] };
-		const newNodes = workflow.values?.nodes.map(node => (node.id === lastTriggerNode.id ? newTriggerNode : node));
-
-		// Add the new action node
-		newNodes?.push(newAction);
-		workflow.setFieldValue('nodes', newNodes);
-	};
-
-	useEffect(() => {
-		console.log('workflow.values?.nodes', workflow.values?.nodes);
-	}, [workflow.values?.nodes]);
+// React Component
+const WorkflowComponent: React.FC<WorkflowComponentProps> = () => {
+	const { classes } = useStyles();
+	const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
 
 	return (
 		<Box>
-			<Button onClick={handleButtonClick}>Execute</Button>
-			<Group my="lg">
-				<Button
-					onClick={createNewTrigger}
-					size="xs"
-					leftIcon={<IconBolt size={12} />}
-					variant="light"
-					disabled={workflow.values?.nodes.find(node => node.type === 'trigger') !== undefined}
-				>
-					Trigger
-				</Button>
-				<Button
-					onClick={createNewAction}
-					size="xs"
-					leftIcon={<IconPlayerPlay size={12} />}
-					variant="light"
-					disabled={workflow.values?.nodes.find(node => node.type === 'trigger') === undefined}
-				>
-					Action
-				</Button>
-			</Group>
-			{workflow?.values?.nodes.map(node => {
-				switch (node.type) {
-					case 'trigger':
-						return <TriggerNode key={node.id} id={node.id} workflow={workflow} />;
-					case 'action':
-						return <ActionNode key={node.id} id={node.id} workflow={workflow} />;
-				}
-			})}
+			{/* <Flex>
+				<Stack spacing={8}>
+					<Group spacing={4}>
+						<IconPuzzle size={16} className={classes.gray} />
+						<Text className={classes.title}>Workflows</Text>
+					</Group>
+					<Text className={classes.subtext}>
+						Streamline your creative process with one-click automated design sequences.
+					</Text>
+				</Stack>
+				<Tooltip label="New workflow">
+					<ActionIcon color={'violet'} variant="subtle">
+						<IconSquareRoundedPlusFilled size={24} />
+					</ActionIcon>
+				</Tooltip>
+			</Flex>
+			<Stack mt={24} mb={16} spacing={8}>
+				{workflows.map(workflow => (
+					<Group key={workflow.id} className={classes.flowBox}>
+						<ActionIcon color="violet" variant="filled" size={'sm'}>
+							<IconPlayerPlay size={12} />
+						</ActionIcon>
+						<Text className={classes.workflowText}>{workflow.name}</Text>
+					</Group>
+				))}
+			</Stack> */}
+			<Stack>
+				<Stack spacing={8}>
+					<Group spacing={4}>
+						<IconPuzzle size={16} className={classes.gray} />
+						<Text className={classes.title}>Edit workflow</Text>
+					</Group>
+					<Text className={classes.subtext}>
+						Customize the actions in this workflow using the editor below.
+					</Text>
+				</Stack>
+				<Stack>
+					<TextInput
+						label="Workflow name"
+						placeholder="Eg. Center element, Create CTA"
+						value={'Workflow 1'}
+						onChange={() => {}}
+					/>
+					<Box>
+						<Text className={classes.subtext}>
+							Nodes are the individual steps in your workflow. Each node can have multiple actions.
+						</Text>
+						<Box aria-label="workflow editor" className={classes.editorContainer}>
+							{currentSelectedFlow && (
+								<Box>
+									{currentSelectedFlow.nodes.map(node => (
+										<Box>
+											{node.action.map(action => (
+												<Box className={classes.node}>{action}</Box>
+											))}
+										</Box>
+									))}
+								</Box>
+							)}
+						</Box>
+					</Box>
+				</Stack>
+			</Stack>
 		</Box>
 	);
 };
 
 export default WorkflowComponent;
+
+const useStyles = createStyles(theme => ({
+	gray: {
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+	},
+	title: {
+		fontSize: 16,
+		fontWeight: 600,
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+	},
+	subtext: {
+		fontSize: 12,
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[6],
+	},
+	flowBox: {
+		padding: 8,
+		borderRadius: 4,
+		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2]}`,
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+		fontSize: 14,
+		transition: 'all 0.2s ease',
+		'&:hover': {
+			cursor: 'pointer',
+			border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.violet[4] : theme.colors.violet[6]}`,
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.violet[0],
+		},
+	},
+	workflowText: {
+		fontSize: 14,
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+	},
+	editorContainer: {
+		display: 'flex',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-start',
+		margin: '16px 0',
+		height: '55vh',
+		borderBottom: '1px solid #F0F0F0',
+		background: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #A799CC`,
+		backgroundSize: `10px 10px`,
+	},
+	node: {
+		display: 'flex',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
+		border: '1px solid #F0F0F0',
+		borderRadius: 4,
+		padding: 8,
+		margin: 8,
+	},
+}));

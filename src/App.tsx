@@ -12,7 +12,15 @@ import {
 } from '@mantine/core';
 import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconCircleCheck, IconCopy, IconDeviceFloppy, IconDownload, IconPlus, IconTrash } from '@tabler/icons-react';
+import {
+	IconCircleCheck,
+	IconCopy,
+	IconDeviceFloppy,
+	IconDownload,
+	IconPlus,
+	IconPuzzle,
+	IconTrash,
+} from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -181,6 +189,7 @@ function App() {
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [isSpacePressed, setIsSpacePressed] = useState(false);
+	const [isWorkflowsPanelActive, setWorkflowsPanelActive] = useState(false);
 	const guidesRef = useRef<guidesRefType>({
 		left: null,
 		top: null,
@@ -1233,6 +1242,17 @@ function App() {
 					<MiscMenu artboards={artboards} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
+					<Tooltip label="Workflows" openDelay={200}>
+						<ActionIcon
+							variant={isWorkflowsPanelActive ? 'filled' : 'light'}
+							color={'violet'}
+							onClick={() => {
+								setWorkflowsPanelActive(c => !c);
+							}}
+						>
+							<IconPuzzle size={16} />
+						</ActionIcon>
+					</Tooltip>
 					<SettingsMenu
 						recreateCanvas={recreateCanvas}
 						canvasRef={canvasRef}
@@ -1350,17 +1370,22 @@ function App() {
 				</Box>
 				{showSidebar ? (
 					<Box className={classes.right}>
-						<WorkflowComponent
-							canvas={canvasRef.current}
-							currentSelectedElements={currentSelectedElements}
-						/>
-						{canvasRef.current && currentSelectedElements && (
-							<Panel
+						{isWorkflowsPanelActive ? (
+							<WorkflowComponent
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
-								saveArtboardChanges={saveArtboardChanges}
-								activeArtboard={activeArtboard}
 							/>
+						) : (
+							<>
+								{canvasRef.current && currentSelectedElements && (
+									<Panel
+										canvas={canvasRef.current}
+										currentSelectedElements={currentSelectedElements}
+										saveArtboardChanges={saveArtboardChanges}
+										activeArtboard={activeArtboard}
+									/>
+								)}
+							</>
 						)}
 					</Box>
 				) : null}
