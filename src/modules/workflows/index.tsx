@@ -79,7 +79,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
-		executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
+		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
 	};
 
 	useEffect(() => {
