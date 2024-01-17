@@ -32,9 +32,8 @@ export enum Conditional {
 }
 
 export enum When {
-	WORKFLOW_TRIGGERED = 'Workflow triggered',
+	ACTIVE_ELEMENT = 'Active element',
 	SELECTED_ELEMENT = 'Selected element',
-	MULTIPLE_SELECTED_ELEMENTS = 'Multiple selected elements',
 }
 
 export enum Property {

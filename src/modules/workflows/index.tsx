@@ -1,51 +1,66 @@
-import { Box, Group, Stack, Text, TextInput, createStyles } from '@mantine/core';
-import { IconPuzzle } from '@tabler/icons-react';
+import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
+import { IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
 import { useState } from 'react';
+import { executor } from './engine';
+import { Conditional, When } from './types';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
 	currentSelectedElements: fabric.Object[] | null;
 }
 
-interface Node {
-	action: string[];
-}
-
-interface Workflow {
-	id: string;
-	name: string;
-	nodes: Node[];
-}
-
-const workflows: Workflow[] = [
-	{
-		id: '1',
-		name: 'Center element',
-		nodes: [
-			{
-				action: ['a', 'b', 'c'],
+const workflow = {
+	name: 'Workflow2',
+	id: '91',
+	nodes: [
+		{
+			id: '1',
+			label: 'Step 1',
+			condition: {
+				when: When.SELECTED_ELEMENT,
+				conditional: Conditional.CONTAIN,
+				targets: ['image', 'textbox'],
 			},
-		],
-	},
-	{
-		id: '2',
-		name: 'Create CTA',
-		nodes: [
-			{
-				action: ['a', 'b'],
-			},
-		],
-	},
-];
+			actions: [
+				{
+					id: '2',
+					type: 'action',
+					fn: {
+						type: 'set',
+						payload: {
+							property: 'fill',
+							value: 'red',
+						},
+					},
+				},
+				{
+					id: '3',
+					type: 'action',
+					fn: {
+						type: 'plugin-color',
+						// payload: {
+						// 	property: 'fill',
+						// 	value: 'green',
+						// },
+					},
+				},
+			],
+		},
+	],
+};
 
 // React Component
-const WorkflowComponent: React.FC<WorkflowComponentProps> = () => {
+const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
 	const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
 
+	const handleButtonClick = async () => {
+		executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
+	};
+
 	return (
 		<Box>
-			{/* <Flex>
+			<Flex>
 				<Stack spacing={8}>
 					<Group spacing={4}>
 						<IconPuzzle size={16} className={classes.gray} />
@@ -70,8 +85,8 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = () => {
 						<Text className={classes.workflowText}>{workflow.name}</Text>
 					</Group>
 				))}
-			</Stack> */}
-			<Stack>
+			</Stack>
+			{/* <Stack>
 				<Stack spacing={8}>
 					<Group spacing={4}>
 						<IconPuzzle size={16} className={classes.gray} />
@@ -107,7 +122,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = () => {
 						</Box>
 					</Box>
 				</Stack>
-			</Stack>
+			</Stack> */}
 		</Box>
 	);
 };
