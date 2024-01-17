@@ -1,12 +1,12 @@
 import { Box, Button, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { generateId } from '../../utils';
-import WorkflowEngine from './engine';
 import TriggerNode from './nodes/TriggerNode';
 import { Conditional, IActionNode, INode, ITriggerNode, IWorkflow, Target, When } from './types';
 import ActionNode from './nodes/ActionNode';
 import { useEffect } from 'react';
 import { IconBolt, IconPlayerPlay } from '@tabler/icons-react';
+import { executor } from './data';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -22,18 +22,46 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 	});
 
 	const handleButtonClick = async () => {
-		try {
-			if (!workflow) {
-				return;
-			}
-
-			const workflowEngine = new WorkflowEngine(workflow.values as IWorkflow, currentSelectedElements, canvas);
-			await workflowEngine.execute();
-			// Optionally, handle something after workflow execution
-		} catch (error) {
-			console.error('Error executing workflow:', error);
-			// Optionally, handle error UI feedback
-		}
+		const workflow = {
+			name: 'Workflow2',
+			id: '91',
+			nodes: [
+				{
+					id: '1',
+					label: 'Step 1',
+					condition: {
+						when: When.SELECTED_ELEMENT,
+						conditional: Conditional.CONTAIN,
+						targets: ['image', 'textbox'],
+					},
+					actions: [
+						{
+							id: '2',
+							type: 'action',
+							fn: {
+								type: 'set',
+								payload: {
+									property: 'fill',
+									value: 'red',
+								},
+							},
+						},
+						{
+							id: '3',
+							type: 'action',
+							fn: {
+								type: 'plugin-color',
+								// payload: {
+								// 	property: 'fill',
+								// 	value: 'green',
+								// },
+							},
+						},
+					],
+				},
+			],
+		};
+		executor(workflow, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
 	};
 
 	const createNewTrigger = () => {
