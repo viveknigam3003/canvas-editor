@@ -3,7 +3,7 @@ import React from 'react';
 
 import { UseFormReturnType } from '@mantine/form';
 import { getSelectDataFromActionType } from '../helpers';
-import { NodeAction, PLUGIN_TYPES, Workflow } from '../types';
+import { NodeAction, Workflow } from '../types';
 
 interface ActionNodeProps {
 	workflow: UseFormReturnType<Workflow | null, (values: Workflow | null) => Workflow | null>;
@@ -16,7 +16,6 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 	const { classes } = useStyles();
 	const [currentActionType, setCurrentActionType] = React.useState(action.type);
 	const [currentProperty, setCurrentProperty] = React.useState(action.fn.payload.property);
-	const [currentAction, setCurrentAction] = React.useState(action.type);
 
 	React.useEffect(() => {
 		console.log('action.type', action.type);
@@ -147,7 +146,7 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 					borderBottom: '1px solid #ccc',
 				}}
 				w={200}
-				data={getSelectDataFromActionType(action.type)}
+				data={getSelectDataFromActionType(action.type) as any}
 				{...workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`)}
 				onChange={e => {
 					workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`).onChange(e);
