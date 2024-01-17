@@ -61,6 +61,7 @@ import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType
 import { generateId, getMultiplierFor4K } from './utils';
 import demoJson from './data/demo.json';
 import creative from './data/creative.json';
+import WorkflowComponent from './modules/workflows';
 
 store.dispatch(appStart());
 
@@ -1349,6 +1350,10 @@ function App() {
 				</Box>
 				{showSidebar ? (
 					<Box className={classes.right}>
+						<WorkflowComponent
+							canvas={canvasRef.current}
+							currentSelectedElements={currentSelectedElements}
+						/>
 						{canvasRef.current && currentSelectedElements && (
 							<Panel
 								canvas={canvasRef.current}
