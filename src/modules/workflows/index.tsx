@@ -1,7 +1,8 @@
-import { ActionIcon, Box, Flex, Group, Stack, Text, Tooltip, createStyles } from '@mantine/core';
-import { IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
+import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
+import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
 import { Workflow, executor } from './engine';
 import { Conditional, When } from './types';
+import { useState } from 'react';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -25,6 +26,7 @@ const workflows: Workflow[] = [
 					{
 						id: '2',
 						type: 'action',
+						name: 'Action 1',
 						fn: {
 							type: 'set',
 							payload: {
@@ -36,6 +38,7 @@ const workflows: Workflow[] = [
 					{
 						id: '3',
 						type: 'action',
+						name: 'Action 2',
 						fn: {
 							type: 'plugin-color',
 							payload: {
@@ -53,7 +56,7 @@ const workflows: Workflow[] = [
 // React Component
 const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
-	// const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
+	const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
 
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
@@ -62,74 +65,90 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 
 	return (
 		<Box>
-			<Flex>
-				<Stack spacing={8}>
-					<Group spacing={4}>
-						<IconPuzzle size={16} className={classes.gray} />
-						<Text className={classes.title}>Workflows</Text>
-					</Group>
-					<Text className={classes.subtext}>
-						Streamline your creative process with one-click automated design sequences.
-					</Text>
-				</Stack>
-				<Tooltip label="New workflow">
-					<ActionIcon color={'violet'} variant="subtle">
-						<IconSquareRoundedPlusFilled size={24} />
-					</ActionIcon>
-				</Tooltip>
-			</Flex>
-			<Stack mt={24} mb={16} spacing={8}>
-				{workflows.map(workflow => (
-					<Group key={workflow.id} className={classes.flowBox}>
-						<ActionIcon
-							color="violet"
-							variant="filled"
-							size={'sm'}
-							onClick={() => handleButtonClick(workflow.id)}
-						>
-							<IconPlayerPlay size={12} />
-						</ActionIcon>
-						<Text className={classes.workflowText}>{workflow.name}</Text>
-					</Group>
-				))}
-			</Stack>
-			{/* <Stack>
-				<Stack spacing={8}>
-					<Group spacing={4}>
-						<IconPuzzle size={16} className={classes.gray} />
-						<Text className={classes.title}>Edit workflow</Text>
-					</Group>
-					<Text className={classes.subtext}>
-						Customize the actions in this workflow using the editor below.
-					</Text>
-				</Stack>
+			{!currentSelectedFlow ? (
+				<>
+					<Flex>
+						<Stack spacing={8}>
+							<Group spacing={4}>
+								<IconPuzzle size={16} className={classes.gray} />
+								<Text className={classes.title}>Workflows</Text>
+							</Group>
+							<Text className={classes.subtext}>
+								Streamline your creative process with one-click automated design sequences.
+							</Text>
+						</Stack>
+						<Tooltip label="New workflow">
+							<ActionIcon color={'violet'} variant="subtle">
+								<IconSquareRoundedPlusFilled size={24} />
+							</ActionIcon>
+						</Tooltip>
+					</Flex>
+					<Stack mt={24} mb={16} spacing={8}>
+						{workflows.map(workflow => (
+							<Group
+								key={workflow.id}
+								className={classes.flowBox}
+								onClick={() => {
+									setCurrentSelectedFlow(workflow);
+								}}
+							>
+								<ActionIcon
+									color="violet"
+									variant="filled"
+									size={'sm'}
+									onClick={e => {
+										e.stopPropagation();
+										handleButtonClick(workflow.id);
+									}}
+								>
+									<IconPlayerPlay size={12} />
+								</ActionIcon>
+								<Text className={classes.workflowText}>{workflow.name}</Text>
+							</Group>
+						))}
+					</Stack>
+				</>
+			) : (
 				<Stack>
-					<TextInput
-						label="Workflow name"
-						placeholder="Eg. Center element, Create CTA"
-						value={'Workflow 1'}
-						onChange={() => {}}
-					/>
-					<Box>
+					<Stack spacing={8}>
+						<Group spacing={4}>
+							<ActionIcon onClick={() => setCurrentSelectedFlow(null)}>
+								<IconArrowLeft size={16} className={classes.gray} />
+							</ActionIcon>
+							<Text className={classes.title}>Edit workflow</Text>
+						</Group>
 						<Text className={classes.subtext}>
-							Nodes are the individual steps in your workflow. Each node can have multiple actions.
+							Customize the actions in this workflow using the editor below.
 						</Text>
-						<Box aria-label="workflow editor" className={classes.editorContainer}>
-							{currentSelectedFlow && (
-								<Box>
-									{currentSelectedFlow.nodes.map(node => (
-										<Box>
-											{node.action.map(action => (
-												<Box className={classes.node}>{action}</Box>
-											))}
-										</Box>
-									))}
-								</Box>
-							)}
+					</Stack>
+					<Stack>
+						<TextInput
+							label="Workflow name"
+							placeholder="Eg. Center element, Create CTA"
+							value={'Workflow 1'}
+							onChange={() => {}}
+						/>
+						<Box>
+							<Text className={classes.subtext}>
+								Nodes are the individual steps in your workflow. Each node can have multiple actions.
+							</Text>
+							<Box aria-label="workflow editor" className={classes.editorContainer}>
+								{currentSelectedFlow && (
+									<Box>
+										{currentSelectedFlow.nodes.map(node => (
+											<Box>
+												{node.actions.map(action => (
+													<Box className={classes.node}>{action.name}</Box>
+												))}
+											</Box>
+										))}
+									</Box>
+								)}
+							</Box>
 						</Box>
-					</Box>
+					</Stack>
 				</Stack>
-			</Stack> */}
+			)}
 		</Box>
 	);
 };
@@ -174,8 +193,10 @@ const useStyles = createStyles(theme => ({
 		alignItems: 'flex-start',
 		margin: '16px 0',
 		height: '55vh',
-		borderBottom: '1px solid #F0F0F0',
-		background: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #A799CC`,
+		background:
+			theme.colorScheme === 'dark'
+				? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[3]}`
+				: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
 		backgroundSize: `10px 10px`,
 	},
 	node: {

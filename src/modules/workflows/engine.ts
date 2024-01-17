@@ -21,6 +21,7 @@ export type Node = {
 	actions: {
 		id: string;
 		type: string;
+		name: string;
 		fn: {
 			type: string;
 			payload: {
