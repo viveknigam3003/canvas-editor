@@ -136,7 +136,7 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 				onChange={e => {
 					workflow.setFieldValue(`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`, '');
 					workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.type`).onChange(e);
-					setCurrentActionType(e as string);
+					// setCurrentActionType(e as string);
 					// setCurrentAction('');
 					setCurrentProperty('');
 				}}

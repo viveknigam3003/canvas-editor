@@ -2,7 +2,7 @@ import { Conditional, NodeAction, When, Workflow, Node, PLUGIN_TYPES } from './t
 
 const WORKFLOW_DELAY = 200;
 
-export const getSavedWorkflow = () => {
+export const getSavedWorkflow = (): Workflow[] => {
 	return JSON.parse(localStorage.getItem('workflows') || '[]');
 };
 
@@ -17,10 +17,10 @@ export const saveWorkflow = (workflow: Workflow) => {
 	localStorage.setItem('workflows', JSON.stringify(workflows));
 };
 
-export const updateWorkflow = (id: string, workflow: Workflow) => {
+export const updateWorkflow = (wf: Workflow) => {
 	const workflows = getSavedWorkflow();
-	const index = workflows.findIndex((workflow: Workflow) => workflow.id === id);
-	workflows[index] = workflow;
+	const index = workflows.findIndex((workflow: Workflow) => workflow.id === wf.id);
+	workflows[index] = wf;
 	localStorage.setItem('workflows', JSON.stringify(workflows));
 };
 
@@ -57,6 +57,7 @@ const plugins = {
 	) => {
 		if (!currentSelectedElements || !canvas) return;
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
+		if (!workflow) return;
 		executor(workflow, currentSelectedElements, canvas);
 	},
 	[PLUGIN_TYPES.COLOR_PLUGIN]: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
@@ -70,7 +71,7 @@ export async function executor(
 	workflow1: { nodes: Node[] },
 	currentSelectedElements: fabric.Object[],
 	canvas: fabric.Canvas,
-	callback: (arg: NodeAction) => void = () => {},
+	callback: (arg: NodeAction) => void = () => { },
 ) {
 	for (let index = 0; index < workflow1.nodes.length; index++) {
 		const node = workflow1.nodes[index];

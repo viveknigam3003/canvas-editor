@@ -1,64 +1,65 @@
 import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
-import { executor } from './engine';
+import { useEffect } from 'react';
+import { executor, getSavedWorkflow, updateWorkflow } from './engine';
 import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
-import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
-import { useEffect } from 'react';
+import { Workflow } from './types';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
 	currentSelectedElements: fabric.Object[] | null;
 }
 
-const workflows: Workflow[] = [
-	{
-		name: 'Flash change color',
-		id: '91',
-		nodes: [
-			{
-				id: '1',
-				name: 'Step 1',
-				condition: {
-					when: When.ACTIVE_ELEMENT,
-					conditional: Conditional.CONTAIN,
-					targets: ['image', 'textbox', 'path'],
-				},
-				actions: [
-					{
-						id: '2',
-						type: 'action',
-						name: 'Step 1',
-						fn: {
-							type: PLUGIN_TYPES.SET_FABRIC,
-							payload: {
-								property: 'fill',
-								value: '#ff1c1cff',
-							},
-						},
-					},
-					{
-						id: '3',
-						type: 'plugin',
-						name: 'Step 2',
-						fn: {
-							type: PLUGIN_TYPES.COLOR_PLUGIN,
-							payload: {
-								property: '',
-								value: '',
-							},
-						},
-					},
-				],
-			},
-		],
-	},
-];
+// const workflows: Workflow[] = [
+// 	{
+// 		name: 'Flash change color',
+// 		id: '91',
+// 		nodes: [
+// 			{
+// 				id: '1',
+// 				name: 'Step 1',
+// 				condition: {
+// 					when: When.ACTIVE_ELEMENT,
+// 					conditional: Conditional.CONTAIN,
+// 					targets: ['image', 'textbox', 'path'],
+// 				},
+// 				actions: [
+// 					{
+// 						id: '2',
+// 						type: 'action',
+// 						name: 'Step 1',
+// 						fn: {
+// 							type: PLUGIN_TYPES.SET_FABRIC,
+// 							payload: {
+// 								property: 'fill',
+// 								value: '#ff1c1cff',
+// 							},
+// 						},
+// 					},
+// 					{
+// 						id: '3',
+// 						type: 'plugin',
+// 						name: 'Step 2',
+// 						fn: {
+// 							type: PLUGIN_TYPES.COLOR_PLUGIN,
+// 							payload: {
+// 								property: '',
+// 								value: '',
+// 							},
+// 						},
+// 					},
+// 				],
+// 			},
+// 		],
+// 	},
+// ];
 
 // React Component
 const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
+	const workflows = getSavedWorkflow();
 	const currentSelectedFlow = useForm<Workflow | null>({
 		initialValues: {
 			name: '',
@@ -76,6 +77,18 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, e => {
 			console.log('e', e);
 		});
+	};
+
+	const handleTest = async () => {
+		if (!currentSelectedFlow.values) return;
+		await executor(
+			currentSelectedFlow.values as Workflow,
+			currentSelectedElements as fabric.Object[],
+			canvas as fabric.Canvas,
+			e => {
+				console.log('e', e);
+			},
+		);
 	};
 
 	return (
@@ -128,7 +141,12 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 					<Flex>
 						<Stack spacing={8}>
 							<Group spacing={4}>
-								<ActionIcon onClick={() => currentSelectedFlow.reset()}>
+								<ActionIcon
+									onClick={() => {
+										currentSelectedFlow.reset();
+										updateWorkflow(currentSelectedFlow.values as Workflow);
+									}}
+								>
 									<IconArrowLeft size={16} className={classes.gray} />
 								</ActionIcon>
 								<Text className={classes.title}>Edit workflow</Text>
@@ -144,9 +162,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 								size={'sm'}
 								onClick={e => {
 									e.stopPropagation();
-									const id = currentSelectedFlow.values?.id;
-									if (!id) return;
-									handleButtonClick(id);
+									handleTest();
 								}}
 							>
 								<IconPlayerPlay size={12} />
