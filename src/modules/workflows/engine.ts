@@ -81,7 +81,7 @@ const plugins = {
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
 		executor(workflow, currentSelectedElements, canvas);
 	},
-	randomFill: (currentSelectedElements: fabric.Object[], _, canvas: fabric.Canvas) => {
+	randomFill: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
 		plugins.setFabric(currentSelectedElements, { property: 'fill', value: getRandomColor() }, canvas);
 		canvas.renderAll();
 	},
