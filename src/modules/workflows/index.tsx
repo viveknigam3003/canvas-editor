@@ -1,7 +1,6 @@
-import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
-import { IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
-import { useState } from 'react';
-import { executor } from './engine';
+import { ActionIcon, Box, Flex, Group, Stack, Text, Tooltip, createStyles } from '@mantine/core';
+import { IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
+import { Workflow, executor } from './engine';
 import { Conditional, When } from './types';
 
 interface WorkflowComponentProps {
@@ -9,52 +8,55 @@ interface WorkflowComponentProps {
 	currentSelectedElements: fabric.Object[] | null;
 }
 
-const workflow = {
-	name: 'Workflow2',
-	id: '91',
-	nodes: [
-		{
-			id: '1',
-			label: 'Step 1',
-			condition: {
-				when: When.SELECTED_ELEMENT,
-				conditional: Conditional.CONTAIN,
-				targets: ['image', 'textbox'],
-			},
-			actions: [
-				{
-					id: '2',
-					type: 'action',
-					fn: {
-						type: 'set',
-						payload: {
-							property: 'fill',
-							value: 'red',
+const workflows: Workflow[] = [
+	{
+		name: 'Workflow2',
+		id: '91',
+		nodes: [
+			{
+				id: '1',
+				name: 'Step 1',
+				condition: {
+					when: When.SELECTED_ELEMENT,
+					conditional: Conditional.CONTAIN,
+					targets: ['image', 'textbox'],
+				},
+				actions: [
+					{
+						id: '2',
+						type: 'action',
+						fn: {
+							type: 'set',
+							payload: {
+								property: 'fill',
+								value: 'red',
+							},
 						},
 					},
-				},
-				{
-					id: '3',
-					type: 'action',
-					fn: {
-						type: 'plugin-color',
-						// payload: {
-						// 	property: 'fill',
-						// 	value: 'green',
-						// },
+					{
+						id: '3',
+						type: 'action',
+						fn: {
+							type: 'plugin-color',
+							payload: {
+								property: 'fill',
+								value: 'green',
+							},
+						},
 					},
-				},
-			],
-		},
-	],
-};
+				],
+			},
+		],
+	},
+];
 
 // React Component
 const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
-	const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
+	// const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
 
-	const handleButtonClick = async () => {
+	const handleButtonClick = async (id: string) => {
+		const workflow = workflows.find(workflow => workflow.id === id);
 		executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
 	};
 
@@ -79,7 +81,12 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 			<Stack mt={24} mb={16} spacing={8}>
 				{workflows.map(workflow => (
 					<Group key={workflow.id} className={classes.flowBox}>
-						<ActionIcon color="violet" variant="filled" size={'sm'}>
+						<ActionIcon
+							color="violet"
+							variant="filled"
+							size={'sm'}
+							onClick={() => handleButtonClick(workflow.id)}
+						>
 							<IconPlayerPlay size={12} />
 						</ActionIcon>
 						<Text className={classes.workflowText}>{workflow.name}</Text>

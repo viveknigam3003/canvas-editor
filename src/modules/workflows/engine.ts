@@ -6,7 +6,13 @@ const getSavedWorkflow = () => {
 
 export type Workflow = {
 	id: string;
-	label: string;
+	name: string;
+	nodes: Node[];
+};
+
+export type Node = {
+	id: string;
+	name: string;
 	condition: {
 		when: When;
 		conditional: Conditional;
@@ -77,7 +83,7 @@ const getFunctionFromName = (name: string) => {
 };
 
 export function executor(
-	workflow1: { nodes: Workflow[] },
+	workflow1: { nodes: Node[] },
 	currentSelectedElements: fabric.Object[],
 	canvas: fabric.Canvas,
 ) {
