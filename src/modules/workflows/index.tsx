@@ -243,7 +243,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 												variant="subtle"
 												onClick={() => addNewAction(nodeIndex)}
 											>
-												<IconSquareRoundedPlusFilled size={24} />
+												<IconSquareRoundedPlusFilled size={36} />
 											</ActionIcon>
 										</>
 									))}
@@ -292,6 +292,9 @@ const useStyles = createStyles(theme => ({
 	editorContainer: {
 		marginTop: '16px',
 		height: '58vh',
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
 		// background:
 		// 	theme.colorScheme === 'dark'
 		// 		? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[4]}`

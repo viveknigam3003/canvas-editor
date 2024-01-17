@@ -105,6 +105,7 @@ const useStyles = createStyles(theme => ({
 		boxShadow: theme.shadows.sm,
 		marginTop: theme.spacing.md,
 		marginBottom: theme.spacing.md,
+		width: '100%',
 	},
 	overline: {
 		textTransform: 'uppercase',
