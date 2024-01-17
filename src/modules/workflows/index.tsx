@@ -14,7 +14,7 @@ interface WorkflowComponentProps {
 
 const workflows: Workflow[] = [
 	{
-		name: 'Workflow2',
+		name: 'Flash change color',
 		id: '91',
 		nodes: [
 			{
@@ -34,7 +34,7 @@ const workflows: Workflow[] = [
 							type: PLUGIN_TYPES.SET_FABRIC,
 							payload: {
 								property: 'fill',
-								value: 'blue',
+								value: '#ff1c1cff',
 							},
 						},
 					},
