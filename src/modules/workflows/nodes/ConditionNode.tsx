@@ -100,18 +100,18 @@ export default ConditionNode;
 const useStyles = createStyles(theme => ({
 	root: {
 		padding: theme.spacing.md,
-		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]}`,
+		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[1]}`,
 		borderRadius: theme.radius.md,
 		boxShadow: theme.shadows.sm,
-		marginTop: theme.spacing.md,
+		margin: theme.spacing.md,
 		marginBottom: theme.spacing.md,
-		width: '100%',
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : '#fdfdfd',
 	},
 	overline: {
 		textTransform: 'uppercase',
-		fontWeight: 500,
-		color: theme.colors.gray[5],
-		fontSize: 12,
+		fontWeight: 700,
+		color: theme.colors.blue[5],
+		fontSize: 14,
 	},
 	conditionText: {
 		fontSize: 12,

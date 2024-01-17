@@ -151,13 +151,13 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 		<Group className={classes.root} key={action.id}>
 			<span className={classes.overline}>Then</span>
 			<Select
-				variant="unstyled"
-				style={{
-					border: '1px solid #ccc',
-					borderRadius: '4px',
-					paddingLeft: '10px',
-					width: '100%',
-				}}
+				// variant="unstyled"
+				// style={{
+				// 	border: '1px solid #ccc',
+				// 	borderRadius: '4px',
+				// 	paddingLeft: '10px',
+				// 	width: '100%',
+				// }}
 				data={[
 					{ value: 'action', label: 'Do' },
 					{ value: 'plugin', label: 'Run plugin' },
@@ -173,13 +173,13 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 				}}
 			/>
 			<Select
-				variant="unstyled"
-				style={{
-					border: '1px solid #ccc',
-					borderRadius: '4px',
-					paddingLeft: '10px',
-					width: '100%',
-				}}
+				// variant="unstyled"
+				// style={{
+				// 	border: '1px solid #ccc',
+				// 	borderRadius: '4px',
+				// 	paddingLeft: '10px',
+				// 	width: '100%',
+				// }}
 				w={200}
 				data={getSelectDataFromActionType(action.type) as any}
 				{...workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`)}
@@ -199,17 +199,18 @@ export default ActionNode;
 const useStyles = createStyles(theme => ({
 	root: {
 		padding: theme.spacing.md,
-		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]}`,
+		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[1]}`,
 		borderRadius: theme.radius.md,
 		boxShadow: theme.shadows.sm,
-		marginTop: theme.spacing.md,
+		margin: theme.spacing.md,
 		marginBottom: theme.spacing.md,
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : '#fdfdfd',
 	},
 	overline: {
 		textTransform: 'uppercase',
-		fontWeight: 500,
-		color: theme.colors.gray[5],
-		fontSize: 12,
+		fontWeight: 700,
+		color: theme.colors.orange[5],
+		fontSize: 14,
 	},
 	conditionText: {
 		fontSize: 12,

@@ -2,11 +2,11 @@ import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createSt
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
 import { useEffect } from 'react';
+import { generateId } from '../../utils';
 import { executor, getSavedWorkflow, saveWorkflow, updateWorkflow } from './engine';
 import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
 import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
-import { generateId } from '../../utils';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -225,26 +225,31 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 							<Text className={classes.subtext}>
 								Nodes are the individual steps in your workflow. Each node can have multiple actions.
 							</Text>
-							<Stack aria-label="workflow editor" className={classes.editorContainer}>
+							<Stack aria-label="workflow editor" className={classes.editorContainer} spacing={4}>
 								{currentSelectedFlow &&
 									currentSelectedFlow.values.nodes.map((node, nodeIndex) => (
 										<>
 											<ConditionNode nodeIndex={nodeIndex} workflow={currentSelectedFlow} />
 											{node.actions.map((action, actionIndex) => (
-												<ActionNode
-													action={action}
-													actionIndex={actionIndex}
-													nodeIndex={nodeIndex}
-													workflow={currentSelectedFlow}
-												/>
+												<>
+													<ActionNode
+														action={action}
+														actionIndex={actionIndex}
+														nodeIndex={nodeIndex}
+														workflow={currentSelectedFlow}
+													/>
+												</>
 											))}
-											<ActionIcon
-												color={'violet'}
-												variant="subtle"
-												onClick={() => addNewAction(nodeIndex)}
-											>
-												<IconSquareRoundedPlusFilled size={36} />
-											</ActionIcon>
+											<Tooltip label="Add action" position="bottom">
+												<ActionIcon
+													color={'violet'}
+													variant="subtle"
+													size={'lg'}
+													onClick={() => addNewAction(nodeIndex)}
+												>
+													<IconSquareRoundedPlusFilled size={36} />
+												</ActionIcon>
+											</Tooltip>
 										</>
 									))}
 							</Stack>
@@ -291,15 +296,16 @@ const useStyles = createStyles(theme => ({
 	},
 	editorContainer: {
 		marginTop: '16px',
-		height: '58vh',
+		height: '100%',
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'center',
-		// background:
-		// 	theme.colorScheme === 'dark'
-		// 		? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[4]}`
-		// 		: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
-		// backgroundSize: `10px 10px`,
+		background:
+			theme.colorScheme === 'dark'
+				? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[4]}`
+				: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
+		backgroundSize: `10px 10px`,
+		paddingBottom: '16px',
 	},
 	node: {
 		padding: 8,
