@@ -1,8 +1,8 @@
 import { MultiSelect, Select, Stack, Text, createStyles } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
 import React from 'react';
-import { Workflow } from '../engine';
-import { Conditional, When } from '../types';
+
+import { Conditional, When, Workflow } from '../types';
 
 interface ConditionNodeProps {
 	workflow: UseFormReturnType<Workflow | null, (values: Workflow | null) => Workflow | null>;

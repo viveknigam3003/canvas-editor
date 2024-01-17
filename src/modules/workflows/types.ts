@@ -34,3 +34,39 @@ export const setProperty = (element: fabric.Object, property: Property, value: a
 export const actionFunctionMap = {
 	setProperty,
 };
+
+export type Workflow = {
+	id: string;
+	name: string;
+	nodes: Node[];
+};
+
+export type NodeAction = {
+	id: string;
+	type: string;
+	name: string;
+	fn: {
+		type: string;
+		payload: {
+			property: string;
+			value: any;
+		};
+	};
+};
+
+export type Node = {
+	id: string;
+	name: string;
+	condition: {
+		when: When;
+		conditional: Conditional;
+		targets: string[];
+	};
+	actions: NodeAction[];
+};
+
+export enum PLUGIN_TYPES {
+	SET_FABRIC = 'SET_FABRIC',
+	WORKFLOW = 'WORKFLOW',
+	COLOR_PLUGIN = 'COLOR_PLUGIN',
+}

@@ -1,4 +1,6 @@
-import { Conditional, When } from './types';
+import { Conditional, NodeAction, When, Workflow, Node, PLUGIN_TYPES } from './types';
+
+const WORKFLOW_DELAY = 200;
 
 export const getSavedWorkflow = () => {
 	return JSON.parse(localStorage.getItem('workflows') || '[]');
@@ -24,34 +26,6 @@ export const updateWorkflow = (id: string, workflow: Workflow) => {
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export type Workflow = {
-	id: string;
-	name: string;
-	nodes: Node[];
-};
-
-export type NodeAction = {
-	id: string;
-	type: string;
-	name: string;
-	fn: {
-		type: string;
-		payload: {
-			property: string;
-			value: any;
-		};
-	};
-};
-export type Node = {
-	id: string;
-	name: string;
-	condition: {
-		when: When;
-		conditional: Conditional;
-		targets: string[];
-	};
-	actions: NodeAction[];
-};
 // get random colors
 const getRandomColor = () => {
 	const letters = '0123456789ABCDEF';
@@ -63,7 +37,7 @@ const getRandomColor = () => {
 };
 
 const plugins = {
-	setFabric: (
+	[PLUGIN_TYPES.SET_FABRIC]: (
 		currentSelectedElements: fabric.Object[],
 		args: { property: string; value: any },
 		canvas: fabric.Canvas,
@@ -76,28 +50,20 @@ const plugins = {
 		}
 		canvas.requestRenderAll();
 	},
-	executeWorkflow: (currentSelectedElements: fabric.Object[], args: { id: string }, canvas: fabric.Canvas) => {
+	[PLUGIN_TYPES.WORKFLOW]: (
+		currentSelectedElements: fabric.Object[],
+		args: { id: string },
+		canvas: fabric.Canvas,
+	) => {
 		if (!currentSelectedElements || !canvas) return;
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
 		executor(workflow, currentSelectedElements, canvas);
 	},
-	randomFill: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
-		plugins.setFabric(currentSelectedElements, { property: 'fill', value: getRandomColor() }, canvas);
-		canvas.renderAll();
+	[PLUGIN_TYPES.COLOR_PLUGIN]: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
+		const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
+		fabricSetPlugin(currentSelectedElements, { property: 'fill', value: getRandomColor() }, canvas);
+		canvas.requestRenderAll();
 	},
-};
-
-const getFunctionFromName = (name: string) => {
-	switch (name) {
-		case 'set':
-			return plugins.setFabric;
-		case 'workflow':
-			return plugins.executeWorkflow;
-		case 'plugin-color':
-			return plugins.randomFill;
-		default:
-			return () => {};
-	}
 };
 
 export async function executor(
@@ -124,10 +90,6 @@ export async function executor(
 				node.condition.conditional === Conditional.CONTAIN &&
 				currentSelectedElements.filter(x => node.condition.targets?.includes(x.type as string)).length > 0
 			) {
-				console.log(
-					'contains',
-					currentSelectedElements.filter(x => node.condition.targets?.includes(x.type as string)),
-				);
 				const elements = currentSelectedElements.filter(
 					x => node.condition.targets?.includes(x.type as string),
 				);
@@ -144,7 +106,7 @@ export async function executor(
 }
 
 async function executeFn(
-	node: any,
+	node: Node,
 	currentSelectedElements: fabric.Object[],
 	canvas: fabric.Canvas,
 	callback: (arg: NodeAction) => void,
@@ -152,12 +114,13 @@ async function executeFn(
 	const aa = node.actions;
 	for (let index = 0; index < aa.length; index++) {
 		const action = aa[index];
-		const fn = getFunctionFromName(action.fn.type);
-		console.log('asd', action.fn.type);
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const fn = plugins[action.fn.type] as any;
 		if (fn) {
 			fn(currentSelectedElements, action.fn.payload, canvas);
 		}
-		await wait(3000);
+		await wait(WORKFLOW_DELAY);
 		callback(action);
 	}
 }

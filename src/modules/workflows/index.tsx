@@ -2,9 +2,9 @@ import { ActionIcon, Box, Flex, Group, Select, Stack, Text, TextInput, Tooltip, 
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
 import { useEffect } from 'react';
-import { Workflow, executor, getSavedWorkflow } from './engine';
+import { executor, getSavedWorkflow } from './engine';
 import ConditionNode from './nodes/ConditionNode';
-import { Conditional, When } from './types';
+import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -30,7 +30,7 @@ const workflows: Workflow[] = [
 						type: 'action',
 						name: 'Step 1',
 						fn: {
-							type: 'set',
+							type: PLUGIN_TYPES.SET_FABRIC,
 							payload: {
 								property: 'fill',
 								value: 'red',
@@ -42,7 +42,7 @@ const workflows: Workflow[] = [
 						type: 'plugin',
 						name: 'Step 2',
 						fn: {
-							type: 'plugin-color',
+							type: PLUGIN_TYPES.COLOR_PLUGIN,
 							payload: {
 								property: 'fill',
 								value: 'green',
@@ -68,7 +68,9 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
-		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
+		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, e => {
+			console.log('e', e);
+		});
 	};
 
 	useEffect(() => {
@@ -78,9 +80,9 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 	const getSelectDataFromActionType = (type: string) => {
 		switch (type) {
 			case 'action':
-				return [{ value: 'set', label: 'Set property' }];
+				return [{ value: PLUGIN_TYPES.SET_FABRIC, label: 'Set property' }];
 			case 'plugin':
-				return [{ value: 'plugin-color', label: 'Set random color' }];
+				return [{ value: PLUGIN_TYPES.COLOR_PLUGIN, label: 'Set random color' }];
 			case 'workflow': {
 				const allWorkflows = getSavedWorkflow();
 				return allWorkflows.map((workflow: Workflow) => ({ value: workflow.id, label: workflow.name }));
