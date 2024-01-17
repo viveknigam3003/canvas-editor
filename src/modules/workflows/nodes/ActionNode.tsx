@@ -77,6 +77,29 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 					/>
 				);
 			}
+			case 'opacity': {
+				let value = workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`).value;
+
+				if (typeof value === 'string') {
+					value = 0;
+				}
+
+				return (
+					<NumberInput
+						min={0}
+						max={1}
+						precision={1}
+						step={0.1}
+						{...workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`)}
+						value={value}
+						onChange={e => {
+							workflow
+								.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`)
+								.onChange(e);
+						}}
+					/>
+				);
+			}
 			case 'fill':
 				return (
 					<ColorInput
@@ -105,6 +128,7 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 								{ value: 'top', label: 'Y' },
 								{ value: 'fill', label: 'Color' },
 								{ value: 'angle', label: 'Angle' },
+								{ value: 'opacity', label: 'Opacity' },
 							]}
 							{...workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.property`)}
 							onChange={e => {
