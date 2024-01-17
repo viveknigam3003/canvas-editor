@@ -1,8 +1,21 @@
-import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
+import {
+	ActionIcon,
+	Box,
+	Flex,
+	Group,
+	MultiSelect,
+	Select,
+	Stack,
+	Text,
+	TextInput,
+	Tooltip,
+	createStyles,
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
 import { Workflow, executor } from './engine';
 import { Conditional, When } from './types';
-import { useState } from 'react';
+import { useEffect } from 'react';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -26,7 +39,7 @@ const workflows: Workflow[] = [
 					{
 						id: '2',
 						type: 'action',
-						name: 'Action 1',
+						name: 'Step 1',
 						fn: {
 							type: 'set',
 							payload: {
@@ -37,8 +50,8 @@ const workflows: Workflow[] = [
 					},
 					{
 						id: '3',
-						type: 'action',
-						name: 'Action 2',
+						type: 'plugin',
+						name: 'Step 2',
 						fn: {
 							type: 'plugin-color',
 							payload: {
@@ -56,16 +69,26 @@ const workflows: Workflow[] = [
 // React Component
 const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
-	const [currentSelectedFlow, setCurrentSelectedFlow] = useState<Workflow | null>(workflows[0]);
+	const currentSelectedFlow = useForm<Workflow | null>({
+		initialValues: {
+			name: '',
+			id: '',
+			nodes: [],
+		},
+	});
 
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
 		executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas);
 	};
 
+	useEffect(() => {
+		console.log(currentSelectedFlow.values);
+	}, [currentSelectedFlow]);
+
 	return (
 		<Box>
-			{!currentSelectedFlow ? (
+			{!currentSelectedFlow.values ? (
 				<>
 					<Flex>
 						<Stack spacing={8}>
@@ -89,7 +112,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 								key={workflow.id}
 								className={classes.flowBox}
 								onClick={() => {
-									setCurrentSelectedFlow(workflow);
+									currentSelectedFlow.setValues(workflow);
 								}}
 							>
 								<ActionIcon
@@ -112,7 +135,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 				<Stack>
 					<Stack spacing={8}>
 						<Group spacing={4}>
-							<ActionIcon onClick={() => setCurrentSelectedFlow(null)}>
+							<ActionIcon onClick={() => currentSelectedFlow.reset()}>
 								<IconArrowLeft size={16} className={classes.gray} />
 							</ActionIcon>
 							<Text className={classes.title}>Edit workflow</Text>
@@ -125,26 +148,71 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 						<TextInput
 							label="Workflow name"
 							placeholder="Eg. Center element, Create CTA"
-							value={'Workflow 1'}
-							onChange={() => {}}
+							{...currentSelectedFlow.getInputProps('name')}
 						/>
 						<Box>
 							<Text className={classes.subtext}>
 								Nodes are the individual steps in your workflow. Each node can have multiple actions.
 							</Text>
-							<Box aria-label="workflow editor" className={classes.editorContainer}>
-								{currentSelectedFlow && (
-									<Box>
-										{currentSelectedFlow.nodes.map(node => (
-											<Box>
-												{node.actions.map(action => (
-													<Box className={classes.node}>{action.name}</Box>
-												))}
-											</Box>
-										))}
-									</Box>
-								)}
-							</Box>
+							<Stack aria-label="workflow editor" className={classes.editorContainer}>
+								{currentSelectedFlow &&
+									currentSelectedFlow.values.nodes.map((node, nodeIndex) => (
+										<>
+											<Select
+												data={[
+													{ value: When.ACTIVE_ELEMENT, label: 'Active element' },
+													{ value: When.SELECTED_ELEMENT, label: 'Selected element' },
+												]}
+												{...currentSelectedFlow.getInputProps(
+													`nodes.${nodeIndex}.condition.when`,
+												)}
+											/>
+											<Select
+												data={[
+													{ value: Conditional.IS, label: 'is equal to' },
+													{ value: Conditional.CONTAIN, label: 'contains' },
+												]}
+												{...currentSelectedFlow.getInputProps(
+													`nodes.${nodeIndex}.condition.conditional`,
+												)}
+											/>
+											<MultiSelect
+												data={[
+													{ value: 'image', label: 'Image' },
+													{ value: 'textbox', label: 'Text' },
+													{ value: 'path', label: 'Shape' },
+												]}
+												{...currentSelectedFlow.getInputProps(
+													`nodes.${nodeIndex}.condition.targets`,
+												)}
+											/>
+											{node.actions.map((action, actionIndex) => (
+												<Stack className={classes.node} key={action.id}>
+													<Select
+														data={[
+															{ value: 'action', label: 'Do' },
+															{ value: 'plugin', label: 'Run plugin' },
+															{ value: 'workflow', label: 'Run workflow' },
+														]}
+														{...currentSelectedFlow.getInputProps(
+															`nodes.${nodeIndex}.actions.${actionIndex}.type`,
+														)}
+													/>
+													<Select
+														data={[
+															{ value: 'set', label: 'Set property' },
+															{ value: 'plugin-color', label: 'Set random color' },
+															{ value: 'workflow', label: 'Run workflow' },
+														]}
+														{...currentSelectedFlow.getInputProps(
+															`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`,
+														)}
+													/>
+												</Stack>
+											))}
+										</>
+									))}
+							</Stack>
 						</Box>
 					</Stack>
 				</Stack>
@@ -187,26 +255,19 @@ const useStyles = createStyles(theme => ({
 		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
 	},
 	editorContainer: {
-		display: 'flex',
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		margin: '16px 0',
-		height: '55vh',
-		background:
-			theme.colorScheme === 'dark'
-				? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[3]}`
-				: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
-		backgroundSize: `10px 10px`,
+		marginTop: '16px',
+		height: '58vh',
+		// background:
+		// 	theme.colorScheme === 'dark'
+		// 		? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[4]}`
+		// 		: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
+		// backgroundSize: `10px 10px`,
 	},
 	node: {
-		display: 'flex',
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		border: '1px solid #F0F0F0',
-		borderRadius: 4,
 		padding: 8,
 		margin: 8,
+		borderRadius: 4,
+		boxShadow: theme.shadows.md,
+		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}}`,
 	},
 }));
