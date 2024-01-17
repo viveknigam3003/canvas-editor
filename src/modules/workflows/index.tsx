@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { executor, getSavedWorkflow, saveWorkflow, updateWorkflow } from './engine';
 import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
-import { Conditional, When, Workflow } from './types';
+import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
 import { generateId } from '../../utils';
 
 interface WorkflowComponentProps {
@@ -75,8 +75,9 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
-		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, e => {
-			console.log('e', e);
+		console.log('workflow on click', workflow);
+		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, () => {
+			// console.log('e', e);
 		});
 	};
 
@@ -111,6 +112,29 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 		};
 		currentSelectedFlow.setValues(newWorkflow);
 		saveWorkflow(newWorkflow);
+	};
+
+	const addNewAction = (nodeIndex: number) => {
+		const newAction = {
+			id: generateId(),
+			type: 'action',
+			name: 'New action',
+			fn: {
+				type: PLUGIN_TYPES.SET_FABRIC,
+				payload: {
+					property: 'fill',
+					value: '#ff1c1cff',
+				},
+			},
+		};
+		// Get the current workflow nodes
+		const currentNodes = currentSelectedFlow.values?.nodes;
+
+		if (!currentNodes) return;
+		// Add the new action to the current nodeIndex
+		currentNodes[nodeIndex].actions.push(newAction);
+		// Set the new nodes
+		currentSelectedFlow.setFieldValue('nodes', currentNodes);
 	};
 
 	return (
@@ -214,6 +238,13 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 													workflow={currentSelectedFlow}
 												/>
 											))}
+											<ActionIcon
+												color={'violet'}
+												variant="subtle"
+												onClick={() => addNewAction(nodeIndex)}
+											>
+												<IconSquareRoundedPlusFilled size={24} />
+											</ActionIcon>
 										</>
 									))}
 							</Stack>

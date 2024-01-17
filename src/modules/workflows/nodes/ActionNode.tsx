@@ -54,7 +54,13 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 				);
 			}
 
-			case 'angle':
+			case 'angle': {
+				let value = workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`).value;
+
+				if (typeof value === 'string') {
+					value = 0;
+				}
+
 				return (
 					<NumberInput
 						min={0}
@@ -62,9 +68,7 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 						precision={0}
 						step={1}
 						{...workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`)}
-						value={
-							workflow.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`).value
-						}
+						value={value}
 						onChange={e => {
 							workflow
 								.getInputProps(`nodes.${nodeIndex}.actions.${actionIndex}.fn.payload.value`)
@@ -72,6 +76,7 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 						}}
 					/>
 				);
+			}
 			case 'fill':
 				return (
 					<ColorInput

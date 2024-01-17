@@ -43,21 +43,27 @@ const plugins = {
 		canvas: fabric.Canvas,
 	) => {
 		if (!currentSelectedElements || !canvas) return;
+		canvas.discardActiveObject();
 		for (const element of currentSelectedElements) {
-			element.set({
-				[args.property]: args.value,
-			});
+			if (args.property === 'width') {
+				element.scaleToWidth(args.value, true);
+			} else if (args.property === 'height') {
+				element.scaleToHeight(args.value, true);
+			} else {
+				element.set({
+					[args.property]: args.value,
+				});
+			}
 		}
 		canvas.requestRenderAll();
 	},
-	[PLUGIN_TYPES.WORKFLOW]: (
-		currentSelectedElements: fabric.Object[],
-		args: { id: string },
-		canvas: fabric.Canvas,
-	) => {
+	workflow: (currentSelectedElements: fabric.Object[], args: { id: string }, canvas: fabric.Canvas) => {
+		console.log('workflow detected', args);
 		if (!currentSelectedElements || !canvas) return;
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
+		console.log('workflow 123', workflow);
 		if (!workflow) return;
+		console.log('currentSelectedElements', currentSelectedElements);
 		executor(workflow, currentSelectedElements, canvas);
 	},
 	[PLUGIN_TYPES.COLOR_PLUGIN]: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
@@ -71,7 +77,7 @@ export async function executor(
 	workflow1: { nodes: Node[] },
 	currentSelectedElements: fabric.Object[],
 	canvas: fabric.Canvas,
-	callback: (arg: NodeAction) => void = () => { },
+	callback: (arg: NodeAction) => void = () => {},
 ) {
 	for (let index = 0; index < workflow1.nodes.length; index++) {
 		const node = workflow1.nodes[index];
@@ -115,11 +121,15 @@ async function executeFn(
 	const aa = node.actions;
 	for (let index = 0; index < aa.length; index++) {
 		const action = aa[index];
+		const actionType = action.type;
+
+		const fnType = actionType === 'workflow' ? 'workflow' : action.fn.type;
+		const fnPayload = actionType === 'workflow' ? { id: action.fn.type } : action.fn.payload;
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		const fn = plugins[action.fn.type] as any;
+		const fn = plugins[fnType] as any;
 		if (fn) {
-			fn(currentSelectedElements, action.fn.payload, canvas);
+			fn(currentSelectedElements, fnPayload, canvas);
 		}
 		await wait(WORKFLOW_DELAY);
 		callback(action);

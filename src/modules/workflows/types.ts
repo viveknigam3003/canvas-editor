@@ -48,6 +48,7 @@ export type NodeAction = {
 	fn: {
 		type: string;
 		payload: {
+			id?: string;
 			property: string;
 			value: any;
 		};
