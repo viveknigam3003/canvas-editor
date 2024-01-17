@@ -1,7 +1,7 @@
 import { Conditional, When } from './types';
 
 const getSavedWorkflow = () => {
-	return JSON.parse(localStorage.getItem('workflows') as string);
+	return JSON.parse(localStorage.getItem('workflows') || '{}');
 };
 
 export type Workflow = {
