@@ -1,8 +1,28 @@
 import { Conditional, When } from './types';
 
-const getSavedWorkflow = () => {
+export const getSavedWorkflow = () => {
 	return JSON.parse(localStorage.getItem('workflows') || '{}');
 };
+
+export const getWorkflowById = (id: string) => {
+	const workflows = getSavedWorkflow();
+	return workflows.find((workflow: Workflow) => workflow.id === id);
+};
+
+export const saveWorkflow = (workflow: Workflow) => {
+	const workflows = getSavedWorkflow();
+	workflows.push(workflow);
+	localStorage.setItem('workflows', JSON.stringify(workflows));
+};
+
+export const updateWorkflow = (workflow: Workflow) => {
+	const workflows = getSavedWorkflow();
+	const index = workflows.findIndex((workflow: Workflow) => workflow.id === id);
+	workflows[index] = workflow;
+	localStorage.setItem('workflows', JSON.stringify(workflows));
+};
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export type Workflow = {
 	id: string;
@@ -10,6 +30,18 @@ export type Workflow = {
 	nodes: Node[];
 };
 
+export type NodeAction = {
+	id: string;
+	type: string;
+	name: string;
+	fn: {
+		type: string;
+		payload: {
+			property: string;
+			value: any;
+		};
+	};
+};
 export type Node = {
 	id: string;
 	name: string;
@@ -18,18 +50,7 @@ export type Node = {
 		conditional: Conditional;
 		targets: string[];
 	};
-	actions: {
-		id: string;
-		type: string;
-		name: string;
-		fn: {
-			type: string;
-			payload: {
-				property: string;
-				value: any;
-			};
-		};
-	}[];
+	actions: NodeAction[];
 };
 // get random colors
 const getRandomColor = () => {
@@ -55,11 +76,7 @@ const plugins = {
 		}
 		canvas.requestRenderAll();
 	},
-	executeWorkflow: (
-		currentSelectedElements: fabric.Object[],
-		args: { workflow: { id: string } },
-		canvas: fabric.Canvas,
-	) => {
+	executeWorkflow: (currentSelectedElements: fabric.Object[], args: { id: string }, canvas: fabric.Canvas) => {
 		if (!currentSelectedElements || !canvas) return;
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
 		executor(workflow, currentSelectedElements, canvas);
@@ -83,15 +100,16 @@ const getFunctionFromName = (name: string) => {
 	}
 };
 
-export function executor(
+export async function executor(
 	workflow1: { nodes: Node[] },
 	currentSelectedElements: fabric.Object[],
 	canvas: fabric.Canvas,
+	callback: (arg: NodeAction) => void = () => {},
 ) {
 	for (let index = 0; index < workflow1.nodes.length; index++) {
 		const node = workflow1.nodes[index];
 		if (node.condition.when === When.ACTIVE_ELEMENT) {
-			executeFn(node, currentSelectedElements, canvas);
+			executeFn(node, currentSelectedElements, canvas, callback);
 			canvas.requestRenderAll();
 		} else if (node.condition.when === When.SELECTED_ELEMENT) {
 			if (
@@ -101,20 +119,22 @@ export function executor(
 				const element = currentSelectedElements.find(
 					x => x.type === node.condition.targets?.[0],
 				) as fabric.Object;
-				executeFn(node, [element], canvas);
+				executeFn(node, [element], canvas, callback);
 			} else if (
 				node.condition.conditional === Conditional.CONTAIN &&
-				currentSelectedElements.filter(x => node.condition.targets?.includes(x.type)).length > 0
+				currentSelectedElements.filter(x => node.condition.targets?.includes(x.type as string)).length > 0
 			) {
 				console.log(
 					'contains',
-					currentSelectedElements.filter(x => node.condition.targets?.includes(x.type)),
+					currentSelectedElements.filter(x => node.condition.targets?.includes(x.type as string)),
 				);
-				currentSelectedElements
-					.filter(x => node.condition.targets?.includes(x.type))
-					.forEach(element => {
-						executeFn(node, [element], canvas);
-					});
+				const elements = currentSelectedElements.filter(
+					x => node.condition.targets?.includes(x.type as string),
+				);
+				for (let index = 0; index < elements.length; index++) {
+					const element = elements[index];
+					await executeFn(node, [element], canvas, callback);
+				}
 			} else {
 				break;
 			}
@@ -123,11 +143,21 @@ export function executor(
 	}
 }
 
-function executeFn(node: any, currentSelectedElements: fabric.Object[], canvas: fabric.Canvas) {
-	node.actions.forEach((action: any) => {
+async function executeFn(
+	node: any,
+	currentSelectedElements: fabric.Object[],
+	canvas: fabric.Canvas,
+	callback: (arg: NodeAction) => void,
+) {
+	const aa = node.actions;
+	for (let index = 0; index < aa.length; index++) {
+		const action = aa[index];
 		const fn = getFunctionFromName(action.fn.type);
+		console.log('asd', action.fn.type);
 		if (fn) {
 			fn(currentSelectedElements, action.fn.payload, canvas);
 		}
-	});
+		await wait(3000);
+		callback(action);
+	}
 }
