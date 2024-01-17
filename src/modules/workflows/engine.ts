@@ -15,7 +15,7 @@ export const saveWorkflow = (workflow: Workflow) => {
 	localStorage.setItem('workflows', JSON.stringify(workflows));
 };
 
-export const updateWorkflow = (workflow: Workflow) => {
+export const updateWorkflow = (id: string, workflow: Workflow) => {
 	const workflows = getSavedWorkflow();
 	const index = workflows.findIndex((workflow: Workflow) => workflow.id === id);
 	workflows[index] = workflow;
