@@ -1,7 +1,7 @@
 import { Conditional, When } from './types';
 
 export const getSavedWorkflow = () => {
-	return JSON.parse(localStorage.getItem('workflows') || '{}');
+	return JSON.parse(localStorage.getItem('workflows') || '[]');
 };
 
 export const getWorkflowById = (id: string) => {

@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
-import { Workflow, executor } from './engine';
+import { Workflow, executor, getSavedWorkflow } from './engine';
 import { Conditional, When } from './types';
 import { useEffect } from 'react';
 
@@ -86,9 +86,22 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 		console.log(currentSelectedFlow.values);
 	}, [currentSelectedFlow]);
 
+	const getSelectDataFromActionType = (type: string) => {
+		switch (type) {
+			case 'action':
+				return [{ value: 'set', label: 'Set property' }];
+			case 'plugin':
+				return [{ value: 'plugin-color', label: 'Set random color' }];
+			case 'workflow': {
+				const allWorkflows = getSavedWorkflow();
+				return allWorkflows.map((workflow: Workflow) => ({ value: workflow.id, label: workflow.name }));
+			}
+		}
+	};
+
 	return (
 		<Box>
-			{!currentSelectedFlow.values ? (
+			{!currentSelectedFlow.values?.id ? (
 				<>
 					<Flex>
 						<Stack spacing={8}>
@@ -187,8 +200,12 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 												)}
 											/>
 											{node.actions.map((action, actionIndex) => (
-												<Stack className={classes.node} key={action.id}>
+												<Group className={classes.node} key={action.id}>
 													<Select
+														variant="unstyled"
+														style={{
+															borderBottom: '1px solid #ccc',
+														}}
 														data={[
 															{ value: 'action', label: 'Do' },
 															{ value: 'plugin', label: 'Run plugin' },
@@ -197,18 +214,30 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 														{...currentSelectedFlow.getInputProps(
 															`nodes.${nodeIndex}.actions.${actionIndex}.type`,
 														)}
+														onChange={e => {
+															currentSelectedFlow.setFieldValue(
+																`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`,
+																'',
+															);
+															currentSelectedFlow
+																.getInputProps(
+																	`nodes.${nodeIndex}.actions.${actionIndex}.type`,
+																)
+																.onChange(e);
+														}}
 													/>
 													<Select
-														data={[
-															{ value: 'set', label: 'Set property' },
-															{ value: 'plugin-color', label: 'Set random color' },
-															{ value: 'workflow', label: 'Run workflow' },
-														]}
+														variant="unstyled"
+														style={{
+															borderBottom: '1px solid #ccc',
+														}}
+														w={200}
+														data={getSelectDataFromActionType(action.type)}
 														{...currentSelectedFlow.getInputProps(
 															`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`,
 														)}
 													/>
-												</Stack>
+												</Group>
 											))}
 										</>
 									))}
