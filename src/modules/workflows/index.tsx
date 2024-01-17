@@ -2,10 +2,11 @@ import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createSt
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
 import { useEffect } from 'react';
-import { executor, getSavedWorkflow, updateWorkflow } from './engine';
+import { executor, getSavedWorkflow, saveWorkflow, updateWorkflow } from './engine';
 import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
-import { Workflow } from './types';
+import { Conditional, When, Workflow } from './types';
+import { generateId } from '../../utils';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -91,6 +92,27 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 		);
 	};
 
+	const createNewWorkflow = () => {
+		const newWorkflow: Workflow = {
+			name: 'New workflow',
+			id: generateId(),
+			nodes: [
+				{
+					id: generateId(),
+					name: 'When',
+					condition: {
+						when: When.ACTIVE_ELEMENT,
+						conditional: Conditional.IS,
+						targets: ['textbox'],
+					},
+					actions: [],
+				},
+			],
+		};
+		currentSelectedFlow.setValues(newWorkflow);
+		saveWorkflow(newWorkflow);
+	};
+
 	return (
 		<Box>
 			{!currentSelectedFlow.values?.id ? (
@@ -106,7 +128,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 							</Text>
 						</Stack>
 						<Tooltip label="New workflow">
-							<ActionIcon color={'violet'} variant="subtle">
+							<ActionIcon color={'violet'} variant="subtle" onClick={() => createNewWorkflow()}>
 								<IconSquareRoundedPlusFilled size={24} />
 							</ActionIcon>
 						</Tooltip>

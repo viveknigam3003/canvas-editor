@@ -1,6 +1,6 @@
 import { MultiSelect, Select, Stack, Text, createStyles } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Conditional, When, Workflow } from '../types';
 
@@ -15,9 +15,22 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({ workflow, nodeIndex }) =>
 	const [showTargets, setShowTargets] = React.useState(false);
 	const [showSingleTarget, setShowSingleTarget] = React.useState(false);
 
+	useEffect(() => {
+		if (workflow.values?.nodes[nodeIndex].condition.when === When.ACTIVE_ELEMENT) {
+			setShowConditional(false);
+			setShowTargets(false);
+		} else {
+			setShowConditional(true);
+			setShowTargets(true);
+			if (workflow.values?.nodes[nodeIndex].condition.conditional === Conditional.IS) {
+				setShowSingleTarget(true);
+			}
+		}
+	}, [nodeIndex, workflow.values?.nodes]);
+
 	return (
 		<Stack className={classes.root}>
-			<Text className={classes.overline}>Condition</Text>
+			<Text className={classes.overline}>When</Text>
 			<Select
 				defaultValue={When.ACTIVE_ELEMENT}
 				data={[

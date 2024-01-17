@@ -18,12 +18,10 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 	const [currentProperty, setCurrentProperty] = React.useState(action.fn.payload.property);
 
 	React.useEffect(() => {
-		console.log('action.type', action.type);
 		setCurrentActionType(action.type);
 	}, [action.type]);
 
 	React.useEffect(() => {
-		console.log('action.fn.payload.property', action.fn.payload.property);
 		setCurrentProperty(action.fn.payload.property);
 	}, [action.fn.payload.property]);
 
