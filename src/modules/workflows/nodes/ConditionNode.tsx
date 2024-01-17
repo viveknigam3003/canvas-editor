@@ -11,32 +11,73 @@ interface ConditionNodeProps {
 
 const ConditionNode: React.FC<ConditionNodeProps> = ({ workflow, nodeIndex }) => {
 	const { classes } = useStyles();
+	const [showConditional, setShowConditional] = React.useState(false);
+	const [showTargets, setShowTargets] = React.useState(false);
+	const [showSingleTarget, setShowSingleTarget] = React.useState(false);
 
 	return (
 		<Stack className={classes.root}>
 			<Text className={classes.overline}>Condition</Text>
 			<Select
+				defaultValue={When.ACTIVE_ELEMENT}
 				data={[
-					{ value: When.ACTIVE_ELEMENT, label: 'Active element' },
+					{ value: When.ACTIVE_ELEMENT, label: 'Workflow Triggered' },
 					{ value: When.SELECTED_ELEMENT, label: 'Selected element' },
 				]}
 				{...workflow.getInputProps(`nodes.${nodeIndex}.condition.when`)}
+				onChange={value => {
+					if (value === When.ACTIVE_ELEMENT) {
+						setShowConditional(false);
+						setShowTargets(false);
+					} else {
+						setShowConditional(true);
+						setShowTargets(true);
+					}
+					workflow.getInputProps(`nodes.${nodeIndex}.condition.when`).onChange(value);
+				}}
 			/>
-			<Select
-				data={[
-					{ value: Conditional.IS, label: 'is equal to' },
-					{ value: Conditional.CONTAIN, label: 'contains' },
-				]}
-				{...workflow.getInputProps(`nodes.${nodeIndex}.condition.conditional`)}
-			/>
-			<MultiSelect
-				data={[
-					{ value: 'image', label: 'Image' },
-					{ value: 'textbox', label: 'Text' },
-					{ value: 'path', label: 'Shape' },
-				]}
-				{...workflow.getInputProps(`nodes.${nodeIndex}.condition.targets`)}
-			/>
+			{showConditional && (
+				<Select
+					data={[
+						{ value: Conditional.IS, label: 'is equal to' },
+						{ value: Conditional.CONTAIN, label: 'contains' },
+					]}
+					{...workflow.getInputProps(`nodes.${nodeIndex}.condition.conditional`)}
+					onChange={value => {
+						if (value === Conditional.IS) {
+							setShowSingleTarget(true);
+						} else {
+							setShowSingleTarget(false);
+						}
+						workflow.getInputProps(`nodes.${nodeIndex}.condition.conditional`).onChange(value);
+					}}
+				/>
+			)}
+			{showTargets &&
+				(showSingleTarget ? (
+					<Select
+						data={[
+							{ value: 'image', label: 'Image' },
+							{ value: 'textbox', label: 'Text' },
+							{ value: 'path', label: 'Shape' },
+						]}
+						{...workflow.getInputProps(`nodes.${nodeIndex}.condition.targets`)}
+						value={workflow.values?.nodes[nodeIndex].condition.targets[0]}
+						onChange={value => {
+							console.log('VAL', value);
+							workflow.getInputProps(`nodes.${nodeIndex}.condition.targets`).onChange([value]);
+						}}
+					/>
+				) : (
+					<MultiSelect
+						data={[
+							{ value: 'image', label: 'Image' },
+							{ value: 'textbox', label: 'Text' },
+							{ value: 'path', label: 'Shape' },
+						]}
+						{...workflow.getInputProps(`nodes.${nodeIndex}.condition.targets`)}
+					/>
+				))}
 		</Stack>
 	);
 };

@@ -1,4 +1,5 @@
-import { Conditional, Target, When } from './types';
+import { getSavedWorkflow } from './engine';
+import { Conditional, PLUGIN_TYPES, Target, When, Workflow } from './types';
 
 export const getDataFromEnum = (enumObject: any) => {
 	const keys = Object.keys(enumObject);
@@ -28,5 +29,18 @@ export const enumObjectFromString = (key: string) => {
 			return Target;
 		default:
 			return null;
+	}
+};
+
+export const getSelectDataFromActionType = (type: string) => {
+	switch (type) {
+		case 'action':
+			return [{ value: PLUGIN_TYPES.SET_FABRIC, label: 'Set property' }];
+		case 'plugin':
+			return [{ value: PLUGIN_TYPES.COLOR_PLUGIN, label: 'Set random color' }];
+		case 'workflow': {
+			const allWorkflows = getSavedWorkflow();
+			return allWorkflows.map((workflow: Workflow) => ({ value: workflow.id, label: workflow.name }));
+		}
 	}
 };

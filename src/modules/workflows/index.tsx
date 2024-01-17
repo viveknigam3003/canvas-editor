@@ -1,10 +1,11 @@
-import { ActionIcon, Box, Flex, Group, Select, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
+import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
-import { useEffect } from 'react';
-import { executor, getSavedWorkflow } from './engine';
+import { executor } from './engine';
+import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
 import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
+import { useEffect } from 'react';
 
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
@@ -20,9 +21,9 @@ const workflows: Workflow[] = [
 				id: '1',
 				name: 'Step 1',
 				condition: {
-					when: When.SELECTED_ELEMENT,
+					when: When.ACTIVE_ELEMENT,
 					conditional: Conditional.CONTAIN,
-					targets: ['image', 'textbox'],
+					targets: ['image', 'textbox', 'path'],
 				},
 				actions: [
 					{
@@ -33,7 +34,7 @@ const workflows: Workflow[] = [
 							type: PLUGIN_TYPES.SET_FABRIC,
 							payload: {
 								property: 'fill',
-								value: 'red',
+								value: 'blue',
 							},
 						},
 					},
@@ -44,8 +45,8 @@ const workflows: Workflow[] = [
 						fn: {
 							type: PLUGIN_TYPES.COLOR_PLUGIN,
 							payload: {
-								property: 'fill',
-								value: 'green',
+								property: '',
+								value: '',
 							},
 						},
 					},
@@ -66,28 +67,15 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 		},
 	});
 
+	useEffect(() => {
+		console.log('Form', currentSelectedFlow.values);
+	}, [currentSelectedFlow.values]);
+
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
 		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, e => {
 			console.log('e', e);
 		});
-	};
-
-	useEffect(() => {
-		console.log(currentSelectedFlow.values);
-	}, [currentSelectedFlow]);
-
-	const getSelectDataFromActionType = (type: string) => {
-		switch (type) {
-			case 'action':
-				return [{ value: PLUGIN_TYPES.SET_FABRIC, label: 'Set property' }];
-			case 'plugin':
-				return [{ value: PLUGIN_TYPES.COLOR_PLUGIN, label: 'Set random color' }];
-			case 'workflow': {
-				const allWorkflows = getSavedWorkflow();
-				return allWorkflows.map((workflow: Workflow) => ({ value: workflow.id, label: workflow.name }));
-			}
-		}
 	};
 
 	return (
@@ -137,17 +125,34 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 				</>
 			) : (
 				<Stack>
-					<Stack spacing={8}>
-						<Group spacing={4}>
-							<ActionIcon onClick={() => currentSelectedFlow.reset()}>
-								<IconArrowLeft size={16} className={classes.gray} />
+					<Flex>
+						<Stack spacing={8}>
+							<Group spacing={4}>
+								<ActionIcon onClick={() => currentSelectedFlow.reset()}>
+									<IconArrowLeft size={16} className={classes.gray} />
+								</ActionIcon>
+								<Text className={classes.title}>Edit workflow</Text>
+							</Group>
+							<Text className={classes.subtext}>
+								Customize the actions in this workflow using the editor below.
+							</Text>
+						</Stack>
+						<Tooltip label="Test workflow">
+							<ActionIcon
+								color="violet"
+								variant="filled"
+								size={'sm'}
+								onClick={e => {
+									e.stopPropagation();
+									const id = currentSelectedFlow.values?.id;
+									if (!id) return;
+									handleButtonClick(id);
+								}}
+							>
+								<IconPlayerPlay size={12} />
 							</ActionIcon>
-							<Text className={classes.title}>Edit workflow</Text>
-						</Group>
-						<Text className={classes.subtext}>
-							Customize the actions in this workflow using the editor below.
-						</Text>
-					</Stack>
+						</Tooltip>
+					</Flex>
 					<Stack>
 						<TextInput
 							label="Workflow name"
@@ -164,44 +169,12 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 										<>
 											<ConditionNode nodeIndex={nodeIndex} workflow={currentSelectedFlow} />
 											{node.actions.map((action, actionIndex) => (
-												<Group className={classes.node} key={action.id}>
-													<Select
-														variant="unstyled"
-														style={{
-															borderBottom: '1px solid #ccc',
-														}}
-														data={[
-															{ value: 'action', label: 'Do' },
-															{ value: 'plugin', label: 'Run plugin' },
-															{ value: 'workflow', label: 'Run workflow' },
-														]}
-														{...currentSelectedFlow.getInputProps(
-															`nodes.${nodeIndex}.actions.${actionIndex}.type`,
-														)}
-														onChange={e => {
-															currentSelectedFlow.setFieldValue(
-																`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`,
-																'',
-															);
-															currentSelectedFlow
-																.getInputProps(
-																	`nodes.${nodeIndex}.actions.${actionIndex}.type`,
-																)
-																.onChange(e);
-														}}
-													/>
-													<Select
-														variant="unstyled"
-														style={{
-															borderBottom: '1px solid #ccc',
-														}}
-														w={200}
-														data={getSelectDataFromActionType(action.type)}
-														{...currentSelectedFlow.getInputProps(
-															`nodes.${nodeIndex}.actions.${actionIndex}.fn.type`,
-														)}
-													/>
-												</Group>
+												<ActionNode
+													action={action}
+													actionIndex={actionIndex}
+													nodeIndex={nodeIndex}
+													workflow={currentSelectedFlow}
+												/>
 											))}
 										</>
 									))}

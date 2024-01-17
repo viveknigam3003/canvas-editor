@@ -13,7 +13,7 @@ export enum Conditional {
 }
 
 export enum When {
-	ACTIVE_ELEMENT = 'Active element',
+	ACTIVE_ELEMENT = 'Workflow Triggered',
 	SELECTED_ELEMENT = 'Selected element',
 }
 
