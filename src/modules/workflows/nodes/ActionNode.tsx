@@ -121,6 +121,7 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 				return (
 					<Group>
 						<Select
+							style={{ width: '100%' }}
 							data={[
 								{ value: 'width', label: 'Width' },
 								{ value: 'height', label: 'Height' },
@@ -148,10 +149,14 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 
 	return (
 		<Group className={classes.root} key={action.id}>
+			<span className={classes.overline}>Then</span>
 			<Select
 				variant="unstyled"
 				style={{
-					borderBottom: '1px solid #ccc',
+					border: '1px solid #ccc',
+					borderRadius: '4px',
+					paddingLeft: '10px',
+					width: '100%',
 				}}
 				data={[
 					{ value: 'action', label: 'Do' },
@@ -170,7 +175,10 @@ const ActionNode: React.FC<ActionNodeProps> = ({ actionIndex, action, workflow, 
 			<Select
 				variant="unstyled"
 				style={{
-					borderBottom: '1px solid #ccc',
+					border: '1px solid #ccc',
+					borderRadius: '4px',
+					paddingLeft: '10px',
+					width: '100%',
 				}}
 				w={200}
 				data={getSelectDataFromActionType(action.type) as any}
