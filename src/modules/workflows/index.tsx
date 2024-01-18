@@ -9,6 +9,7 @@ import {
 	IconSquareRoundedPlusFilled,
 	IconSunFilled,
 	IconListCheck,
+	IconStackBack,
 } from '@tabler/icons-react';
 import { generateId } from '../../utils';
 import { executor, getSavedWorkflow, plugins, saveWorkflow, updateWorkflow, wait } from './engine';
@@ -23,8 +24,60 @@ const getRandomNumber = (min: number, max: number) => {
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
 	currentSelectedElements: fabric.Object[] | null;
+	showPlugins: string;
 }
-
+const useStyles = createStyles(theme => ({
+	gray: {
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+	},
+	title: {
+		fontSize: 16,
+		fontWeight: 600,
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+	},
+	subtext: {
+		fontSize: 12,
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[6],
+	},
+	flowBox: {
+		padding: 8,
+		borderRadius: 4,
+		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2]}`,
+		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+		fontSize: 14,
+		transition: 'all 0.2s ease',
+		'&:hover': {
+			cursor: 'pointer',
+			border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.violet[4] : theme.colors.violet[6]}`,
+			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.violet[0],
+		},
+	},
+	workflowText: {
+		fontSize: 14,
+		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
+	},
+	editorContainer: {
+		marginTop: '16px',
+		height: '100%',
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
+		background:
+			theme.colorScheme === 'dark'
+				? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[4]}`
+				: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
+		backgroundSize: `10px 10px`,
+		paddingBottom: '16px',
+	},
+	node: {
+		padding: 8,
+		margin: 8,
+		borderRadius: 4,
+		boxShadow: theme.shadows.md,
+		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}}`,
+	},
+}));
 // const workflows: Workflow[] = [
 // 	{
 // 		name: 'Flash change color',
@@ -79,7 +132,7 @@ interface IPlugin {
 }
 
 // React Component
-const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
+const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ showPlugins, canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
 	const workflows = getSavedWorkflow();
 	const [aiTextStatus, setAiTextStatus] = useState(false);
@@ -118,7 +171,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 			type: PLUGIN_TYPES.AI_COPY_REFRESH,
 			name: 'Remove BG (Coming Soon)',
 			disabled: true,
-			icon: <IconListCheck size={16} />,
+			icon: <IconStackBack size={16} />,
 			desc: 'Remove Background',
 		},
 		{
@@ -196,8 +249,8 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 	const executePlugin = async (plugin: IPlugin) => {
 		if (plugin.type === PLUGIN_TYPES.AI_COPY_REFRESH) {
 			setAiTextStatus(true);
+			await wait(getRandomNumber(1, 3) * 1000);
 		}
-		await wait(getRandomNumber(1, 3) * 1000);
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		const pg = plugins[plugin.type];
@@ -254,25 +307,30 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 						))}
 					</Stack>
 					<Divider my={8} />
-					<Stack spacing={8}>
-						<Group spacing={4}>
-							<IconPlug size={16} className={classes.gray} />
-							<Text className={classes.title}>Plugins</Text>
-						</Group>
-						<Text className={classes.subtext}>
-							Powerful plugins to help you automate your design process.
-						</Text>
-					</Stack>
-					<Stack mt={24} mb={16} spacing={8}>
-						{pluginsMetadaata.map(pg => (
-							<Group key={pg.id} className={classes.flowBox} onClick={() => executePlugin(pg)}>
-								<ActionIcon color="violet" variant="subtle" size={'sm'}>
-									{pg.icon}
-								</ActionIcon>
-								<Text className={classes.workflowText}>{pg.name}</Text>
-							</Group>
-						))}
-					</Stack>
+					{showPlugins === 'true' && (
+						<>
+							<Stack spacing={8}>
+								<Group spacing={4}>
+									<IconPlug size={16} className={classes.gray} />
+									<Text className={classes.title}>Plugins</Text>
+								</Group>
+								<Text className={classes.subtext}>
+									Powerful plugins to help you automate your design process.
+								</Text>
+							</Stack>
+
+							<Stack mt={24} mb={16} spacing={8}>
+								{pluginsMetadaata.map(pg => (
+									<Group key={pg.id} className={classes.flowBox} onClick={() => executePlugin(pg)}>
+										<ActionIcon color="violet" variant="subtle" size={'sm'}>
+											{pg.icon}
+										</ActionIcon>
+										<Text className={classes.workflowText}>{pg.name}</Text>
+									</Group>
+								))}
+							</Stack>
+						</>
+					)}
 				</>
 			) : (
 				<Stack>
@@ -354,56 +412,3 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 };
 
 export default WorkflowComponent;
-
-const useStyles = createStyles(theme => ({
-	gray: {
-		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
-	},
-	title: {
-		fontSize: 16,
-		fontWeight: 600,
-		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
-	},
-	subtext: {
-		fontSize: 12,
-		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[6],
-	},
-	flowBox: {
-		padding: 8,
-		borderRadius: 4,
-		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[2]}`,
-		backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
-		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
-		fontSize: 14,
-		transition: 'all 0.2s ease',
-		'&:hover': {
-			cursor: 'pointer',
-			border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.violet[4] : theme.colors.violet[6]}`,
-			backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.violet[0],
-		},
-	},
-	workflowText: {
-		fontSize: 14,
-		color: theme.colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[8],
-	},
-	editorContainer: {
-		marginTop: '16px',
-		height: '100%',
-		display: 'flex',
-		flexDirection: 'column',
-		alignItems: 'center',
-		background:
-			theme.colorScheme === 'dark'
-				? `linear-gradient(90deg, ${theme.colors.dark[8]} 9px, transparent 1%) center, linear-gradient(${theme.colors.dark[8]} 9px, transparent 1%) center, ${theme.colors.dark[4]}`
-				: `linear-gradient(90deg, white 9px, transparent 1%) center, linear-gradient(white 9px, transparent 1%) center, #cbc9c9`,
-		backgroundSize: `10px 10px`,
-		paddingBottom: '16px',
-	},
-	node: {
-		padding: 8,
-		margin: 8,
-		borderRadius: 4,
-		boxShadow: theme.shadows.md,
-		border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}}`,
-	},
-}));

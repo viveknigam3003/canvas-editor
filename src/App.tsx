@@ -68,7 +68,8 @@ import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 import demoJson from './data/demo.json';
-import creative from './data/creative.json';
+import mcd from './data/mcd.json';
+import workflows from './data/workflows.json';
 import WorkflowComponent from './modules/workflows';
 
 store.dispatch(appStart());
@@ -171,6 +172,10 @@ function App() {
 	const [snapDistance, setSnapDistance] = useLocalStorage<string>({
 		key: 'snapDistance',
 		defaultValue: '2',
+	});
+	const [showPlugins, setShowPlugins] = useLocalStorage<string>({
+		key: 'showPlugins',
+		defaultValue: 'false',
 	});
 	const [showRuler, setShowRuler] = useState(true);
 	const theme = useMantineTheme();
@@ -1161,36 +1166,21 @@ function App() {
 			'mod+1',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				dispatch(setArtboards(demoJson));
-				notifications.show({
-					title: 'Demo project loaded',
-					message: 'You can now start editing the demo project',
-					icon: <IconCircleCheck size={20} />,
-					color: 'green',
-					autoClose: 1500,
-				});
+				dispatch(setArtboards(mcd));
 			},
 		],
 		[
 			'mod+2',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				dispatch(setArtboards(creative as Artboard[]));
-				notifications.show({
-					title: 'Creative project loaded',
-					message: 'You can now start editing the creative project',
-					icon: <IconCircleCheck size={20} />,
-					color: 'green',
-					autoClose: 1500,
-				});
+				localStorage.setItem('workflows', JSON.stringify(workflows));
 			},
 		],
 		[
 			'mod+3',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				const isVideoEnabled = JSON.parse(localStorage.getItem('video') || 'false');
-				localStorage.setItem('video', JSON.stringify(!isVideoEnabled));
+				setShowPlugins(c => (c === 'true' ? 'false' : 'true'));
 			},
 		],
 	]);
@@ -1372,6 +1362,7 @@ function App() {
 					<Box className={classes.right}>
 						{isWorkflowsPanelActive ? (
 							<WorkflowComponent
+								showPlugins={showPlugins}
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
 							/>
@@ -1393,7 +1384,6 @@ function App() {
 			<NewArtboardModal
 				opened={isNewArtboardModalOpen}
 				onClose={() => {
-					zoomToFit();
 					closeNewArtboardModal();
 				}}
 				canvas={canvasRef.current}
