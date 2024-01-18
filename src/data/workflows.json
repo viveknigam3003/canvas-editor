@@ -1,0 +1,227 @@
+[
+	{
+		"name": "Style CTA Text",
+		"id": "an4raos",
+		"nodes": [
+			{
+				"id": "he9ub77",
+				"name": "When",
+				"condition": { "when": "Selected element", "conditional": "Is", "targets": ["textbox"] },
+				"actions": [
+					{
+						"id": "elyknb1",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "fill", "value": "#ffffffff" } }
+					},
+					{
+						"id": "q13llzf",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "left", "value": 289 } }
+					},
+					{
+						"id": "72ml7jo",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "top", "value": 166 } }
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "Style CTA Background",
+		"id": "g3bjaew",
+		"nodes": [
+			{
+				"id": "5oypvzw",
+				"name": "When",
+				"condition": { "when": "Selected element", "conditional": "Contain", "targets": ["path"] },
+				"actions": [
+					{
+						"id": "9y96968",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "fill", "value": "#cd0007ff" } }
+					},
+					{
+						"id": "n3vbscx",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "left", "value": 271 } }
+					},
+					{
+						"id": "r8vvwdh",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "top", "value": 160 } }
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "Create CTA",
+		"id": "gf1xeal",
+		"nodes": [
+			{
+				"id": "42gemld",
+				"name": "When",
+				"condition": { "when": "Selected element", "conditional": "Contain", "targets": ["textbox", "path"] },
+				"actions": [
+					{
+						"id": "7qh9r9y",
+						"type": "workflow",
+						"name": "New action",
+						"fn": { "type": "an4raos", "payload": { "property": "fill", "value": "#ff1c1cff" } }
+					},
+					{
+						"id": "umfrqvb",
+						"type": "workflow",
+						"name": "New action",
+						"fn": { "type": "g3bjaew", "payload": { "property": "fill", "value": "#ff1c1cff" } }
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "Prepare Background",
+		"id": "qi4vkai",
+		"nodes": [
+			{
+				"id": "rjymemi",
+				"name": "When",
+				"condition": { "when": "Selected element", "conditional": "Contain", "targets": ["image"] },
+				"actions": [
+					{
+						"id": "irjdnx8",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "left", "value": 160 } }
+					},
+					{
+						"id": "zjmrg3w",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "top", "value": 97 } }
+					},
+					{
+						"id": "yac1jnw",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "width", "value": 500 } }
+					},
+					{
+						"id": "7g4b3nd",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "height", "value": 500 } }
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "Create Template",
+		"id": "bl2gj4m",
+		"nodes": [
+			{
+				"id": "sednayf",
+				"name": "When",
+				"condition": {
+					"when": "Selected element",
+					"conditional": "Contain",
+					"targets": ["textbox", "image", "path"]
+				},
+				"actions": [
+					{
+						"id": "ozh22rr",
+						"type": "workflow",
+						"name": "New action",
+						"fn": { "type": "gf1xeal", "payload": { "property": "fill", "value": "#ff1c1cff" } }
+					},
+					{
+						"id": "c9zq51s",
+						"type": "workflow",
+						"name": "New action",
+						"fn": { "type": "qi4vkai", "payload": { "property": "fill", "value": "#ff1c1cff" } }
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "Set reference image",
+		"id": "h7i58gz",
+		"nodes": [
+			{
+				"id": "yob6ne3",
+				"name": "When",
+				"condition": { "when": "Selected element", "conditional": "Contain", "targets": ["image"] },
+				"actions": [
+					{
+						"id": "xwpaemy",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "left", "value": 160 } }
+					},
+					{
+						"id": "qbn43ld",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "top", "value": 97 } }
+					},
+					{
+						"id": "1juga8n",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "width", "value": 500 } }
+					},
+					{
+						"id": "6wrzfcl",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "height", "value": 500 } }
+					},
+					{
+						"id": "qrvv9rp",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "opacity", "value": 0.3 } }
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "Center on creative",
+		"id": "xsdfzat",
+		"nodes": [
+			{
+				"id": "vv965i3",
+				"name": "When",
+				"condition": {
+					"when": "Selected element",
+					"conditional": "Contain",
+					"targets": ["textbox", "image", "path"]
+				},
+				"actions": [
+					{
+						"id": "w5e69ly",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "left", "value": 325 } }
+					},
+					{
+						"id": "rxihzje",
+						"type": "action",
+						"name": "New action",
+						"fn": { "type": "SET_FABRIC", "payload": { "property": "top", "value": 250 } }
+					}
+				]
+			}
+		]
+	}
+]
