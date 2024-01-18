@@ -1392,7 +1392,10 @@ function App() {
 			</Box>
 			<NewArtboardModal
 				opened={isNewArtboardModalOpen}
-				onClose={closeNewArtboardModal}
+				onClose={() => {
+					zoomToFit();
+					closeNewArtboardModal();
+				}}
 				canvas={canvasRef.current}
 			/>
 		</Box>

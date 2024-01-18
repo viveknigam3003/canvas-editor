@@ -1,13 +1,25 @@
-import { ActionIcon, Box, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
+import { ActionIcon, Box, Divider, Flex, Group, Stack, Text, TextInput, Tooltip, createStyles } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconArrowLeft, IconPlayerPlay, IconPuzzle, IconSquareRoundedPlusFilled } from '@tabler/icons-react';
-import { useEffect } from 'react';
+import {
+	IconArrowLeft,
+	IconPlayerPlay,
+	IconPlug,
+	IconPuzzle,
+	IconSparkles,
+	IconSquareRoundedPlusFilled,
+	IconSunFilled,
+	IconListCheck,
+} from '@tabler/icons-react';
 import { generateId } from '../../utils';
-import { executor, getSavedWorkflow, saveWorkflow, updateWorkflow } from './engine';
+import { executor, getSavedWorkflow, plugins, saveWorkflow, updateWorkflow, wait } from './engine';
 import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
 import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
+import { Fragment, useState } from 'react';
 
+const getRandomNumber = (min: number, max: number) => {
+	return Math.floor(Math.random() * (max - min) + min);
+};
 interface WorkflowComponentProps {
 	canvas: fabric.Canvas | null;
 	currentSelectedElements: fabric.Object[] | null;
@@ -57,10 +69,20 @@ interface WorkflowComponentProps {
 // 	},
 // ];
 
+interface IPlugin {
+	id: string;
+	type: PLUGIN_TYPES;
+	name: string;
+	icon: React.ReactNode;
+	desc: string;
+	disabled?: boolean;
+}
+
 // React Component
 const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSelectedElements }) => {
 	const { classes } = useStyles();
 	const workflows = getSavedWorkflow();
+	const [aiTextStatus, setAiTextStatus] = useState(false);
 	const currentSelectedFlow = useForm<Workflow | null>({
 		initialValues: {
 			name: '',
@@ -68,14 +90,48 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 			nodes: [],
 		},
 	});
+	const pluginsMetadaata: IPlugin[] = [
+		{
+			id: '1',
+			type: PLUGIN_TYPES.AI_COPY_REFRESH,
+			name: 'AI copy refresh',
+			icon: aiTextStatus ? (
+				// render webm
+				<video width={16} height={16} autoPlay loop muted playsInline>
+					<source src="/ai-text.webm" type="video/webm" />
+				</video>
+			) : (
+				<IconSparkles size={16} />
+			),
 
-	useEffect(() => {
-		console.log('Form', currentSelectedFlow.values);
-	}, [currentSelectedFlow.values]);
-
+			desc: 'Refresh the copy using AI for the selected text element.',
+		},
+		{
+			id: '2',
+			type: PLUGIN_TYPES.GLOW_PLUGIN,
+			name: 'Glow effect',
+			icon: <IconSunFilled size={16} />,
+			desc: 'Apply a glow effect to the selected element.',
+		},
+		{
+			id: '3',
+			type: PLUGIN_TYPES.AI_COPY_REFRESH,
+			name: 'Remove BG (Coming Soon)',
+			disabled: true,
+			icon: <IconListCheck size={16} />,
+			desc: 'Remove Background',
+		},
+		{
+			id: '4',
+			type: PLUGIN_TYPES.AI_COPY_REFRESH,
+			name: 'Check Compliance (Soon)',
+			disabled: true,
+			icon: <IconListCheck size={16} />,
+			desc: 'Remove ',
+		},
+	];
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
-		console.log('workflow on click', workflow);
 		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, () => {
 			// console.log('e', e);
 		});
@@ -137,6 +193,22 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 		currentSelectedFlow.setFieldValue('nodes', currentNodes);
 	};
 
+	const executePlugin = async (plugin: IPlugin) => {
+		if (plugin.type === PLUGIN_TYPES.AI_COPY_REFRESH) {
+			setAiTextStatus(true);
+		}
+		await wait(getRandomNumber(1, 3) * 1000);
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const pg = plugins[plugin.type];
+		if (!pg) return;
+		pg(currentSelectedElements as fabric.Object[], {}, canvas as fabric.Canvas, async () => {
+			if (plugin.type === PLUGIN_TYPES.AI_COPY_REFRESH) {
+				setAiTextStatus(false);
+			}
+		});
+	};
+
 	return (
 		<Box>
 			{!currentSelectedFlow.values?.id ? (
@@ -178,6 +250,26 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 									<IconPlayerPlay size={12} />
 								</ActionIcon>
 								<Text className={classes.workflowText}>{workflow.name}</Text>
+							</Group>
+						))}
+					</Stack>
+					<Divider my={8} />
+					<Stack spacing={8}>
+						<Group spacing={4}>
+							<IconPlug size={16} className={classes.gray} />
+							<Text className={classes.title}>Plugins</Text>
+						</Group>
+						<Text className={classes.subtext}>
+							Powerful plugins to help you automate your design process.
+						</Text>
+					</Stack>
+					<Stack mt={24} mb={16} spacing={8}>
+						{pluginsMetadaata.map(pg => (
+							<Group key={pg.id} className={classes.flowBox} onClick={() => executePlugin(pg)}>
+								<ActionIcon color="violet" variant="subtle" size={'sm'}>
+									{pg.icon}
+								</ActionIcon>
+								<Text className={classes.workflowText}>{pg.name}</Text>
 							</Group>
 						))}
 					</Stack>
@@ -228,17 +320,17 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 							<Stack aria-label="workflow editor" className={classes.editorContainer} spacing={4}>
 								{currentSelectedFlow &&
 									currentSelectedFlow.values.nodes.map((node, nodeIndex) => (
-										<>
+										<Fragment key={nodeIndex}>
 											<ConditionNode nodeIndex={nodeIndex} workflow={currentSelectedFlow} />
 											{node.actions.map((action, actionIndex) => (
-												<>
+												<Fragment key={actionIndex}>
 													<ActionNode
 														action={action}
 														actionIndex={actionIndex}
 														nodeIndex={nodeIndex}
 														workflow={currentSelectedFlow}
 													/>
-												</>
+												</Fragment>
 											))}
 											<Tooltip label="Add action" position="bottom">
 												<ActionIcon
@@ -250,7 +342,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ canvas, currentSe
 													<IconSquareRoundedPlusFilled size={36} />
 												</ActionIcon>
 											</Tooltip>
-										</>
+										</Fragment>
 									))}
 							</Stack>
 						</Box>

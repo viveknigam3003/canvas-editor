@@ -46,8 +46,10 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 
 	const getArtboardRectangle = (artboard: Artboard) => {
 		return new fabric.Rect({
-			left: (window.innerWidth - 600) / 2 - artboard.width / 2,
-			top: (window.innerHeight - 60) / 2 - artboard.height / 2,
+			// left: (window.innerWidth - 600) / 2 - artboard.width / 2,
+			// top: (window.innerHeight - 60) / 2 - artboard.height / 2,
+			left: 0,
+			top: 0,
 			width: artboard.width,
 			height: artboard.height,
 			fill: '#fff',

@@ -24,7 +24,7 @@ export const updateWorkflow = (wf: Workflow) => {
 	localStorage.setItem('workflows', JSON.stringify(workflows));
 };
 
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // get random colors
 const getRandomColor = () => {
@@ -36,7 +36,21 @@ const getRandomColor = () => {
 	return color;
 };
 
-const plugins = {
+const getAIText = () => {
+	const randomIndex = Math.floor(Math.random() * 5);
+	const texts = [
+		'McNjoy Your Meal',
+		'McFeast Calling',
+		'Order Today',
+		'Big Mac Attack!',
+		'Parapapapa',
+		"i'm lovin' it",
+	];
+
+	return texts[randomIndex];
+};
+
+export const plugins = {
 	[PLUGIN_TYPES.SET_FABRIC]: (
 		currentSelectedElements: fabric.Object[],
 		args: { property: string; value: any },
@@ -58,18 +72,49 @@ const plugins = {
 		canvas.requestRenderAll();
 	},
 	workflow: (currentSelectedElements: fabric.Object[], args: { id: string }, canvas: fabric.Canvas) => {
-		console.log('workflow detected', args);
 		if (!currentSelectedElements || !canvas) return;
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
-		console.log('workflow 123', workflow);
 		if (!workflow) return;
-		console.log('currentSelectedElements', currentSelectedElements);
 		executor(workflow, currentSelectedElements, canvas);
 	},
 	[PLUGIN_TYPES.COLOR_PLUGIN]: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
 		const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
 		fabricSetPlugin(currentSelectedElements, { property: 'fill', value: getRandomColor() }, canvas);
 		canvas.requestRenderAll();
+	},
+	[PLUGIN_TYPES.AI_COPY_REFRESH]: async (
+		currentSelectedElements: fabric.Object[],
+		args: any,
+		canvas: fabric.Canvas,
+		callback: (arg: NodeAction) => void = () => {},
+	) => {
+		// const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
+
+		const text = currentSelectedElements[0] as fabric.Textbox;
+		if (text && text.type === 'textbox') {
+			try {
+				const newText = getAIText();
+				console.log('newtext', newText);
+				text.set('text', newText); // Use the property name as the first argument
+				canvas.requestRenderAll();
+				await callback(args);
+			} catch (error) {
+				console.log(error);
+			}
+		}
+	},
+	[PLUGIN_TYPES.GLOW_PLUGIN]: async (
+		currentSelectedElements: fabric.Object[],
+		args: any,
+		canvas: fabric.Canvas,
+		callback: (arg: NodeAction) => void = () => {},
+	) => {
+		const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
+		currentSelectedElements.forEach(async (element: fabric.Object) => {
+			fabricSetPlugin([element], { property: 'shadow', value: '0 0 10 #ff4d00f5' }, canvas);
+			fabricSetPlugin([element], { property: 'blur', value: '50' }, canvas);
+			await callback(args);
+		});
 	},
 };
 
@@ -87,7 +132,7 @@ export async function executor(
 		} else if (node.condition.when === When.SELECTED_ELEMENT) {
 			if (
 				node.condition.conditional === Conditional.IS &&
-				currentSelectedElements.find(x => x.data.type === node.condition.targets?.[0])
+				currentSelectedElements.find(x => x.type === node.condition.targets?.[0])
 			) {
 				const element = currentSelectedElements.find(
 					x => x.type === node.condition.targets?.[0],

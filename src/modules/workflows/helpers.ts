@@ -37,7 +37,7 @@ export const getSelectDataFromActionType = (type: string) => {
 		case 'action':
 			return [{ value: PLUGIN_TYPES.SET_FABRIC, label: 'Set property' }];
 		case 'plugin':
-			return [{ value: PLUGIN_TYPES.COLOR_PLUGIN, label: 'Set random color' }];
+			return [{ value: PLUGIN_TYPES.AI_COPY_REFRESH, label: 'AI copy refresh' }];
 		case 'workflow': {
 			const allWorkflows = getSavedWorkflow();
 			return allWorkflows.map((workflow: Workflow) => ({ value: workflow.id, label: workflow.name }));
