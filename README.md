@@ -17,6 +17,8 @@ It's still in a nascent phase where we're experimenting with features. Currently
 -   Snapping guides
 -   Bulk editing across creatives
 -   Rulers and markers
+-   Automated Workflows
+-   Third-party plugin support
 
 ## Upcoming features
 
