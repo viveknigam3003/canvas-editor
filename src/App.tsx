@@ -12,7 +12,15 @@ import {
 } from '@mantine/core';
 import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconCircleCheck, IconCopy, IconDeviceFloppy, IconDownload, IconPlus, IconTrash } from '@tabler/icons-react';
+import {
+	IconCircleCheck,
+	IconCopy,
+	IconDeviceFloppy,
+	IconDownload,
+	IconPlus,
+	IconPuzzle,
+	IconTrash,
+} from '@tabler/icons-react';
 import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -60,7 +68,9 @@ import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 import demoJson from './data/demo.json';
-import creative from './data/creative.json';
+import mcd from './data/mcd.json';
+import workflows from './data/workflows.json';
+import WorkflowComponent from './modules/workflows';
 
 store.dispatch(appStart());
 
@@ -163,6 +173,10 @@ function App() {
 		key: 'snapDistance',
 		defaultValue: '2',
 	});
+	const [showPlugins, setShowPlugins] = useLocalStorage<string>({
+		key: 'showPlugins',
+		defaultValue: 'false',
+	});
 	const [showRuler, setShowRuler] = useState(true);
 	const theme = useMantineTheme();
 	const colorSchemeRef = useRef(theme.colorScheme);
@@ -180,6 +194,7 @@ function App() {
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [isSpacePressed, setIsSpacePressed] = useState(false);
+	const [isWorkflowsPanelActive, setWorkflowsPanelActive] = useState(false);
 	const guidesRef = useRef<guidesRefType>({
 		left: null,
 		top: null,
@@ -1151,36 +1166,21 @@ function App() {
 			'mod+1',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				dispatch(setArtboards(demoJson));
-				notifications.show({
-					title: 'Demo project loaded',
-					message: 'You can now start editing the demo project',
-					icon: <IconCircleCheck size={20} />,
-					color: 'green',
-					autoClose: 1500,
-				});
+				dispatch(setArtboards(mcd));
 			},
 		],
 		[
 			'mod+2',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				dispatch(setArtboards(creative as Artboard[]));
-				notifications.show({
-					title: 'Creative project loaded',
-					message: 'You can now start editing the creative project',
-					icon: <IconCircleCheck size={20} />,
-					color: 'green',
-					autoClose: 1500,
-				});
+				localStorage.setItem('workflows', JSON.stringify(workflows));
 			},
 		],
 		[
 			'mod+3',
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				const isVideoEnabled = JSON.parse(localStorage.getItem('video') || 'false');
-				localStorage.setItem('video', JSON.stringify(!isVideoEnabled));
+				setShowPlugins(c => (c === 'true' ? 'false' : 'true'));
 			},
 		],
 	]);
@@ -1232,6 +1232,17 @@ function App() {
 					<MiscMenu artboards={artboards} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
+					<Tooltip label="Workflows" openDelay={200}>
+						<ActionIcon
+							variant={isWorkflowsPanelActive ? 'filled' : 'light'}
+							color={'violet'}
+							onClick={() => {
+								setWorkflowsPanelActive(c => !c);
+							}}
+						>
+							<IconPuzzle size={16} />
+						</ActionIcon>
+					</Tooltip>
 					<SettingsMenu
 						recreateCanvas={recreateCanvas}
 						canvasRef={canvasRef}
@@ -1349,20 +1360,32 @@ function App() {
 				</Box>
 				{showSidebar ? (
 					<Box className={classes.right}>
-						{canvasRef.current && currentSelectedElements && (
-							<Panel
+						{isWorkflowsPanelActive ? (
+							<WorkflowComponent
+								showPlugins={showPlugins}
 								canvas={canvasRef.current}
 								currentSelectedElements={currentSelectedElements}
-								saveArtboardChanges={saveArtboardChanges}
-								activeArtboard={activeArtboard}
 							/>
+						) : (
+							<>
+								{canvasRef.current && currentSelectedElements && (
+									<Panel
+										canvas={canvasRef.current}
+										currentSelectedElements={currentSelectedElements}
+										saveArtboardChanges={saveArtboardChanges}
+										activeArtboard={activeArtboard}
+									/>
+								)}
+							</>
 						)}
 					</Box>
 				) : null}
 			</Box>
 			<NewArtboardModal
 				opened={isNewArtboardModalOpen}
-				onClose={closeNewArtboardModal}
+				onClose={() => {
+					closeNewArtboardModal();
+				}}
 				canvas={canvasRef.current}
 			/>
 		</Box>

@@ -2,12 +2,12 @@ import { Divider, Stack } from '@mantine/core';
 import Animation from '../modules/animate';
 import ClipMask from '../modules/clipmask';
 import ImagePanel from '../modules/image/Panel';
+import Opacity from '../modules/opacity';
 import Position from '../modules/position';
 import AlignmentPanel from '../modules/position/Alignment';
-import TextPanel from '../modules/text/Panel';
 import { RULER_LINES } from '../modules/ruler';
-import Opacity from '../modules/opacity';
 import ShapePanel from '../modules/shapes/ShapePanel';
+import TextPanel from '../modules/text/Panel';
 import { Artboard } from '../types';
 
 type PanelProps = {
