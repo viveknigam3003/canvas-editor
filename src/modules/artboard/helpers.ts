@@ -40,7 +40,7 @@ export const getArtboardPosition = (
 	const left = artboard.left;
 	const top = artboard.top;
 
-	if (!left || !top) {
+	if (left === undefined || top === undefined || left === null || top === null) {
 		throw new Error('Artboard position not found');
 	}
 

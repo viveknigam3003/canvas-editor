@@ -176,6 +176,9 @@ const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) 
 				const element = currentSelectedElements?.[0];
 				if (!element) return;
 				element?.set('left', element.left! - 1);
+				window.guide.objectMoving({ target: element });
+				// element.trigger
+				// element.on('moving');
 				setPositionValues(prev => ({ ...prev, x: element.left as number }));
 				if (currentSelectedArtboards.length > 1) {
 					dispatch(
