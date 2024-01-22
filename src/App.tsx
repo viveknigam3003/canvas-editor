@@ -60,17 +60,18 @@ import {
 	updateRulerLineInStorage,
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
-import { createSnappingLines, snapToObject } from './modules/snapping';
-import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
+
+import { filterExportExcludes, filterSaveExcludes } from './modules/utils/fabricObjectUtils';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
+import { Artboard, FixedArray, colorSpaceType, guidesRefType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 import demoJson from './data/demo.json';
 import mcd from './data/mcd.json';
 import workflows from './data/workflows.json';
 import WorkflowComponent from './modules/workflows';
+import { FabricGuide } from './modules/snapping/fabricGuide';
 
 store.dispatch(appStart());
 
@@ -188,7 +189,6 @@ function App() {
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
 	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const [canvasScrollPoints, setCanvasScrollPoints] = useState(0);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
@@ -221,6 +221,9 @@ function App() {
 			backgroundColor: '#e9ecef',
 			colorSpace: colorSpace as colorSpaceType,
 		});
+		// inject guides to canvas
+		new FabricGuide(canvasRef.current);
+
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
 			setCurrentSelectedElements(event.selected as fabric.Object[]);
@@ -299,13 +302,6 @@ function App() {
 			renderRulerOnMoveMarker(target, canvasRef);
 			return;
 		}
-		snapToObject(
-			target as snappingObjectType,
-			filterSnappingExcludes(canvasRef.current?.getObjects()) as snappingObjectType[],
-			guidesRef,
-			canvasRef,
-			Number(snapDistance),
-		);
 	};
 
 	const onModifiedHandler = () => {
@@ -833,7 +829,6 @@ function App() {
 				}
 			});
 
-			guidesRef.current = createSnappingLines(canvasRef);
 			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard.id as string);
 			if (showRuler) {
 				renderRuler();
@@ -976,8 +971,6 @@ function App() {
 				if (showRuler) {
 					renderRuler();
 				}
-				const pan = canvas.viewportTransform as FixedArray<number, 6>;
-				setCanvasScrollPoints(pan[4] + pan[5]);
 				canvas.requestRenderAll();
 			} else {
 				const pan = canvas.viewportTransform as FixedArray<number, 6> | undefined;
@@ -990,7 +983,6 @@ function App() {
 				if (showRuler) {
 					renderRuler();
 				}
-				setCanvasScrollPoints(pan[4] + pan[5]);
 				canvas.requestRenderAll();
 			}
 		};
@@ -1026,10 +1018,6 @@ function App() {
 		};
 	}, [showRuler]);
 
-	// this is hack to reset snapping lines when zoom level changes or scroll changes,ideal solution will be move this to handlePan function and change the snapping lines based on the scroll and zoom level
-	useEffect(() => {
-		guidesRef.current = createSnappingLines(canvasRef);
-	}, [zoomLevel, canvasScrollPoints]);
 	useEffect(() => {
 		if (!autosaveChanges) {
 			return;
@@ -1384,6 +1372,7 @@ function App() {
 			<NewArtboardModal
 				opened={isNewArtboardModalOpen}
 				onClose={() => {
+					zoomToFit();
 					closeNewArtboardModal();
 				}}
 				canvas={canvasRef.current}
