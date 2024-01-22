@@ -1,4 +1,3 @@
-import { check } from './check';
 import { RULER_LINES } from '../ruler';
 import { fabric } from 'fabric';
 
@@ -14,10 +13,10 @@ type HorizontalLineCoords = {
 	x2: number;
 };
 
-type IgnoreObjTypes<T = keyof fabric.Object> = {
-	key: T;
-	value: any;
-}[];
+// type IgnoreObjTypes<T = keyof fabric.Object> = {
+// 	key: T;
+// 	value: any;
+// }[];
 
 type ACoordsAppendCenter = NonNullable<fabric.Object['aCoords']> & {
 	c: fabric.Point;
@@ -37,8 +36,8 @@ export class FabricGuide {
 	private verticalLines: VerticalLineCoords[] = [];
 	private horizontalLines: HorizontalLineCoords[] = [];
 	private activeObj: fabric.Object | undefined;
-	private ignoreObjTypes: IgnoreObjTypes = [];
-	private pickObjTypes: IgnoreObjTypes = [];
+	// private ignoreObjTypes: IgnoreObjTypes = [];
+	// private pickObjTypes: IgnoreObjTypes = [];
 	private dirty = false;
 
 	constructor(private readonly canvas: fabric.Canvas) {
@@ -55,7 +54,8 @@ export class FabricGuide {
 			'object:moving': this.objectMoving.bind(this),
 			'mouse:up': mouseUp,
 		};
-
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
 		canvas.on(this.canvasEvents as any);
 	}
 
@@ -64,66 +64,9 @@ export class FabricGuide {
 
 		if (Object.values(RULER_LINES).includes(target?.data?.type)) return;
 
-		const transform = this.canvas._currentTransform;
-		// if (!transform) return;
-
 		this.activeObj = target;
 
-		const activeObjects = this.canvas.getActiveObjects();
-
-		const canvasObjects: fabric.Object[] = [];
-		const add = (group: fabric.Group | fabric.Canvas | fabric.StaticCanvas | fabric.ActiveSelection) => {
-			const objects = group.getObjects().filter(obj => {
-				if (this.ignoreObjTypes.length) {
-					return !this.ignoreObjTypes.some(item => obj.get(item.key) === item.value);
-				}
-				if (this.pickObjTypes.length) {
-					return this.pickObjTypes.some(item => obj.get(item.key) === item.value);
-				}
-
-				if (activeObjects.includes(obj)) {
-					return false;
-				}
-				if (!obj.visible) {
-					return false;
-				}
-
-				if (check.isActiveSelection(obj)) {
-					add(obj);
-					return false;
-				}
-
-				if (check.isCollection(obj) && target.group && obj === target.group) {
-					add(obj);
-					return false;
-				}
-				return true;
-			});
-			canvasObjects.push(...(objects as fabric.Object[]));
-		};
-		// console.log('isActiveSelection1');
-		if (check.isActiveSelection(target)) {
-			// console.log('isActiveSelection2');
-			const needAddParent = new Set<fabric.Group | fabric.Canvas | fabric.StaticCanvas>();
-			// target.forEachObject(obj => {
-			// 	const parent = obj.getParent();
-			// 	if (parent) needAddParent.add(parent as Group);
-			// });
-			// needAddParent.forEach(parent => {
-			// 	if (check.isNativeGroup(parent)) {
-			// 		canvasObjects.push(parent);
-			// 	}
-			// 	add(parent);
-			// });
-		} else {
-			// const parent = target.getParent() as Group;
-			// if (check.isNativeGroup(parent)) {
-			// 	canvasObjects.push(parent);
-			// }
-			// add(parent);
-		}
-		// console.log('traversAllObjects');
-		this.traversAllObjects(
+		this.traverseObjects(
 			target,
 			this.canvas.getObjects().filter((obj: fabric.Object) => obj !== target && !obj.data.ignoreSnapping),
 		);
@@ -176,27 +119,22 @@ export class FabricGuide {
 		return { tl, tr, br, bl };
 	}
 
-	/**
-	 * fabric.Object.getCenterPoint will return the center point of the object calc by mouse moving & dragging distance.
-	 * calcCenterPointByACoords will return real center point of the object position.
-	 */
 	private calcCenterPointByACoords(coords: NonNullable<fabric.Object['aCoords']>): fabric.Point {
-		// console.log('Point', Point);
 		return new fabric.Point((coords.tl.x + coords.br.x) / 2, (coords.tl.y + coords.br.y) / 2);
 	}
 
-	private traversAllObjects(activeObject: fabric.Object, canvasObjects: fabric.Object[]) {
+	private traverseObjects(activeObject: fabric.Object, canvasObjects: fabric.Object[]) {
 		const objCoordsByMovingDistance = this.getObjDraggingObjCoords(activeObject);
 		const snapXPoints: Set<number> = new Set();
 		const snapYPoints: Set<number> = new Set();
-		// console.log('first');
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
 		for (let i = canvasObjects.length; i--;) {
 			const objCoords = {
 				...this.getCoords(canvasObjects[i]),
 				c: canvasObjects[i].getCenterPoint(),
 			} as ACoordsAppendCenter;
 			const { objHeight, objWidth } = this.getObjMaxWidthHeightByCoords(objCoords);
-			// console.log('newCoords');
 
 			Keys(objCoordsByMovingDistance).forEach(activeObjPoint => {
 				const newCoords = canvasObjects[i].angle !== 0 ? this.omitCoords(objCoords, 'horizontal') : objCoords;
@@ -318,6 +256,8 @@ export class FabricGuide {
 	}
 
 	private drawSign(x: number, y: number) {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
 		const ctx = this.canvas.getTopContext();
 		// console.log('first', x, y);
 		ctx.strokeStyle = this.aligningLineColor;
@@ -332,9 +272,11 @@ export class FabricGuide {
 	}
 
 	private drawLine(x1: number, y1: number, x2: number, y2: number) {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
 		const ctx = this.canvas.getTopContext();
-		const point1 = fabric.util.transformPoint(new fabric.Point(x1, y1), this.canvas.viewportTransform);
-		const point2 = fabric.util.transformPoint(new fabric.Point(x2, y2), this.canvas.viewportTransform);
+		const point1 = fabric.util.transformPoint(new fabric.Point(x1, y1), this.canvas.viewportTransform as number[]);
+		const point2 = fabric.util.transformPoint(new fabric.Point(x2, y2), this.canvas.viewportTransform as number[]);
 
 		// use origin canvas api to draw guideline
 		ctx.save();
@@ -375,15 +317,18 @@ export class FabricGuide {
 		for (let i = this.verticalLines.length; i--;) {
 			this.drawVerticalLine(this.verticalLines[i], movingCoords);
 		}
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
 		for (let i = this.horizontalLines.length; i--;) {
 			this.drawHorizontalLine(this.horizontalLines[i], movingCoords);
 		}
-		// this.canvas.calcOffset()
 	}
 
 	private clearGuideline() {
 		if (!this.dirty) return;
 		this.dirty = false;
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
 		this.canvas.clearContext(this.canvas.getTopContext());
 	}
 }

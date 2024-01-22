@@ -61,11 +61,11 @@ import {
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 
-import { filterExportExcludes, filterSaveExcludes, filterSnappingExcludes } from './modules/utils/fabricObjectUtils';
+import { filterExportExcludes, filterSaveExcludes } from './modules/utils/fabricObjectUtils';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
-import { Artboard, FixedArray, colorSpaceType, guidesRefType, snappingObjectType } from './types';
+import { Artboard, FixedArray, colorSpaceType, guidesRefType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 import demoJson from './data/demo.json';
 import mcd from './data/mcd.json';
@@ -1018,10 +1018,6 @@ function App() {
 		};
 	}, [showRuler]);
 
-	// this is hack to reset snapping lines when zoom level changes or scroll changes,ideal solution will be move this to handlePan function and change the snapping lines based on the scroll and zoom level
-	useEffect(() => {
-		// guidesRef.current = createSnappingLines(canvasRef);
-	}, [zoomLevel]);
 	useEffect(() => {
 		if (!autosaveChanges) {
 			return;
