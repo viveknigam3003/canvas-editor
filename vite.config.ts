@@ -42,6 +42,20 @@ export default defineConfig({
 							},
 						},
 					},
+					{
+						urlPattern: /^https:\/\/www\.rocketium\.com\/*.(otf|ttf)/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'rocketium-fonts-cache',
+							expiration: {
+								maxEntries: 20,
+								maxAgeSeconds: 60 * 60 * 24 * 7, // <== 7 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
 				],
 			},
 		}),
