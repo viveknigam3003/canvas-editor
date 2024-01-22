@@ -21,7 +21,7 @@ export default defineConfig({
 							cacheName: 'google-fonts-cache',
 							expiration: {
 								maxEntries: 20,
-								maxAgeSeconds: 60 * 60 * 24 * 7, // <== 365 days
+								maxAgeSeconds: 60 * 60 * 24 * 7, // <== 7 days
 							},
 							cacheableResponse: {
 								statuses: [0, 200],
@@ -35,7 +35,7 @@ export default defineConfig({
 							cacheName: 'gstatic-fonts-cache',
 							expiration: {
 								maxEntries: 20,
-								maxAgeSeconds: 60 * 60 * 24 * 7, // <== 365 days
+								maxAgeSeconds: 60 * 60 * 24 * 7, // <== 7 days
 							},
 							cacheableResponse: {
 								statuses: [0, 200],
