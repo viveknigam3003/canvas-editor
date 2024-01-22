@@ -43,7 +43,7 @@ export default defineConfig({
 						},
 					},
 					{
-						urlPattern: /^https:\/\/www\.rocketium\.com\/*.(otf|ttf)/i,
+						urlPattern: /https:\/\/www\.rocketium\.com\/.*\.(ttf|otf|woff|woff2)/i,
 						handler: 'CacheFirst',
 						options: {
 							cacheName: 'rocketium-fonts-cache',
