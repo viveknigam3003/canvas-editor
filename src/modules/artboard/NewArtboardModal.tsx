@@ -9,6 +9,7 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { addArtboard } from '../app/actions';
 import { getHotkeyHandler } from '@mantine/hooks';
+import { getArtboardRectangle } from './helpers';
 
 interface NewArtboardModalProps {
 	opened: boolean;
@@ -43,22 +44,6 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 			return errors;
 		},
 	});
-
-	const getArtboardRectangle = (artboard: Artboard) => {
-		return new fabric.Rect({
-			left: 0,
-			top: 0,
-			width: artboard.width,
-			height: artboard.height,
-			fill: '#fff',
-			hoverCursor: 'default',
-			selectable: false,
-			data: {
-				type: 'artboard',
-				id: artboard.id,
-			},
-		});
-	};
 
 	const addNewArtboard = (artboard: Omit<Artboard, 'id'>) => {
 		const validationResult = newArtboardForm.validate();
