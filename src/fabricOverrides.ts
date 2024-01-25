@@ -1,3 +1,8 @@
+/**
+ * Overrides
+ */
+import './modules/text/TextboxOverride';
+
 import { fabric } from 'fabric';
 const originalDrawControls = fabric.Object.prototype.drawControls;
 

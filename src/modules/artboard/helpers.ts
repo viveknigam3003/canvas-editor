@@ -1,3 +1,6 @@
+import { Artboard } from '../../types';
+import { fabric } from 'fabric';
+
 export const getArtboardObject = (canvas: fabric.Canvas | null, artboardId: string): fabric.Rect => {
 	if (!canvas) {
 		throw new Error('Canvas not found');
@@ -61,4 +64,20 @@ export const getArtboardCenter = (canvas: fabric.Canvas | null, artboardId: stri
 		x: centerX,
 		y: centerY,
 	};
+};
+
+export const getArtboardRectangle = (artboard: Artboard) => {
+	return new fabric.Rect({
+		left: 0,
+		top: 0,
+		width: artboard.width,
+		height: artboard.height,
+		fill: '#fff',
+		hoverCursor: 'default',
+		selectable: false,
+		data: {
+			type: 'artboard',
+			id: artboard.id,
+		},
+	});
 };
