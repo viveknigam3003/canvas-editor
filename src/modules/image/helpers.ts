@@ -44,7 +44,7 @@ export const getScaledPosition = (artboard: fabric.Rect): { left: number; top: n
 	const width = artboard.width;
 	const height = artboard.height;
 
-	if (!left || !top || !width || !height) {
+	if (left === undefined || top === undefined || width === undefined || height === undefined) {
 		throw new Error('Artboard dimensions not found');
 	}
 
