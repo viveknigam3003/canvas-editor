@@ -1,0 +1,979 @@
+{
+	"_id": {
+		"$oid": "65ae4e1e73e6059ca70cbabb"
+	},
+	"capsuleId": "2cad2d27-ac8a-4d4d-14de-a3190fe594e0",
+	"version": 1,
+	"audio": {
+		"link": "/audio/resized/5minsilence.mp3"
+	},
+	"author": "Vivek Nigam",
+	"authorId": "61c939e514526b130d183daa",
+	"brandPalettes": [],
+	"branding": true,
+	"capsuleErrors": [],
+	"cards": [
+		{
+			"id": "bf868542-c54d-4bfe-2a5e-87893f9570dd",
+			"tags": [],
+			"type": "list",
+			"groups": [],
+			"options": [
+				{
+					"id": "e6eb9234-a713-4324-1a77-7d158a71266f",
+					"type": "sticky",
+					"text": "Text 1",
+					"prefix": "",
+					"charCount": 20,
+					"modifyLength": {
+						"headingTop": 42.48861911987861,
+						"headingBottom": 50.3793626707132,
+						"headingLeft": 35.96358118361153,
+						"headingRight": 34.749620637329286
+					},
+					"styles": {
+						"font": "sourceSansPro",
+						"textColor": "#000000",
+						"border": "none",
+						"textAlignment": "center",
+						"textAlignmentVertical": "middle",
+						"lineSpacing": "1.2",
+						"fontStyle": "auto",
+						"textShadow": "none",
+						"highlightColor": "none",
+						"backgroundColor": "#00000000",
+						"padding": {
+							"all": 0,
+							"left": 0,
+							"right": 0,
+							"top": 0,
+							"bottom": 0
+						},
+						"background": "#00000000",
+						"animation": {
+							"fourth-out": "r-fade-out-transition-out",
+							"fourth": "r-no-animation",
+							"third-out": "r-fade-out-out",
+							"third": "r-no-animation",
+							"second-out": "r-fade-out-out",
+							"second": "r-no-animation",
+							"first": "r-no-animation"
+						}
+					},
+					"textColor": "#FFFFFF",
+					"overrides": {
+						"1080x1080": {
+							"padding": {
+								"all": 0.9259259259259257,
+								"left": 0.9259259259259257,
+								"right": 0.9259259259259257,
+								"top": 0.9259259259259257,
+								"bottom": 0.9259259259259257
+							},
+							"modifyLength": {
+								"headingTop": 8.121142484650322,
+								"headingBottom": 84.74923349758868,
+								"headingLeft": 68.69404253062844,
+								"headingRight": 15.380044079048318,
+								"rotateAngle": 0
+							},
+							"breakParentGroup": true,
+							"font": "r-fontFamily-Helvetica",
+							"backgroundColor": {
+								"type": "radial-gradient",
+								"colorStops": [
+									{
+										"r": 195,
+										"g": 192,
+										"b": 192,
+										"a": 1,
+										"left": 1.075268817204301
+									},
+									{
+										"r": 242,
+										"g": 7,
+										"b": 7,
+										"a": 1,
+										"left": 100
+									}
+								],
+								"angle": 90
+							}
+						},
+						"1200x628": {
+							"padding": {
+								"all": 0.9259259259259257,
+								"left": 0.9259259259259257,
+								"right": 0.9259259259259257,
+								"top": 0.9259259259259257,
+								"bottom": 0.9259259259259257
+							},
+							"modifyLength": {
+								"headingTop": 8.121142484650322,
+								"headingBottom": 84.74923349758868,
+								"headingLeft": 68.69404253062844,
+								"headingRight": 15.380044079048318,
+								"rotateAngle": 0
+							},
+							"breakParentGroup": true,
+							"font": "r-fontFamily-Helvetica",
+							"backgroundColor": {
+								"type": "radial-gradient",
+								"colorStops": [
+									{
+										"r": 195,
+										"g": 192,
+										"b": 192,
+										"a": 1,
+										"left": 1.075268817204301
+									},
+									{
+										"r": 242,
+										"g": 7,
+										"b": 7,
+										"a": 1,
+										"left": 100
+									}
+								],
+								"angle": 90
+							},
+							"fontStyle": "auto",
+							"textAlignment": "center"
+						}
+					},
+					"customFontSize": 8,
+					"textVideoEffect": "none_dynamic_background",
+					"backgroundColor": {
+						"type": "radial-gradient",
+						"colorStops": [
+							{
+								"r": 195,
+								"g": 192,
+								"b": 192,
+								"a": 1,
+								"left": 1.075268817204301
+							},
+							{
+								"r": 242,
+								"g": 7,
+								"b": 7,
+								"a": 1,
+								"left": 100
+							}
+						],
+						"angle": 90
+					},
+					"textShadow": "none",
+					"isFixedTimeEnabled": true,
+					"highlightColor": "none",
+					"fontStyle": "auto",
+					"customElementId": "61c939e814526b130d184189",
+					"isText": true
+				},
+				{
+					"id": "2024211f-b4d6-42a6-3e7e-73664bd8388d",
+					"type": "sticky",
+					"text": "Text 2",
+					"prefix": "",
+					"charCount": 20,
+					"modifyLength": {
+						"headingTop": 42.48861911987861,
+						"headingBottom": 50.3793626707132,
+						"headingLeft": 35.96358118361153,
+						"headingRight": 34.749620637329286
+					},
+					"styles": {
+						"font": "sourceSansPro",
+						"textColor": "#000000",
+						"border": "none",
+						"textAlignment": "center",
+						"textAlignmentVertical": "middle",
+						"lineSpacing": "1.2",
+						"fontStyle": "auto",
+						"textShadow": "none",
+						"highlightColor": "none",
+						"backgroundColor": "#00000000",
+						"padding": {
+							"all": 0,
+							"left": 0,
+							"right": 0,
+							"top": 0,
+							"bottom": 0
+						},
+						"background": "#00000000",
+						"animation": {
+							"fourth-out": "r-fade-out-transition-out",
+							"fourth": "r-no-animation",
+							"third-out": "r-fade-out-out",
+							"third": "r-no-animation",
+							"second-out": "r-fade-out-out",
+							"second": "r-no-animation",
+							"first": "r-no-animation"
+						},
+						"layerIndex": 1
+					},
+					"textColor": "#FFFFFF",
+					"overrides": {
+						"1080x1080": {
+							"padding": {
+								"all": 0.9259259259259257,
+								"left": 0.9259259259259257,
+								"right": 0.9259259259259257,
+								"top": 0.9259259259259257,
+								"bottom": 0.9259259259259257
+							},
+							"modifyLength": {
+								"headingTop": 11.80678855995176,
+								"headingBottom": 81.06358742228724,
+								"headingLeft": 81.57417550512126,
+								"headingRight": 2.49991110455548,
+								"rotateAngle": 90
+							},
+							"breakParentGroup": true,
+							"font": "r-fontFamily-Helvetica",
+							"layerIndex": 1,
+							"textRotation": 90,
+							"fontStyle": "custom",
+							"customFontSize": 4.62962962962963,
+							"backgroundColor": {
+								"type": "linear-gradient",
+								"colorStops": [
+									{
+										"r": 71,
+										"g": 249,
+										"b": 120,
+										"a": 1,
+										"left": 0
+									},
+									{
+										"r": 30,
+										"g": 169,
+										"b": 68,
+										"a": 1,
+										"left": 99.46236559139786
+									}
+								],
+								"angle": 90
+							}
+						},
+						"1200x628": {
+							"padding": {
+								"all": 0.9259259259259257,
+								"left": 0.9259259259259257,
+								"right": 0.9259259259259257,
+								"top": 0.9259259259259257,
+								"bottom": 0.9259259259259257
+							},
+							"modifyLength": {
+								"headingTop": 11.94267,
+								"headingBottom": 80.89171,
+								"headingLeft": 85.33333,
+								"headingRight": 6.25
+							},
+							"breakParentGroup": true,
+							"font": "r-fontFamily-Helvetica",
+							"layerIndex": 1,
+							"textRotation": 90,
+							"fontStyle": "custom",
+							"customFontSize": 4.62962962962963,
+							"backgroundColor": {
+								"type": "linear-gradient",
+								"colorStops": [
+									{
+										"r": 71,
+										"g": 249,
+										"b": 120,
+										"a": 1,
+										"left": 0
+									},
+									{
+										"r": 30,
+										"g": 169,
+										"b": 68,
+										"a": 1,
+										"left": 99.46236559139786
+									}
+								],
+								"angle": 90
+							},
+							"textAlignment": "center"
+						}
+					},
+					"customFontSize": 8,
+					"textVideoEffect": "none_dynamic_background",
+					"backgroundColor": {
+						"type": "linear-gradient",
+						"colorStops": [
+							{
+								"r": 71,
+								"g": 249,
+								"b": 120,
+								"a": 1,
+								"left": 0
+							},
+							{
+								"r": 30,
+								"g": 169,
+								"b": 68,
+								"a": 1,
+								"left": 99.46236559139786
+							}
+						],
+						"angle": 90
+					},
+					"textShadow": "none",
+					"isFixedTimeEnabled": true,
+					"highlightColor": "none",
+					"fontStyle": "custom",
+					"customElementId": "61c939e814526b130d184189",
+					"isText": true
+				},
+				{
+					"id": "28489441-aca5-4f33-04b9-6714311e1f71",
+					"type": "sticky",
+					"text": "Text 3",
+					"prefix": "",
+					"charCount": 20,
+					"modifyLength": {
+						"headingTop": 42.48861911987861,
+						"headingBottom": 50.3793626707132,
+						"headingLeft": 35.96358118361153,
+						"headingRight": 34.749620637329286
+					},
+					"styles": {
+						"font": "sourceSansPro",
+						"textColor": "#000000",
+						"border": "none",
+						"textAlignment": "center",
+						"textAlignmentVertical": "middle",
+						"lineSpacing": "1.2",
+						"fontStyle": "auto",
+						"textShadow": "none",
+						"highlightColor": "none",
+						"backgroundColor": "#00000000",
+						"padding": {
+							"all": 0,
+							"left": 0,
+							"right": 0,
+							"top": 0,
+							"bottom": 0
+						},
+						"background": "#00000000",
+						"animation": {
+							"fourth-out": "r-fade-out-transition-out",
+							"fourth": "r-no-animation",
+							"third-out": "r-fade-out-out",
+							"third": "r-no-animation",
+							"second-out": "r-fade-out-out",
+							"second": "r-no-animation",
+							"first": "r-no-animation"
+						},
+						"layerIndex": 2
+					},
+					"textColor": "#FFFFFF",
+					"overrides": {
+						"1080x1080": {
+							"padding": {
+								"all": 0.9259259259259257,
+								"left": 0.9259259259259257,
+								"right": 0.9259259259259257,
+								"top": 0.9259259259259257,
+								"bottom": 0.9259259259259257
+							},
+							"modifyLength": {
+								"headingTop": 16.27905695387288,
+								"headingBottom": 73.99872847645304,
+								"headingLeft": 62.95330630853516,
+								"headingRight": 15.380044079048304,
+								"rotateAngle": 0
+							},
+							"breakParentGroup": true,
+							"font": "r-fontFamily-Helvetica",
+							"layerIndex": 2,
+							"textRotation": 0,
+							"fontStyle": "custom",
+							"customFontSize": 4.62962962962963,
+							"capitalization": 3,
+							"textDecoration": "line-through",
+							"borderStyle": {
+								"width": 0.9259259259259257,
+								"style": "dashed",
+								"color": "#000000"
+							},
+							"borderRadius": {
+								"all": 1.4814814814814818,
+								"topLeft": 1.4814814814814818,
+								"topRight": 1.4814814814814818,
+								"bottomLeft": 1.4814814814814818,
+								"bottomRight": 1.4814814814814818
+							},
+							"textShadow": {
+								"color": {
+									"r": 223,
+									"g": 40,
+									"b": 229,
+									"a": 0.7098039215686275
+								},
+								"blur": 0,
+								"vShadow": 0.3,
+								"hShadow": 0.3
+							},
+							"backgroundColor": {
+								"type": "solid-color",
+								"color": "#ffa5ff49"
+							}
+						},
+						"1200x628": {
+							"padding": {
+								"all": 0.9259259259259257,
+								"left": 0.9259259259259257,
+								"right": 0.9259259259259257,
+								"top": 0.9259259259259257,
+								"bottom": 0.9259259259259257
+							},
+							"modifyLength": {
+								"headingTop": 16.24203,
+								"headingBottom": 73.88535,
+								"headingLeft": 68.08333,
+								"headingRight": 20.5
+							},
+							"breakParentGroup": true,
+							"font": "r-fontFamily-Helvetica",
+							"layerIndex": 2,
+							"textRotation": 0,
+							"fontStyle": "custom",
+							"customFontSize": 4.62962962962963,
+							"capitalization": 3,
+							"textDecoration": "line-through",
+							"borderStyle": {
+								"width": 0.9259259259259257,
+								"style": "dashed",
+								"color": "#000000"
+							},
+							"borderRadius": {
+								"all": 1.4814814814814818,
+								"topLeft": 1.4814814814814818,
+								"topRight": 1.4814814814814818,
+								"bottomLeft": 1.4814814814814818,
+								"bottomRight": 1.4814814814814818
+							},
+							"textShadow": {
+								"color": {
+									"r": 223,
+									"g": 40,
+									"b": 229,
+									"a": 0.7098039215686275
+								},
+								"blur": 0,
+								"vShadow": 0.3,
+								"hShadow": 0.3
+							},
+							"backgroundColor": {
+								"type": "solid-color",
+								"color": "#ffa5ff49"
+							},
+							"textAlignment": "center"
+						}
+					},
+					"customFontSize": 8,
+					"textVideoEffect": "none_dynamic_background",
+					"backgroundColor": {
+						"type": "solid-color",
+						"color": "#ffa5ff49"
+					},
+					"textShadow": "none",
+					"isFixedTimeEnabled": true,
+					"highlightColor": "none",
+					"fontStyle": "custom",
+					"customElementId": "61c939e814526b130d184189",
+					"isText": true
+				},
+				{
+					"id": "a72a3d0c-6d6e-414a-1317-d0b9805330b9",
+					"text": "",
+					"elementType": "image",
+					"subType": "svg",
+					"type": "sticky",
+					"modifyLength": {
+						"headingTop": 0,
+						"headingBottom": 0,
+						"headingLeft": 0,
+						"headingRight": 0
+					},
+					"styles": {
+						"animation": {
+							"third": "",
+							"third-out": ""
+						},
+						"imageShape": "",
+						"backgroundColor": "",
+						"textColor": "#C4C4C4",
+						"customCss": {
+							"elementDomAppend": "",
+							"elementContainer": []
+						}
+					},
+					"url": "https://rocketium.com/shapeIcons/rectangle.png",
+					"imageShape": "",
+					"backgroundColor": "",
+					"charCount": 0,
+					"textColor": {
+						"type": "solid-color",
+						"color": "#ad67ffff"
+					},
+					"templateRules": {
+						"helpText": "Shape"
+					},
+					"helpText": "Shape",
+					"overrides": {
+						"1080x1080": {
+							"svgInfo": {
+								"pathData": [
+									[
+										"M",
+										{
+											"x": 69.55277280858678,
+											"y": 94.66759838998212,
+											"node": true
+										}
+									],
+									[
+										"L",
+										{
+											"x": 339.5527728085868,
+											"y": 94.66759838998212,
+											"node": true
+										}
+									],
+									[
+										"L",
+										{
+											"x": 339.5527728085868,
+											"y": 364.6675983899821,
+											"node": true
+										}
+									],
+									[
+										"L",
+										{
+											"x": 69.55277280858678,
+											"y": 364.6675983899821,
+											"node": true
+										}
+									],
+									["Z"]
+								]
+							},
+							"textColor": {
+								"type": "solid-color",
+								"color": "#ad67ffff"
+							},
+							"elementBgBlur": 19,
+							"borderStyle": {
+								"width": 0.9259259259259257,
+								"style": "solid",
+								"color": "#000000ff"
+							},
+							"borderRadius": {
+								"all": 1.4814814814814818,
+								"topLeft": 1.4814814814814818,
+								"topRight": 1.4814814814814818,
+								"bottomLeft": 1.4814814814814818,
+								"bottomRight": 1.4814814814814818
+							},
+							"shadow": "custom~3~3~0~#c71a1ae2",
+							"opacity": 0.89,
+							"textBlendMode": "hard-light"
+						},
+						"1200x628": {
+							"svgInfo": {
+								"pathData": [
+									[
+										"M",
+										{
+											"x": 148.99992,
+											"y": 54.999988800000004,
+											"node": true
+										}
+									],
+									[
+										"L",
+										{
+											"x": 306,
+											"y": 54.999988800000004,
+											"node": true
+										}
+									],
+									[
+										"L",
+										{
+											"x": 306,
+											"y": 212.00005159999998,
+											"node": true
+										}
+									],
+									[
+										"L",
+										{
+											"x": 148.99992,
+											"y": 212.00005159999998,
+											"node": true
+										}
+									],
+									["Z"]
+								]
+							},
+							"textColor": {
+								"type": "solid-color",
+								"color": "#ad67ffff"
+							},
+							"elementBgBlur": 19,
+							"borderStyle": {
+								"width": 0.9259259259259257,
+								"style": "solid",
+								"color": "#000000ff"
+							},
+							"borderRadius": {
+								"all": 1.4814814814814818,
+								"topLeft": 1.4814814814814818,
+								"topRight": 1.4814814814814818,
+								"bottomLeft": 1.4814814814814818,
+								"bottomRight": 1.4814814814814818
+							},
+							"shadow": "custom~3~3~0~#c71a1ae2",
+							"opacity": 0.89,
+							"textBlendMode": "hard-light",
+							"imageShape": "fitImage",
+							"modifyLength": {
+								"headingTop": 0,
+								"headingBottom": 0,
+								"headingLeft": 0,
+								"headingRight": 0
+							}
+						}
+					},
+					"textBlendMode": "hard-light"
+				},
+				{
+					"id": "6bb279f4-276c-4f61-04f9-a23c093b6f4b",
+					"text": "",
+					"elementType": "image",
+					"type": "sticky",
+					"modifyLength": {
+						"headingTop": 33.8391502276176,
+						"headingBottom": 42.33687405159332,
+						"headingLeft": 30.95599393019727,
+						"headingRight": 31.107738998482546
+					},
+					"styles": {
+						"animation": {
+							"third": "r-fade-in-transition",
+							"third-out": "r-fade-out-out"
+						},
+						"imageShape": "fitImage",
+						"backgroundColor": "#00000000",
+						"textColor": "#32A3DD",
+						"customCss": {
+							"elementDomAppend": "",
+							"elementContainer": []
+						}
+					},
+					"url": "//rocketium.com/images/v2/61c939e514526b130d183daa/resized/5979c4f6-e7cf-43b1-b1d5-b6e8b2892dae_1697444570218.jpg",
+					"imageShape": "fillImage",
+					"backgroundColor": {
+						"type": "solid-color",
+						"color": "#ff316dff"
+					},
+					"charCount": 0,
+					"textColor": "#32A3DD",
+					"templateRules": {
+						"helpText": "Media"
+					},
+					"helpText": "Media",
+					"overrides": {
+						"1080x1080": {
+							"modifyLength": {
+								"headingTop": 41.8604321671017,
+								"headingBottom": 5.187910048872212,
+								"headingLeft": 31.44004678272717,
+								"headingRight": 8.452666002972961,
+								"rotateAngle": 0
+							},
+							"breakParentGroup": true,
+							"imageShape": "fillImage",
+							"objectPosition": {
+								"horizontal": "right",
+								"vertical": "bottom"
+							},
+							"objectPositionScale": 1,
+							"elementBgBlur": 2.2,
+							"colorInversion": 0,
+							"backgroundColor": {
+								"type": "solid-color",
+								"color": "#ff316dff"
+							},
+							"borderStyle": {
+								"width": 0.9259259259259257,
+								"style": "dashed",
+								"color": "#000000"
+							},
+							"borderRadius": {
+								"all": 1.4814814814814818,
+								"topLeft": 1.4814814814814818,
+								"topRight": 1.4814814814814818,
+								"bottomLeft": 1.4814814814814818,
+								"bottomRight": 1.4814814814814818
+							},
+							"textBlendMode": "normal"
+						},
+						"1200x628": {
+							"modifyLength": {
+								"headingTop": 41.87898,
+								"headingBottom": 5.09554,
+								"headingLeft": 45.75,
+								"headingRight": 22.75
+							},
+							"breakParentGroup": true,
+							"imageShape": "fillImage",
+							"objectPosition": {
+								"horizontal": "right",
+								"vertical": "bottom"
+							},
+							"objectPositionScale": 1,
+							"elementBgBlur": 2.2,
+							"colorInversion": 0,
+							"backgroundColor": {
+								"type": "solid-color",
+								"color": "#ff316dff"
+							},
+							"borderStyle": {
+								"width": 0.9259259259259257,
+								"style": "dashed",
+								"color": "#000000"
+							},
+							"borderRadius": {
+								"all": 1.4814814814814818,
+								"topLeft": 1.4814814814814818,
+								"topRight": 1.4814814814814818,
+								"bottomLeft": 1.4814814814814818,
+								"bottomRight": 1.4814814814814818
+							},
+							"textBlendMode": "normal"
+						}
+					},
+					"svgString": null,
+					"isText": false,
+					"fullDuration": false,
+					"objectPositionScale": 1,
+					"textBlendMode": "normal"
+				}
+			],
+			"image": "//rocketium.com/img/transparent.png",
+			"autoTimeBasedOnElements": true,
+			"styles": {
+				"cardBackgroundColor": "#FFF",
+				"imageShape": "fillImage",
+				"modifyLength": null,
+				"videoFilterOverlay": {
+					"groupId": "none_overlay",
+					"useDominantColor": "true",
+					"isEndOverlay": "false",
+					"removeAfterFinish": "true",
+					"waitToFinish": "false",
+					"loop": "false",
+					"url": ""
+				},
+				"textVideoEffect": "none_dynamic_background",
+				"cardTransition": "none",
+				"lineSpacing": "medium",
+				"cardBorder": "none",
+				"imageStyles": "none",
+				"videoFilter": {
+					"groupId": "none",
+					"useDominantColor": "true",
+					"removeAfterFinish": "true",
+					"waitToFinish": "false",
+					"loop": "false",
+					"screenshot": "/video_effects/screenshots/transition-none.png",
+					"url": ""
+				},
+				"layout": "image-heading-center",
+				"_id": "5785ceb28bd30f020ba12843",
+				"extraStyles": "colorToParagraph",
+				"imageBorder": "none",
+				"imageBackgroundColor": "none",
+				"filter": "none",
+				"textAlignment": "left",
+				"shape": "none",
+				"border": "none",
+				"background": "none",
+				"backgroundColor": "r-backgroundColor-1491978480177-585a4f2d3c968b5ad6198dc2-000000",
+				"highlightStyle": "none",
+				"highlightColor": "none",
+				"animation": {
+					"fourth-out": "r-fade-out-transition-out",
+					"fourth": "r-fade-in-transition",
+					"third-out": "r-fade-out-out",
+					"third": "r-blast-line-slide-right",
+					"second-out": "r-fade-out-out",
+					"second": "r-no-animation",
+					"first": "r-no-animation"
+				},
+				"textColor": "colorFFF",
+				"font": "sourceSansPro",
+				"fontStyle": "auto",
+				"timestamp": "2016-07-22T05:45:19.580Z",
+				"userId": "5617954ace0203f33fe8e560",
+				"visibility": "PUBLIC",
+				"custom": {
+					"r-backgroundColor-1491978480177-585a4f2d3c968b5ad6198dc2-000000": {
+						"background-color": "rgba(0, 0, 0, 0)"
+					},
+					"r-textColor-1486970470916-57544fcdd8fa816f2043e705-00bdff": {
+						"color": "rgba(0, 189, 255, 0.71)"
+					},
+					"r-textColor-1486970470716-57544fcdd8fa816f2043e705-84e8e0": {
+						"color": "rgba(132, 232, 224, 0.71)"
+					},
+					"r-textColor-1495779838945-585a4f2d3c968b5ad6198dc2-37fff8": {
+						"color": "rgb(55, 255, 248)"
+					},
+					"r-highlightColor-1490962608899-585a4f2d3c968b5ad6198dc2-00ff02": {
+						"color": "rgb(0, 255, 2)"
+					},
+					"r-textColor-1487134411921-57544fcdd8fa816f2043e705-a153d8": {
+						"color": "rgb(161, 83, 216)"
+					},
+					"r-textColor-1496135829738-585a4f2d3c968b5ad6198dc2-50ffa0": {
+						"color": "rgb(80, 255, 160)"
+					},
+					"r-textColor-1476359118556-57e3b681494d456d9e9033a5-ffffff": {
+						"color": "rgb(255, 255, 255)"
+					},
+					"r-highlightColor-1487323259339-585a4f2d3c968b5ad6198dc2-00dea6": {
+						"color": "rgb(0, 222, 166)"
+					},
+					"r-fontFamily-Helvetica": {
+						"fontName": "Helvetica",
+						"url": "//rocketium.com/fonts/uploaded/1617807408667.ttf",
+						"fontFamilyData": [
+							{
+								"weight": "bold",
+								"assetId": "61c939e814526b130d183fb4",
+								"source": "r-font-606dc831242ddb5a447ab12b",
+								"properties": {
+									"url": "//rocketium.com/fonts/uploaded/1617807408667.ttf",
+									"format": "truetype",
+									"fontName": "Helvetica_bold"
+								}
+							}
+						]
+					}
+				},
+				"textVideoEffectObject": {
+					"_id": "none_dynamic_background",
+					"effects": [""],
+					"preview": [""]
+				},
+				"multiplier": null,
+				"delay": null,
+				"overrides": null
+			},
+			"delay": null,
+			"multiplier": null,
+			"modifyLength": null,
+			"layoutId": "image-heading-center",
+			"videoFilter": {
+				"groupId": "none",
+				"useDominantColor": "true",
+				"removeAfterFinish": "true",
+				"waitToFinish": "false",
+				"loop": "false",
+				"screenshot": "/video_effects/screenshots/transition-none.png",
+				"url": ""
+			},
+			"overrides": {
+				"1200x628": {
+					"horizontalGuidelines": {
+						"horizontal_1": 123
+					},
+					"verticalGuidelines": {
+						"vertical_1": 604
+					}
+				}
+			},
+			"selectionGroups": {
+				"index": []
+			}
+		}
+	],
+	"createdAt": {
+		"$date": "2024-01-22T11:14:38.858Z"
+	},
+	"createdUsingStylingPanel": true,
+	"customDimensions": {
+		"_id": {
+			"$oid": "65ae55c203fb7200085a15c5"
+		},
+		"width": 1200,
+		"height": 628
+	},
+	"exportSettings": {
+		"quality": "1080p"
+	},
+	"image": "//rocketium.com/img/transparent.png",
+	"isDeleted": false,
+	"lastModified": "Vivek Nigam",
+	"lastModifiedId": "61c939e514526b130d183daa",
+	"listId": "61c93a4514526b130d1844a7",
+	"logoCustomPosition": {},
+	"logoImage": "",
+	"logoLoop": false,
+	"logoPosition": "r-logo-pos-top-left",
+	"logoSize": 15,
+	"metadata": {
+		"platform": "campaign",
+		"shareString": "",
+		"isSaved": false,
+		"name": "Variant 1_0",
+		"assetGroup": "asset-group-65ae4dadf215a459dbdeb76c",
+		"email": "vivek.nigam@rocketium.com"
+	},
+	"name": "Variant 1_0",
+	"newAddedSizes": {
+		"1200x628": {
+			"name": "Horizontal rectangle",
+			"active": true
+		}
+	},
+	"orientation": "landscape",
+	"outputFormat": "image",
+	"savedCustomDimensions": {
+		"1200x628": {
+			"name": "Horizontal rectangle",
+			"active": true
+		},
+		"1080x1080": {
+			"active": true
+		}
+	},
+	"shortId": "R5OJPx-0jxA8",
+	"teamId": "61c939e514526b130d183dc0",
+	"themeId": "599ec30b27855975ab36a1b9",
+	"timestamp": {
+		"$date": "2024-01-22T11:47:12.820Z"
+	},
+	"title": "Variant 1_0",
+	"updatedAt": {
+		"$date": "2024-01-22T11:47:14.518Z"
+	},
+	"videoBackground": "",
+	"videoBackgroundExtraClasses": "",
+	"videoIndex": -1705922078855,
+	"videoLength": 3,
+	"videoStyling": null,
+	"videoTemplateRules": null,
+	"visibility": "UNLISTED",
+	"collaborators": [],
+	"tags": []
+}
