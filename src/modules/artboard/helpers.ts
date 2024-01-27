@@ -21,7 +21,7 @@ export const getArtboardDimensions = (
 	const width = artboard.width;
 	const height = artboard.height;
 
-	if (!width || !height) {
+	if (width === undefined || height === undefined) {
 		throw new Error('Artboard dimensions not found');
 	}
 

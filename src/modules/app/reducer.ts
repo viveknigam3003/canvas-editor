@@ -6,9 +6,11 @@ import {
 	updateArtboards,
 	updateActiveArtboard,
 	updateSelectedArtboards,
+	setZoomLevel,
 } from './actions';
 
 export interface ApplicationState {
+	zoomLevel: number;
 	artboards: Array<Artboard>;
 	activeArtboard: Artboard | null;
 	activeArtboardLayers: Array<any>;
@@ -16,6 +18,7 @@ export interface ApplicationState {
 }
 
 export const initialState: ApplicationState = {
+	zoomLevel: 1,
 	activeArtboard: null,
 	artboards: [],
 	activeArtboardLayers: [],
@@ -41,6 +44,9 @@ const appReducer = createReducer(initialState, builder => {
 		})
 		.addCase(updateSelectedArtboards, (state, action) => {
 			state.selectedArtboards = action.payload;
+		})
+		.addCase(setZoomLevel, (state, action) => {
+			state.zoomLevel = action.payload;
 		});
 });
 

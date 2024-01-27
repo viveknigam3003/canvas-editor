@@ -3,12 +3,10 @@ import { IconFocusCentered, IconZoomIn, IconZoomOut, IconZoomReset } from '@tabl
 import React from 'react';
 import { useMenuStyles } from '../../styles/menu';
 import { getKeyboardShortcuts, parseKeyString } from '../keyboard/helpers';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/rootReducer';
 
 interface Props {
-	/**
-	 * Zoom value
-	 */
-	zoom: number;
 	/**
 	 * Zoom value setter
 	 */
@@ -27,7 +25,8 @@ interface Props {
 	zoomToFit: () => void;
 }
 
-const ZoomMenu: React.FC<Props> = ({ zoom, zoomIn, zoomOut, zoomReset, zoomToFit }) => {
+const ZoomMenu: React.FC<Props> = ({ zoomIn, zoomOut, zoomReset, zoomToFit }) => {
+	const zoom = useSelector((state: RootState) => state.app.zoomLevel);
 	const { classes } = useMenuStyles();
 	const zoomPercentage = Math.round(zoom * 100);
 	const keyboardShortcuts = getKeyboardShortcuts();
