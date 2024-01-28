@@ -64,20 +64,18 @@ import {
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 
+import demoJson from './data/demo.json';
+import mcd from './data/mcd.json';
+import workflows from './data/workflows.json';
+import { FabricGuide } from './modules/snapping/fabricGuide';
+import ImportModal from './modules/transformer/ImportModal';
 import { filterExportExcludes, filterSaveExcludes } from './modules/utils/fabricObjectUtils';
+import WorkflowComponent from './modules/workflows';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
-import demoJson from './data/demo.json';
-import mcd from './data/mcd.json';
-import workflows from './data/workflows.json';
-import WorkflowComponent from './modules/workflows';
-import { FabricGuide } from './modules/snapping/fabricGuide';
-import transformVariation from './modules/transformer';
-import capsuleData from './data/rocketium/capsule.json';
-import ImportModal from './modules/transformer/ImportModal';
 
 store.dispatch(appStart());
 
@@ -96,8 +94,6 @@ store.dispatch(appStart());
 	localStorage.setItem('artboards', JSON.stringify(demoJson));
 	window.location.reload();
 };
-
-console.log(JSON.stringify(transformVariation(capsuleData), null, 2));
 
 const useStyles = createStyles(theme => ({
 	root: {

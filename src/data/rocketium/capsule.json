@@ -71,10 +71,10 @@
 								"bottom": 0.9259259259259257
 							},
 							"modifyLength": {
-								"headingTop": 8.121142484650322,
-								"headingBottom": 84.74923349758868,
-								"headingLeft": 68.69404253062844,
-								"headingRight": 15.380044079048318,
+								"headingTop": 9.472263399504401,
+								"headingBottom": 83.39810426951678,
+								"headingLeft": 40.32481273238783,
+								"headingRight": 43.74925530750364,
 								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
@@ -102,17 +102,17 @@
 						},
 						"1200x628": {
 							"padding": {
-								"all": 0.9259259259259257,
-								"left": 0.9259259259259257,
-								"right": 0.9259259259259257,
-								"top": 0.9259259259259257,
-								"bottom": 0.9259259259259257
+								"all": 0.9251592356687898,
+								"left": 0.9251592356687898,
+								"right": 0.9251592356687898,
+								"top": 0.9251592356687898,
+								"bottom": 0.9251592356687898
 							},
 							"modifyLength": {
-								"headingTop": 8.121142484650322,
-								"headingBottom": 84.74923349758868,
-								"headingLeft": 68.69404253062844,
-								"headingRight": 15.380044079048318,
+								"headingTop": 2.3885350318471334,
+								"headingBottom": 88.05732484076432,
+								"headingLeft": 65.9087692481884,
+								"headingRight": 18.174564085144922,
 								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
@@ -137,8 +137,10 @@
 								],
 								"angle": 90
 							},
-							"fontStyle": "auto",
-							"textAlignment": "center"
+							"fontStyle": "custom",
+							"textAlignment": "center",
+							"textAlignmentVertical": "middle",
+							"lineSpacing": "0.5"
 						}
 					},
 					"customFontSize": 8,
@@ -166,7 +168,7 @@
 					"textShadow": "none",
 					"isFixedTimeEnabled": true,
 					"highlightColor": "none",
-					"fontStyle": "auto",
+					"fontStyle": "custom",
 					"customElementId": "61c939e814526b130d184189",
 					"isText": true
 				},
@@ -212,7 +214,10 @@
 						},
 						"layerIndex": 1
 					},
-					"textColor": "#FFFFFF",
+					"textColor": {
+						"type": "solid-color",
+						"color": "#F2EFEA"
+					},
 					"overrides": {
 						"1080x1080": {
 							"padding": {
@@ -223,57 +228,62 @@
 								"bottom": 0.9259259259259257
 							},
 							"modifyLength": {
-								"headingTop": 11.80678855995176,
-								"headingBottom": 81.06358742228724,
-								"headingLeft": 81.57417550512126,
-								"headingRight": 2.49991110455548,
-								"rotateAngle": 90
+								"headingTop": 32.476331655443666,
+								"headingBottom": 60.39403601357752,
+								"headingLeft": 40.32477847217588,
+								"headingRight": 43.749289567715586,
+								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
 							"font": "r-fontFamily-Helvetica",
 							"layerIndex": 1,
-							"textRotation": 90,
+							"textRotation": 0,
 							"fontStyle": "custom",
 							"customFontSize": 4.62962962962963,
 							"backgroundColor": {
 								"type": "linear-gradient",
 								"colorStops": [
 									{
-										"r": 71,
-										"g": 249,
-										"b": 120,
+										"r": 19,
+										"g": 149,
+										"b": 186,
 										"a": 1,
 										"left": 0
 									},
 									{
-										"r": 30,
-										"g": 169,
-										"b": 68,
+										"r": 169,
+										"g": 30,
+										"b": 99,
 										"a": 1,
-										"left": 99.46236559139786
+										"left": 100
 									}
 								],
 								"angle": 90
+							},
+							"textColor": {
+								"type": "solid-color",
+								"color": "#F2EFEA"
 							}
 						},
 						"1200x628": {
 							"padding": {
-								"all": 0.9259259259259257,
-								"left": 0.9259259259259257,
-								"right": 0.9259259259259257,
-								"top": 0.9259259259259257,
-								"bottom": 0.9259259259259257
+								"all": 0.9251592356687898,
+								"left": 0.9251592356687898,
+								"right": 0.9251592356687898,
+								"top": 0.9251592356687898,
+								"bottom": 0.9251592356687898
 							},
 							"modifyLength": {
-								"headingTop": 11.94267,
-								"headingBottom": 80.89171,
-								"headingLeft": 85.33333,
-								"headingRight": 6.25
+								"headingTop": 20.700296143173112,
+								"headingBottom": 66.24201476321896,
+								"headingLeft": 36.05992445157809,
+								"headingRight": 35.94467094224467,
+								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
 							"font": "r-fontFamily-Helvetica",
 							"layerIndex": 1,
-							"textRotation": 90,
+							"textRotation": 0,
 							"fontStyle": "custom",
 							"customFontSize": 4.62962962962963,
 							"backgroundColor": {
@@ -281,7 +291,7 @@
 								"colorStops": [
 									{
 										"r": 71,
-										"g": 249,
+										"g": 11,
 										"b": 120,
 										"a": 1,
 										"left": 0
@@ -291,7 +301,7 @@
 										"g": 169,
 										"b": 68,
 										"a": 1,
-										"left": 99.46236559139786
+										"left": 100
 									}
 								],
 								"angle": 90
@@ -305,18 +315,18 @@
 						"type": "linear-gradient",
 						"colorStops": [
 							{
-								"r": 71,
-								"g": 249,
-								"b": 120,
+								"r": 19,
+								"g": 149,
+								"b": 186,
 								"a": 1,
 								"left": 0
 							},
 							{
-								"r": 30,
-								"g": 169,
-								"b": 68,
+								"r": 169,
+								"g": 30,
+								"b": 99,
 								"a": 1,
-								"left": 99.46236559139786
+								"left": 100
 							}
 						],
 						"angle": 90
@@ -381,16 +391,16 @@
 								"bottom": 0.9259259259259257
 							},
 							"modifyLength": {
-								"headingTop": 16.27905695387288,
-								"headingBottom": 73.99872847645304,
-								"headingLeft": 62.95330630853516,
-								"headingRight": 15.380044079048304,
-								"rotateAngle": 0
+								"headingTop": 22.753914871239733,
+								"headingBottom": 67.52385922288005,
+								"headingLeft": 79.29637645870828,
+								"headingRight": -0.963051334669899,
+								"rotateAngle": 90
 							},
 							"breakParentGroup": true,
 							"font": "r-fontFamily-Helvetica",
 							"layerIndex": 2,
-							"textRotation": 0,
+							"textRotation": 90,
 							"fontStyle": "custom",
 							"customFontSize": 4.62962962962963,
 							"capitalization": 3,
@@ -425,22 +435,23 @@
 						},
 						"1200x628": {
 							"padding": {
-								"all": 0.9259259259259257,
-								"left": 0.9259259259259257,
-								"right": 0.9259259259259257,
-								"top": 0.9259259259259257,
-								"bottom": 0.9259259259259257
+								"all": 0.9251592356687898,
+								"left": 0.9251592356687898,
+								"right": 0.9251592356687898,
+								"top": 0.9251592356687898,
+								"bottom": 0.9251592356687898
 							},
 							"modifyLength": {
-								"headingTop": 16.24203,
-								"headingBottom": 73.88535,
-								"headingLeft": 68.08333,
-								"headingRight": 20.5
+								"headingTop": 22.0664816587297,
+								"headingBottom": 68.06090232670951,
+								"headingLeft": 81.82490749899732,
+								"headingRight": 6.758420573196872,
+								"rotateAngle": 90
 							},
 							"breakParentGroup": true,
 							"font": "r-fontFamily-Helvetica",
 							"layerIndex": 2,
-							"textRotation": 0,
+							"textRotation": 90,
 							"fontStyle": "custom",
 							"customFontSize": 4.62962962962963,
 							"capitalization": 3,
@@ -913,10 +924,10 @@
 	"createdUsingStylingPanel": true,
 	"customDimensions": {
 		"_id": {
-			"$oid": "65ae55c203fb7200085a15c5"
+			"$oid": "65b660bd9f8bc600087fec34"
 		},
-		"width": 1200,
-		"height": 628
+		"width": 1080,
+		"height": 1080
 	},
 	"exportSettings": {
 		"quality": "1080p"
@@ -961,11 +972,11 @@
 	"teamId": "61c939e514526b130d183dc0",
 	"themeId": "599ec30b27855975ab36a1b9",
 	"timestamp": {
-		"$date": "2024-01-22T11:47:12.820Z"
+		"$date": "2024-01-28T14:12:13.296Z"
 	},
 	"title": "Variant 1_0",
 	"updatedAt": {
-		"$date": "2024-01-22T11:47:14.518Z"
+		"$date": "2024-01-28T14:12:13.549Z"
 	},
 	"videoBackground": "",
 	"videoBackgroundExtraClasses": "",

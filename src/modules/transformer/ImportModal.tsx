@@ -1,6 +1,6 @@
 import { Button, Modal, Stack, Text, Textarea, createStyles } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconFilePlus } from '@tabler/icons-react';
+import { IconAlertTriangle, IconFilePlus } from '@tabler/icons-react';
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import transformVariation from '.';
@@ -10,6 +10,7 @@ import { Artboard } from '../../types';
 import { addArtboard } from '../app/actions';
 import { getArtboardRectangle } from '../artboard/helpers';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
+import { notifications } from '@mantine/notifications';
 
 interface ImportModalProps {
 	opened: boolean;
@@ -54,7 +55,18 @@ const ImportModal: React.FC<ImportModalProps> = ({ opened, onClose, canvas }) =>
 
 		// Convert capsule to phoenix
 		const capsuleData = JSON.parse(json.values.content);
-		const variant = transformVariation(capsuleData);
+		const { data: variant, errors } = transformVariation(capsuleData);
+
+		if (Object.keys(errors).some(key => errors[key].length > 0)) {
+			console.error('Errors in capsule transformation', errors);
+			notifications.show({
+				title: 'Errors in capsule transformation',
+				message: 'Some errors were encountered while transforming the capsule, please check the console',
+				color: 'red',
+				autoClose: 5000,
+				icon: <IconAlertTriangle size={12} />,
+			});
+		}
 
 		const newArtboard: Artboard = {
 			id: variant._id,
@@ -84,7 +96,6 @@ const ImportModal: React.FC<ImportModalProps> = ({ opened, onClose, canvas }) =>
 			objects: filterSaveExcludes(canvasJson?.objects || []),
 		};
 
-		console.log('state', { ...newArtboard, state: stateJson });
 		dispatch(addArtboard({ artboard: newArtboard, state: stateJson }));
 		json.reset();
 		onClose();

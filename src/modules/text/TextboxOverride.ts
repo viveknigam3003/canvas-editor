@@ -1,10 +1,11 @@
-import { ITextboxOptions } from 'fabric/fabric-impl';
 import { fabric } from 'fabric';
+import { Gradient, ITextboxOptions } from 'fabric/fabric-impl';
 
-interface BoxProperties extends ITextboxOptions {
+export interface BoxProperties extends ITextboxOptions {
 	boxBorderColor?: string;
 	boxBorderStyle?: string;
 	boxBorderWidth?: number;
+	boxBackgroundFill?: string | Gradient;
 }
 
 declare module 'fabric' {
@@ -13,6 +14,7 @@ declare module 'fabric' {
 			boxBorderColor?: string;
 			boxBorderStyle?: string;
 			boxBorderWidth?: number;
+			boxBackgroundFill: string | Gradient;
 		}
 	}
 }
@@ -21,6 +23,7 @@ declare module 'fabric' {
 fabric.Textbox.prototype.boxBorderColor = 'transparent';
 fabric.Textbox.prototype.boxBorderStyle = 'solid';
 fabric.Textbox.prototype.boxBorderWidth = 0;
+fabric.Textbox.prototype.boxBackgroundFill = 'transparent';
 
 /**
  * Override the toObject method to include our custom properties
@@ -32,6 +35,7 @@ fabric.Textbox.prototype.toObject = (function (toObject) {
 			'boxBorderColor',
 			'boxBorderStyle',
 			'boxBorderWidth',
+			'boxBackgroundFill',
 		]);
 		return toObject.apply(this, [extendedPropertiesToInclude]);
 	};
@@ -42,12 +46,11 @@ fabric.Textbox.prototype.toObject = (function (toObject) {
  */
 fabric.Textbox.prototype._render = (function (_render) {
 	return function (this: fabric.Textbox & BoxProperties, ctx: CanvasRenderingContext2D) {
-		_render.call(this, ctx);
-
 		// Ensure custom properties are defined
 		const boxBorderColor = this.boxBorderColor || '';
 		const boxBorderWidth = this.boxBorderWidth || 0;
 		const boxBorderStyle = this.boxBorderStyle || 'solid';
+		// const boxBackgroundFill = this.boxBackgroundFill || '';
 
 		if (boxBorderWidth > 0 && boxBorderColor) {
 			// Save the current context state
@@ -77,5 +80,30 @@ fabric.Textbox.prototype._render = (function (_render) {
 			// Restore the context to its previous state
 			ctx.restore();
 		}
+
+		// if (boxBackgroundFill instanceof fabric.Gradient) {
+		// 	// Update the gradient to match the current size and position of the textbox
+		// 	const scaleX = this.scaleX || 1;
+		// 	const scaleY = this.scaleY || 1;
+		// 	const width = this.width! * scaleX;
+		// 	const height = this.height! * scaleY;
+
+		// 	boxBackgroundFill.coords = {
+		// 		x1: -width / 2,
+		// 		y1: -height / 2,
+		// 		x2: width / 2,
+		// 		y2: -height / 2,
+		// 	};
+
+		// 	// Apply the gradient to the context
+		// 	ctx.save();
+		// 	ctx.translate(-this.width! / 2, -this.height! / 2);
+		// 	ctx.fillStyle = boxBackgroundFill.toLive(ctx);
+		// 	ctx.fillRect(0, 0, width, height);
+		// 	ctx.restore();
+		// }
+
+		// Call the original _render method
+		_render.call(this, ctx);
 	};
 })(fabric.Textbox.prototype._render);
