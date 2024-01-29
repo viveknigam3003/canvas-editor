@@ -427,7 +427,7 @@ function App() {
 		const artboardLeftAdjustment = artboardPosition.left;
 		const artboardTopAdjustment = artboardPosition.top;
 
-		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+		if (artboardLeftAdjustment === undefined || artboardTopAdjustment === undefined) {
 			return;
 		}
 		const artboardDimensions = getArtboardDimensions(canvasRef.current, activeArtboardId);
