@@ -36,6 +36,7 @@ import {
 	setActiveArtboard,
 	setArtboards,
 	setSelectedArtboards,
+	setZoomLevel,
 	updateActiveArtboardLayers,
 } from './modules/app/actions';
 import NewArtboardModal from './modules/artboard/NewArtboardModal';
@@ -64,8 +65,6 @@ import {
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 
-import demoJson from './data/demo.json';
-import mcd from './data/mcd.json';
 import workflows from './data/workflows.json';
 import { FabricGuide } from './modules/snapping/fabricGuide';
 import ImportModal from './modules/transformer/ImportModal';
@@ -76,6 +75,7 @@ import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
+// lazy load demo json
 
 store.dispatch(appStart());
 
@@ -90,8 +90,9 @@ store.dispatch(appStart());
 	window.location.reload();
 };
 
-(window as any).loadDemo = () => {
-	localStorage.setItem('artboards', JSON.stringify(demoJson));
+(window as any).loadDemo = async () => {
+	const demoJson = await import('./data/demo.json');
+	localStorage.setItem('artboards', JSON.stringify(demoJson.default));
 	window.location.reload();
 };
 
@@ -171,6 +172,7 @@ const useStyles = createStyles(theme => ({
 
 function App() {
 	const dispatch = useDispatch();
+	console.log('first');
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const activeArtboard = useSelector((state: RootState) => state.app.activeArtboard);
 	const selectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
@@ -193,7 +195,6 @@ function App() {
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
 	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
 	const [isImportModalOpen, { open: openImportModal, close: closeImportModal }] = useDisclosure();
-	const [zoomLevel, setZoomLevel] = useState(1);
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
@@ -344,7 +345,7 @@ function App() {
 		canvasRef.current?.setZoom(1);
 		// Place the canvas in the center of the screen
 		centerBoardToCanvas();
-		setZoomLevel(canvasRef.current?.getZoom() || 1);
+		dispatch(setZoomLevel(canvasRef.current?.getZoom() || 1));
 		if (showRuler) {
 			renderRuler();
 		}
@@ -431,7 +432,7 @@ function App() {
 		const artboardLeftAdjustment = artboardPosition.left;
 		const artboardTopAdjustment = artboardPosition.top;
 
-		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
+		if (artboardLeftAdjustment === undefined || artboardTopAdjustment === undefined) {
 			return;
 		}
 		const artboardDimensions = getArtboardDimensions(canvasRef.current, activeArtboardId);
@@ -649,7 +650,7 @@ function App() {
 		zoomFromCenter(zoom);
 		centerBoardToCanvas();
 
-		setZoomLevel(canvasRef.current?.getZoom() || zoom);
+		dispatch(setZoomLevel(canvasRef.current?.getZoom() || zoom));
 		if (showRuler) {
 			renderRuler();
 		}
@@ -659,7 +660,7 @@ function App() {
 		const zoom = canvasRef.current?.getZoom();
 		if (zoom) {
 			zoomFromCenter(zoom + 0.1);
-			setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1);
+			dispatch(setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1));
 		}
 		if (showRuler) {
 			renderRuler();
@@ -670,7 +671,7 @@ function App() {
 		const zoom = canvasRef.current?.getZoom();
 		if (zoom) {
 			zoomFromCenter(zoom - 0.1);
-			setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1);
+			dispatch(setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1));
 		}
 		if (showRuler) {
 			renderRuler();
@@ -972,7 +973,7 @@ function App() {
 					zoom = minZoom;
 				}
 				canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-				setZoomLevel(zoom);
+				dispatch(setZoomLevel(zoom));
 				if (showRuler) {
 					renderRuler();
 				}
@@ -1157,9 +1158,10 @@ function App() {
 		],
 		[
 			'mod+1',
-			(event: KeyboardEvent) => {
+			async (event: KeyboardEvent) => {
+				const mcd = await import('./data/mcd.json');
 				event.preventDefault();
-				dispatch(setArtboards(mcd));
+				dispatch(setArtboards(mcd.default));
 			},
 		],
 		[
@@ -1251,13 +1253,7 @@ function App() {
 							<IconDeviceFloppy />
 						</ActionIcon>
 					</Tooltip>
-					<ZoomMenu
-						zoom={zoomLevel}
-						zoomIn={zoomIn}
-						zoomOut={zoomOut}
-						zoomReset={resetZoom}
-						zoomToFit={zoomToFit}
-					/>
+					<ZoomMenu zoomIn={zoomIn} zoomOut={zoomOut} zoomReset={resetZoom} zoomToFit={zoomToFit} />
 					<Button size="xs" leftIcon={<IconDownload size={14} />} variant="light" onClick={exportArtboard}>
 						Export
 					</Button>

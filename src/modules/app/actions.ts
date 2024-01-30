@@ -14,6 +14,7 @@ export enum ApplicationActionType {
 	SET_SELECTED_ARTBOARDS = 'app/setSelectedArtboards',
 	UPDATE_SELECTED_ARTBOARDS = 'app/updateSelectedArtboards',
 	APPLY_BULK_EDIT = 'app/applyBulkEdit',
+	SET_ZOOM = 'app/setZoom',
 }
 
 export const appStart = createAction(ApplicationActionType.APP_START);
@@ -44,3 +45,5 @@ export const applyBulkEdit = createAction<{
 	element: fabric.Object;
 	properties: Record<string, any>;
 }>(ApplicationActionType.APPLY_BULK_EDIT);
+
+export const setZoomLevel = createAction<number>(ApplicationActionType.SET_ZOOM);
