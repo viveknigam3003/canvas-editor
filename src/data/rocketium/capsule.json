@@ -98,7 +98,8 @@
 									}
 								],
 								"angle": 90
-							}
+							},
+							"layerIndex": null
 						},
 						"1200x628": {
 							"padding": {
@@ -116,7 +117,7 @@
 								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
-							"font": "r-fontFamily-Helvetica",
+							"font": "r-font-5b34b51ce4573a7f6af63e94",
 							"backgroundColor": {
 								"type": "radial-gradient",
 								"colorStops": [
@@ -140,7 +141,8 @@
 							"fontStyle": "custom",
 							"textAlignment": "center",
 							"textAlignmentVertical": "middle",
-							"lineSpacing": "0.5"
+							"lineSpacing": "0.5",
+							"layerIndex": null
 						}
 					},
 					"customFontSize": 8,
@@ -394,16 +396,16 @@
 								"bottom": 0.9259259259259257
 							},
 							"modifyLength": {
-								"headingTop": 22.753914871239733,
-								"headingBottom": 67.52385922288005,
-								"headingLeft": 79.29637645870828,
-								"headingRight": -0.963051334669899,
-								"rotateAngle": 90
+								"headingTop": 15.696893633464438,
+								"headingBottom": 74.58088046065534,
+								"headingLeft": 69.86547786024724,
+								"headingRight": 8.467847263791143,
+								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
 							"font": "r-fontFamily-Helvetica",
-							"layerIndex": 2,
-							"textRotation": 90,
+							"layerIndex": 1.5,
+							"textRotation": 0,
 							"fontStyle": "custom",
 							"customFontSize": 4.62962962962963,
 							"capitalization": 3,
@@ -411,7 +413,7 @@
 							"borderStyle": {
 								"width": 0.9259259259259257,
 								"style": "dashed",
-								"color": "#000000"
+								"color": "#000000ff"
 							},
 							"borderRadius": {
 								"all": 1.4814814814814818,
@@ -422,18 +424,18 @@
 							},
 							"textShadow": {
 								"color": {
-									"r": 223,
-									"g": 40,
-									"b": 229,
-									"a": 0.7098039215686275
+									"r": 0,
+									"g": 0,
+									"b": 0,
+									"a": 1
 								},
 								"blur": 0,
-								"vShadow": 0.3,
-								"hShadow": 0.3
+								"vShadow": 2.7777777777777777,
+								"hShadow": 2.7777777777777777
 							},
 							"backgroundColor": {
 								"type": "solid-color",
-								"color": "#ffa5ff49"
+								"color": "#09fbb9ff"
 							}
 						},
 						"1200x628": {
@@ -453,7 +455,7 @@
 							},
 							"breakParentGroup": true,
 							"font": "r-fontFamily-Helvetica",
-							"layerIndex": 2,
+							"layerIndex": 1.5,
 							"textRotation": 90,
 							"fontStyle": "custom",
 							"customFontSize": 4.62962962962963,
@@ -493,7 +495,7 @@
 					"textVideoEffect": "none_dynamic_background",
 					"backgroundColor": {
 						"type": "solid-color",
-						"color": "#ffa5ff49"
+						"color": "#09fbb9ff"
 					},
 					"textShadow": "none",
 					"isFixedTimeEnabled": true,
@@ -600,7 +602,8 @@
 							},
 							"shadow": "custom~3~3~0~#c71a1ae2",
 							"opacity": 0.89,
-							"textBlendMode": "hard-light"
+							"textBlendMode": "hard-light",
+							"layerIndex": null
 						},
 						"1200x628": {
 							"svgInfo": {
@@ -666,7 +669,8 @@
 								"headingBottom": 0,
 								"headingLeft": 0,
 								"headingRight": 0
-							}
+							},
+							"layerIndex": null
 						}
 					},
 					"textBlendMode": "hard-light"
@@ -741,7 +745,8 @@
 								"bottomLeft": 1.4814814814814818,
 								"bottomRight": 1.4814814814814818
 							},
-							"textBlendMode": "normal"
+							"textBlendMode": "normal",
+							"layerIndex": null
 						},
 						"1200x628": {
 							"modifyLength": {
@@ -775,7 +780,8 @@
 								"bottomLeft": 1.4814814814814818,
 								"bottomRight": 1.4814814814814818
 							},
-							"textBlendMode": "normal"
+							"textBlendMode": "normal",
+							"layerIndex": null
 						}
 					},
 					"svgString": null,
@@ -885,6 +891,12 @@
 								}
 							}
 						]
+					},
+					"r-font-5b34b51ce4573a7f6af63e94": {
+						"fontName": "Source Sans Pro Light",
+						"format": "truetype",
+						"url": "//rocketium.com/fonts/uploaded/1530180884056.ttf",
+						"fontFamilyData": null
 					}
 				},
 				"textVideoEffectObject": {
@@ -930,10 +942,10 @@
 	"createdUsingStylingPanel": true,
 	"customDimensions": {
 		"_id": {
-			"$oid": "65b763e9529bbd000855e924"
+			"$oid": "65b8be10f92f860008cba77c"
 		},
-		"width": 1200,
-		"height": 628
+		"width": 1080,
+		"height": 1080
 	},
 	"exportSettings": {
 		"quality": "1080p"
@@ -978,11 +990,11 @@
 	"teamId": "61c939e514526b130d183dc0",
 	"themeId": "599ec30b27855975ab36a1b9",
 	"timestamp": {
-		"$date": "2024-01-29T08:38:00.740Z"
+		"$date": "2024-01-30T09:14:55.913Z"
 	},
 	"title": "Variant 1_0",
 	"updatedAt": {
-		"$date": "2024-01-29T08:38:01.193Z"
+		"$date": "2024-01-30T09:14:56.997Z"
 	},
 	"videoBackground": "",
 	"videoBackgroundExtraClasses": "",
