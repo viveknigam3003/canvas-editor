@@ -36,8 +36,12 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		errors.general.push(`Unknown element type found ${option.elementType}, skipping the element ${option.id}`);
 	};
 
-	const getPositionFromModifyLength = (modifyLength: any, sizeKey: string): { top: number; left: number } => {
+	const getPositionFromModifyLength = (option: any, sizeKey: string): { top: number; left: number } => {
+		const overrides = option.overrides[sizeKey];
 		const [width, height] = sizeKey.split('x');
+
+		// First check in overrides if there is a modifyLength property, if not then check directly in option
+		const modifyLength = overrides.modifyLength ?? option.modifyLength;
 
 		// Since modify length is in percentage, we need to convert it to pixels
 		const top = Math.round((Math.round(modifyLength.headingTop) * parseInt(height, 10)) / 100);
@@ -45,8 +49,12 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return { top, left };
 	};
 
-	const getDimensionsFromModifyLength = (modifyLength: any, sizeKey: string): { width: number; height: number } => {
+	const getDimensionsFromModifyLength = (option: any, sizeKey: string): { width: number; height: number } => {
+		const overrides = option.overrides[sizeKey];
 		const [boardWidth, boardHeight] = sizeKey.split('x');
+
+		// First check in overrides if there is a modifyLength property, if not then check directly in option
+		const modifyLength = overrides.modifyLength ?? option.modifyLength;
 
 		// Modify length is in % we need to convert it to pixels
 		const top = Math.round((Math.round(modifyLength.headingTop) * parseInt(boardHeight, 10)) / 100);
@@ -61,7 +69,13 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return { width, height };
 	};
 
-	const getElementPadding = (padding: any): number => {
+	const getElementPadding = (option: any, sizeKey: string): number => {
+		const overrides = option.overrides[sizeKey];
+		const padding = overrides.padding ?? option.styles.padding;
+
+		// If padding is not present, then return 0
+		if (!padding) return 0;
+
 		const { all, top, right, bottom, left } = padding;
 		// If top,right,bottom,left, and all are equal, then return the value of all
 		if (all === top && all === right && all === bottom && all === left) return Math.round(all);
@@ -149,23 +163,111 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return null;
 	};
 
+	const getTextColor = (option: any, sizeKey: string): string => {
+		const overrideTextColor = option.overrides[sizeKey].textColor;
+		const stylesTextColor = option.styles.textColor;
+		const textColor = option.textColor;
+
+		const checkColor = (color: any) => {
+			if (typeof color === 'object' && color.type === 'solid-color') {
+				return color.color;
+			}
+			if (typeof color === 'string') {
+				return color;
+			}
+			if (typeof color === 'object') {
+				errors[sizeKey].push(`Gradient text color is not supported in Editor v2. Setting text color to black`);
+				return '#000';
+			}
+		};
+
+		return checkColor(overrideTextColor) || stylesTextColor || checkColor(textColor) || '#000';
+	};
+
+	const getHorizontalTextAlign = (option: any, sizeKey: string) => {
+		const overrideTextAlign = option.overrides[sizeKey].textAlignment;
+		const stylesTextAlign = option.styles.textAlignment;
+
+		if (overrideTextAlign) {
+			return overrideTextAlign;
+		}
+
+		if (stylesTextAlign) {
+			return stylesTextAlign;
+		}
+
+		errors[sizeKey].push(`No text alignment found for element ${option.id}, setting it to center`);
+		return 'center';
+	};
+
+	const getLineHeight = (option: any, sizeKey: string) => {
+		const overrideLineHeight = option.overrides[sizeKey].lineHeight;
+		const stylesLineHeight = option.styles.lineHeight;
+
+		if (overrideLineHeight) {
+			return Number(overrideLineHeight);
+		}
+
+		if (stylesLineHeight) {
+			return Number(stylesLineHeight);
+		}
+
+		errors[sizeKey].push(`No line height found for element ${option.id}, setting it to 1`);
+		return 1;
+	};
+
+	const getTextShadow = (option: any, sizeKey: string) => {
+		const [width, height] = sizeKey.split('x');
+		const overrideTextShadow = option.overrides[sizeKey].textShadow;
+		const textShadow = option.textShadow;
+		const stylesTextShadow = option.styles.textShadow;
+
+		console.log('textshadow called', overrideTextShadow, textShadow, stylesTextShadow);
+		const shadows = [overrideTextShadow, textShadow, stylesTextShadow];
+
+		const getFabricShadowWithShadowObject = (shadow: any) => {
+			return new fabric.Shadow({
+				color: `rgba(${shadow.color.r}, ${shadow.color.g}, ${shadow.color.b}, ${(
+					shadow.color.a as number
+				).toFixed(2)})`,
+				blur: shadow.blur,
+				offsetX: (shadow.hShadow * Number(width)) / 100, // Due to some logic we've written in rocketium_main
+				offsetY: (shadow.vShadow * Number(height)) / 100, // Due to some logic we've written in rocketium_main
+			});
+		};
+
+		for (const shadow of shadows) {
+			if (typeof shadow === 'string' && shadow === 'none') {
+				console.log('none shadow');
+				return null;
+			} else if (typeof shadow === 'object') {
+				const fabricShadow = getFabricShadowWithShadowObject(shadow);
+				console.log('fabricShadow', fabricShadow);
+				return fabricShadow;
+			}
+		}
+
+		errors[sizeKey].push(`No text shadow found for element ${option.id}, setting it to null`);
+		return null;
+	};
+
 	const getFabricText = (option: any, sizeKey: string): fabric.Text => {
 		const overrides = option.overrides[sizeKey];
-		const { top, left } = getPositionFromModifyLength(overrides.modifyLength, sizeKey);
-		const { width, height } = getDimensionsFromModifyLength(overrides.modifyLength, sizeKey);
+		const { top, left } = getPositionFromModifyLength(option, sizeKey);
+		const { width, height } = getDimensionsFromModifyLength(option, sizeKey);
 		const angle = getElementAngle(overrides.modifyLength);
-		const padding = getElementPadding(overrides.padding);
+		const padding = getElementPadding(option, sizeKey);
 		const text = option.text;
 		const data = {
 			id: option.id,
 			charCount: option.charCount,
 			ignoreSnapping: false,
 		};
-		const fontFamily = option.overrides[sizeKey].font;
-		const fill = option.styles.textColor;
-		const textAlign = option.styles.textAlignment;
+		const fontFamily = overrides.font ?? option.styles.font;
+		const fill = getTextColor(option, sizeKey);
+		const textAlign = getHorizontalTextAlign(option, sizeKey);
 		const fontSize = option.customFontSize;
-		const lineHeight = Number(option.styles.lineSpacing);
+		const lineHeight = getLineHeight(option, sizeKey);
 
 		const properties: BoxProperties = {
 			top,
@@ -185,6 +287,12 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			height,
 		});
 
+		const textShadow = getTextShadow(option, sizeKey);
+
+		if (textShadow) {
+			textElement.set('shadow', textShadow);
+		}
+
 		const backgroundColor = getBackgroundColor(option, sizeKey);
 		const backgroundGradient = getBackgroundGradient(option, sizeKey);
 
@@ -202,6 +310,14 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			const type = getElementType(option);
 			if (type === 'text') {
 				return getFabricText(option, sizeKey);
+			}
+			if (type === 'image') {
+				errors[sizeKey].push(`Image element is not supported in Editor v2. Skipping element ${option.id}`);
+				return null;
+			}
+			if (type === 'path') {
+				errors[sizeKey].push(`Shape element is not supported in Editor v2. Skipping element ${option.id}`);
+				return null;
 			}
 		});
 
@@ -226,6 +342,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 	};
 
 	const creatives = transformCards(capsuleData.cards);
+	// console.log('Keys', getUniqueKeys(capsuleData.cards[0].options));
 	return {
 		data: {
 			_id: capsuleData._id.$oid,
@@ -245,3 +362,27 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 };
 
 export default transformVariation;
+
+export const getKeys = (obj: any, prefix: string = ''): string[] => {
+	let keys: string[] = [];
+	for (const key in obj) {
+		// Check if the property is an own property and not inherited
+		if (Object.prototype.hasOwnProperty.call(obj, key)) {
+			const newKey = prefix ? `${prefix}.${key}` : key;
+
+			if (typeof obj[key] === 'object' && obj[key] !== null) {
+				// If the property is an object, recursively get keys
+				keys = keys.concat(getKeys(obj[key], newKey));
+			} else {
+				// Otherwise, add the key to the array
+				keys.push(newKey);
+			}
+		}
+	}
+	return keys;
+};
+
+export const getUniqueKeys = (arrayOfObjects: any[]): string[] => {
+	const allKeys = arrayOfObjects.flatMap(obj => getKeys(obj));
+	return Array.from(new Set(allKeys));
+};

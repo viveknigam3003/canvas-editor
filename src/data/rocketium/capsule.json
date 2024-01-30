@@ -228,10 +228,10 @@
 								"bottom": 0.9259259259259257
 							},
 							"modifyLength": {
-								"headingTop": 32.476331655443666,
-								"headingBottom": 60.39403601357752,
-								"headingLeft": 40.32477847217588,
-								"headingRight": 43.749289567715586,
+								"headingTop": 28.281472149948854,
+								"headingBottom": 61.73205586600222,
+								"headingLeft": 42.48986724920546,
+								"headingRight": 35.31797278624137,
 								"rotateAngle": 0
 							},
 							"breakParentGroup": true,
@@ -336,7 +336,10 @@
 					"highlightColor": "none",
 					"fontStyle": "custom",
 					"customElementId": "61c939e814526b130d184189",
-					"isText": true
+					"isText": true,
+					"templateRules": {
+						"helpText": "Text abc"
+					}
 				},
 				{
 					"id": "28489441-aca5-4f33-04b9-6714311e1f71",
@@ -497,7 +500,10 @@
 					"highlightColor": "none",
 					"fontStyle": "custom",
 					"customElementId": "61c939e814526b130d184189",
-					"isText": true
+					"isText": true,
+					"templateRules": {
+						"helpText": "Text 123"
+					}
 				},
 				{
 					"id": "a72a3d0c-6d6e-414a-1317-d0b9805330b9",
@@ -698,7 +704,7 @@
 					"charCount": 0,
 					"textColor": "#32A3DD",
 					"templateRules": {
-						"helpText": "Media"
+						"helpText": "Media abcdefg"
 					},
 					"helpText": "Media",
 					"overrides": {
@@ -924,10 +930,10 @@
 	"createdUsingStylingPanel": true,
 	"customDimensions": {
 		"_id": {
-			"$oid": "65b660bd9f8bc600087fec34"
+			"$oid": "65b763e9529bbd000855e924"
 		},
-		"width": 1080,
-		"height": 1080
+		"width": 1200,
+		"height": 628
 	},
 	"exportSettings": {
 		"quality": "1080p"
@@ -972,11 +978,11 @@
 	"teamId": "61c939e514526b130d183dc0",
 	"themeId": "599ec30b27855975ab36a1b9",
 	"timestamp": {
-		"$date": "2024-01-28T14:12:13.296Z"
+		"$date": "2024-01-29T08:38:00.740Z"
 	},
 	"title": "Variant 1_0",
 	"updatedAt": {
-		"$date": "2024-01-28T14:12:13.549Z"
+		"$date": "2024-01-29T08:38:01.193Z"
 	},
 	"videoBackground": "",
 	"videoBackgroundExtraClasses": "",
