@@ -103,25 +103,25 @@ export const keysInOption = [
 	'highlightColor',
 	'fontStyle',
 	'customElementId',
-	'isText',
+	'isText', // not needed i guess
 	'styles.layerIndex',
 	'textColor.type', //done
 	'textColor.color', //done
 	'overrides.1080x1080.layerIndex',
-	'overrides.1080x1080.textRotation',
+	'overrides.1080x1080.textRotation', //done
 	'overrides.1080x1080.fontStyle',
 	'overrides.1080x1080.customFontSize',
 	'overrides.1080x1080.textColor.type', //done
 	'overrides.1080x1080.textColor.color', //done
-	'overrides.1200x628.layerIndex',
-	'overrides.1200x628.textRotation',
-	'overrides.1200x628.customFontSize',
-	'overrides.1080x1080.capitalization',
-	'overrides.1080x1080.textDecoration',
-	'overrides.1080x1080.borderStyle.width',
-	'overrides.1080x1080.borderStyle.style',
-	'overrides.1080x1080.borderStyle.color',
-	'overrides.1080x1080.borderRadius.all',
+	'overrides.1200x628.layerIndex', //done
+	'overrides.1200x628.textRotation', //done
+	'overrides.1200x628.customFontSize', // will need to figure out from auto fit
+	'overrides.1080x1080.capitalization', //done
+	'overrides.1080x1080.textDecoration', //done
+	'overrides.1080x1080.borderStyle.width', //done
+	'overrides.1080x1080.borderStyle.style', // done for solid only, need to check for others
+	'overrides.1080x1080.borderStyle.color', // done
+	'overrides.1080x1080.borderRadius.all', //done
 	'overrides.1080x1080.borderRadius.topLeft',
 	'overrides.1080x1080.borderRadius.topRight',
 	'overrides.1080x1080.borderRadius.bottomLeft',
@@ -133,7 +133,7 @@ export const keysInOption = [
 	'overrides.1080x1080.textShadow.blur', //done
 	'overrides.1080x1080.textShadow.vShadow', //done
 	'overrides.1080x1080.textShadow.hShadow', //done
-	'overrides.1080x1080.backgroundColor.color',
+	'overrides.1080x1080.backgroundColor.color', //done
 	'overrides.1200x628.capitalization',
 	'overrides.1200x628.textDecoration',
 	'overrides.1200x628.borderStyle.width',
@@ -151,7 +151,7 @@ export const keysInOption = [
 	'overrides.1200x628.textShadow.blur', //done
 	'overrides.1200x628.textShadow.vShadow', //done
 	'overrides.1200x628.textShadow.hShadow', //done
-	'overrides.1200x628.backgroundColor.color',
+	'overrides.1200x628.backgroundColor.color', //done
 	'backgroundColor.color',
 	'elementType',
 	'subType',
