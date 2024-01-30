@@ -211,12 +211,8 @@ const Animation: React.FC<AnimationProps> = ({ currentSelectedElements, saveArtb
 		if (!artboard) {
 			throw new Error('Artboard not found');
 		}
-		const artboardLeftAdjustment = artboard.left;
-		const artboardTopAdjustment = artboard.top;
-
-		if (!artboardLeftAdjustment || !artboardTopAdjustment) {
-			return;
-		}
+		const artboardLeftAdjustment = artboard.left!;
+		const artboardTopAdjustment = artboard.top!;
 
 		const width = artboard.width!;
 		const height = artboard.height!;
