@@ -6,6 +6,7 @@ export interface BoxProperties extends ITextboxOptions {
 	boxBorderStyle?: string;
 	boxBorderWidth?: number;
 	boxBackgroundFill?: string | Gradient;
+	textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
 declare module 'fabric' {
@@ -15,6 +16,7 @@ declare module 'fabric' {
 			boxBorderStyle?: string;
 			boxBorderWidth?: number;
 			boxBackgroundFill: string | Gradient;
+			textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 		}
 	}
 }
@@ -24,6 +26,7 @@ fabric.Textbox.prototype.boxBorderColor = 'transparent';
 fabric.Textbox.prototype.boxBorderStyle = 'solid';
 fabric.Textbox.prototype.boxBorderWidth = 0;
 fabric.Textbox.prototype.boxBackgroundFill = 'transparent';
+fabric.Textbox.prototype.textTransform = 'none';
 
 /**
  * Override the toObject method to include our custom properties
@@ -41,6 +44,19 @@ fabric.Textbox.prototype.toObject = (function (toObject) {
 	};
 })(fabric.Textbox.prototype.toObject);
 
+const getTransformedText = (text: string, textTransform: 'none' | 'uppercase' | 'lowercase' | 'capitalize') => {
+	switch (textTransform) {
+		case 'uppercase':
+			return text.toUpperCase();
+		case 'lowercase':
+			return text.toLowerCase();
+		case 'capitalize':
+			return text.replace(/\b\w/g, l => l.toUpperCase());
+		default:
+			return text;
+	}
+};
+
 /**
  * Override the _render method to draw the border
  */
@@ -50,7 +66,6 @@ fabric.Textbox.prototype._render = (function (_render) {
 		const boxBorderColor = this.boxBorderColor || '';
 		const boxBorderWidth = this.boxBorderWidth || 0;
 		const boxBorderStyle = this.boxBorderStyle || 'solid';
-		// const boxBackgroundFill = this.boxBackgroundFill || '';
 
 		if (boxBorderWidth > 0 && boxBorderColor) {
 			// Save the current context state
@@ -81,27 +96,11 @@ fabric.Textbox.prototype._render = (function (_render) {
 			ctx.restore();
 		}
 
-		// if (boxBackgroundFill instanceof fabric.Gradient) {
-		// 	// Update the gradient to match the current size and position of the textbox
-		// 	const scaleX = this.scaleX || 1;
-		// 	const scaleY = this.scaleY || 1;
-		// 	const width = this.width! * scaleX;
-		// 	const height = this.height! * scaleY;
-
-		// 	boxBackgroundFill.coords = {
-		// 		x1: -width / 2,
-		// 		y1: -height / 2,
-		// 		x2: width / 2,
-		// 		y2: -height / 2,
-		// 	};
-
-		// 	// Apply the gradient to the context
-		// 	ctx.save();
-		// 	ctx.translate(-this.width! / 2, -this.height! / 2);
-		// 	ctx.fillStyle = boxBackgroundFill.toLive(ctx);
-		// 	ctx.fillRect(0, 0, width, height);
-		// 	ctx.restore();
-		// }
+		if (this.textTransform !== 'none') {
+			if (this.text !== undefined && this.textTransform !== undefined) {
+				this.text = getTransformedText(this.text, this.textTransform);
+			}
+		}
 
 		// Call the original _render method
 		_render.call(this, ctx);

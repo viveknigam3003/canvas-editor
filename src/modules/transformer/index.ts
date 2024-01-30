@@ -231,8 +231,8 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 					shadow.color.a as number
 				).toFixed(2)})`,
 				blur: shadow.blur,
-				offsetX: (shadow.hShadow * Number(width)) / 100, // Due to some logic we've written in rocketium_main
-				offsetY: (shadow.vShadow * Number(height)) / 100, // Due to some logic we've written in rocketium_main
+				offsetX: (shadow.hShadow / 1000) * Number(width), // Due to some logic we've written in rocketium_main
+				offsetY: (shadow.vShadow / 1000) * Number(height), // Due to some logic we've written in rocketium_main
 			});
 		};
 
@@ -251,6 +251,91 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return null;
 	};
 
+	const getTextTransform = (option: any, sizeKey: string) => {
+		const overridesTextTransform = option.overrides[sizeKey].capitalization;
+
+		if (overridesTextTransform) {
+			switch (overridesTextTransform) {
+				case 1: {
+					return 'uppercase';
+				}
+				case 2: {
+					return 'lowercase';
+				}
+				case 3: {
+					return 'capitalize';
+				}
+				default: {
+					return 'none';
+				}
+			}
+		}
+
+		return 'none';
+	};
+
+	const isLineThrough = (option: any, sizeKey: string) => {
+		const textDecoration = option.overrides[sizeKey].textDecoration;
+		if (textDecoration === 'line-through') {
+			return true;
+		}
+		return false;
+	};
+
+	const isOverline = (option: any, sizeKey: string) => {
+		const textDecoration = option.overrides[sizeKey].textDecoration;
+		if (textDecoration === 'overline') {
+			return true;
+		}
+		return false;
+	};
+
+	const isUnderline = (option: any, sizeKey: string) => {
+		const textDecoration = option.overrides[sizeKey].textDecoration;
+		if (textDecoration === 'underline') {
+			return true;
+		}
+		return false;
+	};
+
+	const getBoxBorder = (option: any, sizeKey: string) => {
+		const [width, height] = sizeKey.split('x');
+		const overrides = option.overrides[sizeKey];
+
+		const boxBorder = {
+			width: 0,
+			color: '',
+			style: 'solid',
+			radius: 0,
+		};
+
+		const borderStyle = overrides.borderStyle;
+		const borderRadius = overrides.borderRadius;
+
+		if (!borderStyle) {
+			return null;
+		}
+
+		boxBorder.width = Math.round((borderStyle.width / 1000) * Math.min(Number(width), Number(height)));
+		boxBorder.color = borderStyle.color;
+		boxBorder.style = borderStyle.style;
+
+		if (boxBorder.style === 'dashed' || borderStyle.style === 'dotted') {
+			errors[sizeKey].push(
+				`Dashed and dotted border styles are not supported in Editor v2, setting border style to solid`,
+			);
+			boxBorder.style = 'solid';
+		}
+
+		const { all, top, right, bottom, left } = borderRadius;
+		if (all !== top || all !== right || all !== bottom || all !== left) {
+			errors[sizeKey].push(`Unequal border radius is not supported in Editor v2, setting border radius to 0`);
+		}
+
+		boxBorder.radius = Math.round((all / 100) * Math.min(Number(width), Number(height)));
+		return boxBorder;
+	};
+
 	const getFabricText = (option: any, sizeKey: string): fabric.Text => {
 		const overrides = option.overrides[sizeKey];
 		const { top, left } = getPositionFromModifyLength(option, sizeKey);
@@ -262,6 +347,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			id: option.id,
 			charCount: option.charCount,
 			ignoreSnapping: false,
+			displayText: option.text,
 		};
 		const fontFamily = overrides.font ?? option.styles.font;
 		const fill = getTextColor(option, sizeKey);
@@ -300,6 +386,36 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			textElement.set('boxBackgroundFill', backgroundGradient);
 		} else {
 			textElement.set('backgroundColor', backgroundColor);
+		}
+
+		const textTransform = getTextTransform(option, sizeKey);
+
+		if (textTransform) {
+			textElement.set('textTransform', textTransform);
+		}
+
+		const lineThrough = isLineThrough(option, sizeKey);
+		const overline = isOverline(option, sizeKey);
+		const underline = isUnderline(option, sizeKey);
+
+		if (lineThrough) {
+			textElement.set('linethrough', lineThrough);
+		}
+
+		if (overline) {
+			textElement.set('overline', overline);
+		}
+
+		if (underline) {
+			textElement.set('underline', underline);
+		}
+
+		const boxBorder = getBoxBorder(option, sizeKey);
+
+		if (boxBorder) {
+			textElement.set('boxBorderWidth', boxBorder.width);
+			textElement.set('boxBorderColor', boxBorder.color);
+			textElement.set('boxBorderStyle', boxBorder.style);
 		}
 
 		return textElement;
