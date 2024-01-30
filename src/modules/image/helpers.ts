@@ -39,14 +39,10 @@ export const getScaledPosition = (artboard: fabric.Rect): { left: number; top: n
 		throw new Error('Artboard not found');
 	}
 
-	const left = artboard.left;
-	const top = artboard.top;
-	const width = artboard.width;
-	const height = artboard.height;
-
-	if (left === undefined || top === undefined || width === undefined || height === undefined) {
-		throw new Error('Artboard dimensions not found');
-	}
+	const left = artboard.left!;
+	const top = artboard.top!;
+	const width = artboard.width!;
+	const height = artboard.height!;
 
 	// calculate the center of the artboard
 	const centerX = left + width / 2;

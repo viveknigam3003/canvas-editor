@@ -23,71 +23,68 @@ export const alignElementToRect = (
 	canvas: fabric.Canvas,
 ) => {
 	const targetRect = getArtboardObject(canvas, activeArtboardId);
-
+	const targetLeft = targetRect.left!;
+	const targetTop = targetRect.top!;
+	const targetWidth = targetRect.width!;
+	const targetHeight = targetRect.height!;
 	switch (position) {
 		case 'left':
 			currentSelectedElements.forEach(element => {
-				if (!targetRect.left || !element.left) throw new Error('Invalid target rect in left align');
+				const elementLeft = element.left!;
+				const { left: elementExtremeLeft } = getExtremePoints(element);
 				element.set({
-					left: targetRect.left + (element.left - getExtremePoints(element).left),
+					left: targetLeft + (elementLeft - elementExtremeLeft),
 				});
 			});
 			break;
 		case 'center':
 			currentSelectedElements.forEach(element => {
-				if (!targetRect.left || !element.left || !targetRect.width)
-					throw new Error('Invalid target rect in center align');
-				const artboardCenter = targetRect.left + (targetRect.width + targetRect.left - targetRect.left) / 2;
-				const elementCenter =
-					getExtremePoints(element).left +
-					(getExtremePoints(element).right - getExtremePoints(element).left) / 2;
+				const elementLeft = element.left!;
+				const artboardCenter = targetLeft + (targetWidth + targetLeft - targetLeft) / 2;
+				const { left: elementExtremeLeft, right: elementExtremeRight } = getExtremePoints(element);
+				const elementCenter = elementExtremeLeft + (elementExtremeRight - elementExtremeLeft) / 2;
 				element.set({
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					//@ts-ignore
-					left: element.left + (artboardCenter - elementCenter),
+					left: elementLeft + (artboardCenter - elementCenter),
 				});
 			});
 
 			break;
 		case 'right':
 			currentSelectedElements.forEach(element => {
+				const elementLeft = element.left!;
+				const { right: elementExtremeRight } = getExtremePoints(element);
+
 				element.set({
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					//@ts-ignore
-					left: element.left + (targetRect.left + targetRect.width) - getExtremePoints(element).right,
+					left: elementLeft + (targetLeft + targetWidth) - elementExtremeRight,
 				});
 			});
 			break;
 		case 'top':
 			currentSelectedElements.forEach(element => {
-				if (!targetRect.top || !element.top || !targetRect.width)
-					throw new Error('Invalid target rect in top align');
+				const elementTop = element.top!;
+				const { top: elementExtremeTop } = getExtremePoints(element);
 				element.set({
-					top: targetRect.top + (element.top - getExtremePoints(element).top),
+					top: targetTop + (elementTop - elementExtremeTop),
 				});
 			});
 			break;
 		case 'middle':
 			currentSelectedElements.forEach(element => {
-				if (!targetRect.top || !element.top || !targetRect.height)
-					throw new Error('Invalid target rect in middle align');
-				const artboardCenter = targetRect.top + (targetRect.height + targetRect.top - targetRect.top) / 2;
-				const elementCenter =
-					getExtremePoints(element).top +
-					(getExtremePoints(element).bottom - getExtremePoints(element).top) / 2;
+				const elementTop = element.top!;
+				const artboardCenter = targetTop + (targetHeight + targetTop - targetTop) / 2;
+				const { top: elementExtremeTop, bottom: elementExtremeBottom } = getExtremePoints(element);
+				const elementCenter = elementExtremeTop + (elementExtremeBottom - elementExtremeTop) / 2;
 				element.set({
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					//@ts-ignore
-					top: element.top + (artboardCenter - elementCenter),
+					top: elementTop + (artboardCenter - elementCenter),
 				});
 			});
 			break;
 		case 'bottom':
 			currentSelectedElements.forEach(element => {
+				const elementTop = element.top!;
+				const { bottom: elementExtremeBottom } = getExtremePoints(element);
 				element.set({
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					//@ts-ignore
-					top: element.top + (targetRect.top + targetRect.height) - getExtremePoints(element).bottom,
+					top: elementTop + (targetTop + targetHeight) - elementExtremeBottom,
 				});
 			});
 			break;

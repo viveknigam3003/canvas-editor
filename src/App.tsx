@@ -430,10 +430,6 @@ function App() {
 		const artboardPosition = getArtboardPosition(canvasRef.current, activeArtboardId);
 		const artboardLeftAdjustment = artboardPosition.left;
 		const artboardTopAdjustment = artboardPosition.top;
-
-		if (artboardLeftAdjustment === undefined || artboardTopAdjustment === undefined) {
-			return;
-		}
 		const artboardDimensions = getArtboardDimensions(canvasRef.current, activeArtboardId);
 		// Now we need to create a new canvas and add the artboard to it
 		const offscreenCanvas = new fabric.Canvas('print', {

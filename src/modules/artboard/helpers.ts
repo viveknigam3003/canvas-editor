@@ -20,14 +20,8 @@ export const getArtboardDimensions = (
 	artboardId: string,
 ): { width: number; height: number } => {
 	const artboard = getArtboardObject(canvas, artboardId);
-
-	const width = artboard.width;
-	const height = artboard.height;
-
-	if (width === undefined || height === undefined) {
-		throw new Error('Artboard dimensions not found');
-	}
-
+	const width = artboard.width!;
+	const height = artboard.height!;
 	return {
 		width,
 		height,
@@ -39,14 +33,8 @@ export const getArtboardPosition = (
 	artboardId: string,
 ): { left: number; top: number } => {
 	const artboard = getArtboardObject(canvas, artboardId);
-
-	const left = artboard.left;
-	const top = artboard.top;
-
-	if (left === undefined || top === undefined || left === null || top === null) {
-		throw new Error('Artboard position not found');
-	}
-
+	const left = artboard.left!;
+	const top = artboard.top!;
 	return {
 		left,
 		top,
