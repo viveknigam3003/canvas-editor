@@ -23,7 +23,6 @@ const ShapePanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 				<ColorInput
 					value={selectedFontColor}
 					onChange={e => {
-						console.log('first', currentSelectedElements);
 						currentSelectedElements?.[0].set('fill', e);
 						currentSelectedElements?.[0].set('stroke', e);
 						setSelectedFontColor(e as string);
