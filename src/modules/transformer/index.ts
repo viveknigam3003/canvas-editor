@@ -70,6 +70,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 	};
 
 	const getElementPadding = (option: any, sizeKey: string): number => {
+		const [width, height] = sizeKey.split('x');
 		const overrides = option.overrides[sizeKey];
 		const padding = overrides.padding ?? option.styles.padding;
 
@@ -78,7 +79,8 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 
 		const { all, top, right, bottom, left } = padding;
 		// If top,right,bottom,left, and all are equal, then return the value of all
-		if (all === top && all === right && all === bottom && all === left) return Math.round(all);
+		if (all === top && all === right && all === bottom && all === left)
+			return Math.round((all / 100) * Math.min(Number(width), Number(height)));
 		// If all is not equal to top,right,bottom,left, then return 0
 		errors.general.push('Unequal padding is not supported in Editor v2, setting padding to 0');
 		return 0;
@@ -109,43 +111,6 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		errors[sizeKey].push(`No background color found for element ${option.id}, setting it to white (#fff)`);
 		return '#fff';
 	};
-
-	// function convertToFabricGradient(
-	// 	gradientData: {
-	// 		colorStops: Array<{ r: number; g: number; b: number; a: number; left: number }>;
-	// 		angle: number;
-	// 	},
-	// 	width: number,
-	// 	height: number,
-	// 	rotationAngle: number,
-	// ) {
-	// 	const colorStops = gradientData.colorStops.map(stop => ({
-	// 		offset: stop.left / 100, // Normalize the position to a 0-1 range
-	// 		color: `rgba(${stop.r}, ${stop.g}, ${stop.b}, ${stop.a})`,
-	// 	}));
-
-	// 	// Calculate the start and end points of the gradient line
-	// 	// Convert angle to radians and adjust for rotationAngle
-	// 	const angleRad = ((gradientData.angle - rotationAngle) * Math.PI) / 180;
-	// 	const cosAngle = Math.cos(angleRad);
-	// 	const sinAngle = Math.sin(angleRad);
-
-	// 	// Assuming gradient line goes through the center of the box
-	// 	const xCenter = width / 2;
-	// 	const yCenter = height / 2;
-	// 	const length = Math.max(width, height); // Length of gradient line, to ensure it covers the entire box
-
-	// 	const x1 = xCenter - (length * cosAngle) / 2;
-	// 	const y1 = yCenter - (length * sinAngle) / 2;
-	// 	const x2 = xCenter + (length * cosAngle) / 2;
-	// 	const y2 = yCenter + (length * sinAngle) / 2;
-
-	// 	return new fabric.Gradient({
-	// 		type: 'linear',
-	// 		coords: { x1, y1, x2, y2 },
-	// 		colorStops,
-	// 	});
-	// }
 
 	const getBackgroundGradient = (option: any, sizeKey: string): fabric.Gradient | null => {
 		const overrideBackgroundColor = option.overrides[sizeKey].backgroundColor;
@@ -238,11 +203,9 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 
 		for (const shadow of shadows) {
 			if (typeof shadow === 'string' && shadow === 'none') {
-				console.log('none shadow');
 				return null;
 			} else if (typeof shadow === 'object') {
 				const fabricShadow = getFabricShadowWithShadowObject(shadow);
-				console.log('fabricShadow', fabricShadow);
 				return fabricShadow;
 			}
 		}
@@ -328,12 +291,29 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		}
 
 		const { all, top, right, bottom, left } = borderRadius;
-		if (all !== top || all !== right || all !== bottom || all !== left) {
-			errors[sizeKey].push(`Unequal border radius is not supported in Editor v2, setting border radius to 0`);
+		if (all > 0 || top > 0 || right > 0 || bottom > 0 || left > 0) {
+			errors[sizeKey].push(`Border radius is not supported in Editor v2, setting border radius to 0`);
 		}
 
-		boxBorder.radius = Math.round((all / 100) * Math.min(Number(width), Number(height)));
 		return boxBorder;
+	};
+
+	const getFontSize = (option: any, sizeKey: string) => {
+		const [width, height] = sizeKey.split('x');
+		const overrides = option.overrides[sizeKey];
+
+		if (overrides.customFontSize) {
+			return Math.round((overrides.customFontSize / 100) * Math.min(Number(width), Number(height)));
+		}
+
+		// Check the height and width of the element
+		errors[sizeKey].push(`No font size found for element ${option.id}, setting it proportionally to the element`);
+		const { width: w, height: h } = getDimensionsFromModifyLength(option, sizeKey);
+		// Set the font size in proportion to the height and width of the element with respect to the height and width of the board
+		const percentageWidth = (w / Number(width)) * 100;
+		const percentageHeight = (h / Number(height)) * 100;
+
+		return Math.round(Math.max(percentageWidth, percentageHeight));
 	};
 
 	const getFabricText = (option: any, sizeKey: string): fabric.Text => {
@@ -347,12 +327,12 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			id: option.id,
 			charCount: option.charCount,
 			ignoreSnapping: false,
-			displayText: option.text,
+			displayText: option.templateRules?.helpText ?? option.text,
 		};
 		const fontFamily = overrides.font ?? option.styles.font;
 		const fill = getTextColor(option, sizeKey);
 		const textAlign = getHorizontalTextAlign(option, sizeKey);
-		const fontSize = option.customFontSize;
+		const fontSize = getFontSize(option, sizeKey);
 		const lineHeight = getLineHeight(option, sizeKey);
 
 		const properties: BoxProperties = {

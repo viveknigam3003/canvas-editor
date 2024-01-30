@@ -23,7 +23,7 @@ export const keysInOption = [
 	'styles.padding.right', //done
 	'styles.padding.top', //done
 	'styles.padding.bottom', //done
-	'styles.background',
+	'styles.background', // done
 	'styles.animation.fourth-out',
 	'styles.animation.fourth',
 	'styles.animation.third-out',
@@ -43,73 +43,73 @@ export const keysInOption = [
 	'overrides.1080x1080.modifyLength.headingRight', //done
 	'overrides.1080x1080.modifyLength.rotateAngle', //done
 	'overrides.1080x1080.breakParentGroup',
-	'overrides.1080x1080.font',
-	'overrides.1080x1080.backgroundColor.type',
-	'overrides.1080x1080.backgroundColor.colorStops.0.r',
-	'overrides.1080x1080.backgroundColor.colorStops.0.g',
-	'overrides.1080x1080.backgroundColor.colorStops.0.b',
-	'overrides.1080x1080.backgroundColor.colorStops.0.a',
-	'overrides.1080x1080.backgroundColor.colorStops.0.left',
-	'overrides.1080x1080.backgroundColor.colorStops.1.r',
-	'overrides.1080x1080.backgroundColor.colorStops.1.g',
-	'overrides.1080x1080.backgroundColor.colorStops.1.b',
-	'overrides.1080x1080.backgroundColor.colorStops.1.a',
-	'overrides.1080x1080.backgroundColor.colorStops.1.left',
-	'overrides.1080x1080.backgroundColor.angle',
-	'overrides.1200x628.padding.all',
-	'overrides.1200x628.padding.left',
-	'overrides.1200x628.padding.right',
-	'overrides.1200x628.padding.top',
-	'overrides.1200x628.padding.bottom',
+	'overrides.1080x1080.font', //done
+	'overrides.1080x1080.backgroundColor.type', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.0.r', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.0.g', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.0.b', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.0.a', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.0.left', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.1.r', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.1.g', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.1.b', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.1.a', // not implemented
+	'overrides.1080x1080.backgroundColor.colorStops.1.left', // not implemented
+	'overrides.1080x1080.backgroundColor.angle', // not implemented
+	'overrides.1200x628.padding.all', //done
+	'overrides.1200x628.padding.left', //done
+	'overrides.1200x628.padding.right', //done
+	'overrides.1200x628.padding.top', //done
+	'overrides.1200x628.padding.bottom', //done
 	'overrides.1200x628.modifyLength.headingTop', //done
 	'overrides.1200x628.modifyLength.headingBottom', //done
 	'overrides.1200x628.modifyLength.headingLeft', //done
 	'overrides.1200x628.modifyLength.headingRight', //done
 	'overrides.1200x628.modifyLength.rotateAngle', //done
 	'overrides.1200x628.breakParentGroup',
-	'overrides.1200x628.font',
+	'overrides.1200x628.font', //done
 	'overrides.1200x628.backgroundColor.type',
-	'overrides.1200x628.backgroundColor.colorStops.0.r',
-	'overrides.1200x628.backgroundColor.colorStops.0.g',
-	'overrides.1200x628.backgroundColor.colorStops.0.b',
-	'overrides.1200x628.backgroundColor.colorStops.0.a',
-	'overrides.1200x628.backgroundColor.colorStops.0.left',
-	'overrides.1200x628.backgroundColor.colorStops.1.r',
-	'overrides.1200x628.backgroundColor.colorStops.1.g',
-	'overrides.1200x628.backgroundColor.colorStops.1.b',
-	'overrides.1200x628.backgroundColor.colorStops.1.a',
-	'overrides.1200x628.backgroundColor.colorStops.1.left',
-	'overrides.1200x628.backgroundColor.angle',
-	'overrides.1200x628.fontStyle',
-	'overrides.1200x628.textAlignment',
-	'overrides.1200x628.textAlignmentVertical',
-	'overrides.1200x628.lineSpacing',
+	'overrides.1200x628.backgroundColor.colorStops.0.r', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.0.g', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.0.b', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.0.a', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.0.left', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.1.r', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.1.g', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.1.b', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.1.a', // not implemented
+	'overrides.1200x628.backgroundColor.colorStops.1.left', // not implemented
+	'overrides.1200x628.backgroundColor.angle', // not implemented
+	'overrides.1200x628.fontStyle', //not needed
+	'overrides.1200x628.textAlignment', //done
+	'overrides.1200x628.textAlignmentVertical', // not implemented
+	'overrides.1200x628.lineSpacing', //done
 	'customFontSize',
-	'textVideoEffect',
-	'backgroundColor.type',
-	'backgroundColor.colorStops.0.r',
-	'backgroundColor.colorStops.0.g',
-	'backgroundColor.colorStops.0.b',
-	'backgroundColor.colorStops.0.a',
-	'backgroundColor.colorStops.0.left',
-	'backgroundColor.colorStops.1.r',
-	'backgroundColor.colorStops.1.g',
-	'backgroundColor.colorStops.1.b',
-	'backgroundColor.colorStops.1.a',
-	'backgroundColor.colorStops.1.left',
-	'backgroundColor.angle',
+	'textVideoEffect', //not needed
+	'backgroundColor.type', // not implemented
+	'backgroundColor.colorStops.0.r', // not implemented
+	'backgroundColor.colorStops.0.g', // not implemented
+	'backgroundColor.colorStops.0.b', // not implemented
+	'backgroundColor.colorStops.0.a', // not implemented
+	'backgroundColor.colorStops.0.left', // not implemented
+	'backgroundColor.colorStops.1.r', // not implemented
+	'backgroundColor.colorStops.1.g', // not implemented
+	'backgroundColor.colorStops.1.b', // not implemented
+	'backgroundColor.colorStops.1.a', // not implemented
+	'backgroundColor.colorStops.1.left', // not implemented
+	'backgroundColor.angle', // not implemented
 	'textShadow', //done
-	'isFixedTimeEnabled',
-	'highlightColor',
-	'fontStyle',
-	'customElementId',
+	'isFixedTimeEnabled', //not needed
+	'highlightColor', // not needed
+	'fontStyle', //not needed
+	'customElementId', //not needed
 	'isText', // not needed i guess
 	'styles.layerIndex',
 	'textColor.type', //done
 	'textColor.color', //done
 	'overrides.1080x1080.layerIndex',
 	'overrides.1080x1080.textRotation', //done
-	'overrides.1080x1080.fontStyle',
+	'overrides.1080x1080.fontStyle', //not needed
 	'overrides.1080x1080.customFontSize',
 	'overrides.1080x1080.textColor.type', //done
 	'overrides.1080x1080.textColor.color', //done
@@ -121,11 +121,11 @@ export const keysInOption = [
 	'overrides.1080x1080.borderStyle.width', //done
 	'overrides.1080x1080.borderStyle.style', // done for solid only, need to check for others
 	'overrides.1080x1080.borderStyle.color', // done
-	'overrides.1080x1080.borderRadius.all', //done
-	'overrides.1080x1080.borderRadius.topLeft',
-	'overrides.1080x1080.borderRadius.topRight',
-	'overrides.1080x1080.borderRadius.bottomLeft',
-	'overrides.1080x1080.borderRadius.bottomRight',
+	'overrides.1080x1080.borderRadius.all', // will implement later
+	'overrides.1080x1080.borderRadius.topLeft', // will implement later
+	'overrides.1080x1080.borderRadius.topRight', // will implement later
+	'overrides.1080x1080.borderRadius.bottomLeft', // will implement later
+	'overrides.1080x1080.borderRadius.bottomRight', // will implement later
 	'overrides.1080x1080.textShadow.color.r', //done
 	'overrides.1080x1080.textShadow.color.g', //done
 	'overrides.1080x1080.textShadow.color.b', //done
@@ -134,16 +134,16 @@ export const keysInOption = [
 	'overrides.1080x1080.textShadow.vShadow', //done
 	'overrides.1080x1080.textShadow.hShadow', //done
 	'overrides.1080x1080.backgroundColor.color', //done
-	'overrides.1200x628.capitalization',
-	'overrides.1200x628.textDecoration',
-	'overrides.1200x628.borderStyle.width',
-	'overrides.1200x628.borderStyle.style',
-	'overrides.1200x628.borderStyle.color',
-	'overrides.1200x628.borderRadius.all',
-	'overrides.1200x628.borderRadius.topLeft',
-	'overrides.1200x628.borderRadius.topRight',
-	'overrides.1200x628.borderRadius.bottomLeft',
-	'overrides.1200x628.borderRadius.bottomRight',
+	'overrides.1200x628.capitalization', //done
+	'overrides.1200x628.textDecoration', //done
+	'overrides.1200x628.borderStyle.width', //done
+	'overrides.1200x628.borderStyle.style', // done for solid only, need to check for others
+	'overrides.1200x628.borderStyle.color', // done
+	'overrides.1200x628.borderRadius.all', // will implement later
+	'overrides.1200x628.borderRadius.topLeft', // will implement later
+	'overrides.1200x628.borderRadius.topRight', // will implement later
+	'overrides.1200x628.borderRadius.bottomLeft', // will implement later
+	'overrides.1200x628.borderRadius.bottomRight', // will implement later
 	'overrides.1200x628.textShadow.color.r', //done
 	'overrides.1200x628.textShadow.color.g', //done
 	'overrides.1200x628.textShadow.color.b', //done
@@ -152,7 +152,7 @@ export const keysInOption = [
 	'overrides.1200x628.textShadow.vShadow', //done
 	'overrides.1200x628.textShadow.hShadow', //done
 	'overrides.1200x628.backgroundColor.color', //done
-	'backgroundColor.color',
+	'backgroundColor.color', //done
 	'elementType',
 	'subType',
 	'styles.imageShape',
