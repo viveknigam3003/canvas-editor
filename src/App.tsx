@@ -183,7 +183,7 @@ function App() {
 		key: 'showPlugins',
 		defaultValue: 'false',
 	});
-	const [showRuler, setShowRuler] = useState(true);
+	const [showRuler, setShowRuler] = useState(false);
 	const theme = useMantineTheme();
 	const colorSchemeRef = useRef(theme.colorScheme);
 	const { classes } = useStyles();
@@ -830,7 +830,6 @@ function App() {
 				}
 			});
 
-			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard.id as string);
 			if (showRuler) {
 				renderRuler();
 			}
