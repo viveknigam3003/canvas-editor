@@ -6,8 +6,9 @@
 
 import { fabric } from 'fabric';
 import { generateId } from '../../utils';
-import { Creative, Variant } from './types';
 import { BoxProperties } from '../text/TextboxOverride';
+import { Creative, Variant } from './types';
+import { IImageOptions } from 'fabric/fabric-impl';
 
 const transformVariation = (capsuleData: any): { data: Variant; errors: Record<string, string[]> } => {
 	const { version } = capsuleData;
@@ -279,14 +280,12 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			return null;
 		}
 
-		boxBorder.width = Math.round((borderStyle.width / 1000) * Math.min(Number(width), Number(height)));
+		boxBorder.width = Math.round((borderStyle.width / 100) * Math.min(Number(width), Number(height)));
 		boxBorder.color = borderStyle.color;
 		boxBorder.style = borderStyle.style;
 
-		if (boxBorder.style === 'dashed' || borderStyle.style === 'dotted') {
-			errors[sizeKey].push(
-				`Dashed and dotted border styles are not supported in Editor v2, setting border style to solid`,
-			);
+		if (borderStyle.style === 'dotted') {
+			errors[sizeKey].push(`Dotted border styles are not supported in Editor v2, setting border style to solid`);
 			boxBorder.style = 'solid';
 		}
 
@@ -316,7 +315,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return Math.round(Math.max(percentageWidth, percentageHeight));
 	};
 
-	const getFabricText = (option: any, sizeKey: string): fabric.Text => {
+	const getFabricText = (option: any, sizeKey: string): BoxProperties => {
 		const overrides = option.overrides[sizeKey];
 		const { top, left } = getPositionFromModifyLength(option, sizeKey);
 		const { width, height } = getDimensionsFromModifyLength(option, sizeKey);
@@ -336,6 +335,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		const lineHeight = getLineHeight(option, sizeKey);
 
 		const properties: BoxProperties = {
+			type: 'textbox',
 			top,
 			left,
 			padding,
@@ -346,32 +346,30 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			fontSize,
 			angle,
 			lineHeight,
-		};
-		const textElement = new fabric.Textbox(text, properties);
-		textElement.set({
 			width,
 			height,
-		});
+			text,
+		};
 
 		const textShadow = getTextShadow(option, sizeKey);
 
 		if (textShadow) {
-			textElement.set('shadow', textShadow);
+			properties.shadow = textShadow;
 		}
 
 		const backgroundColor = getBackgroundColor(option, sizeKey);
 		const backgroundGradient = getBackgroundGradient(option, sizeKey);
 
 		if (backgroundGradient) {
-			textElement.set('boxBackgroundFill', backgroundGradient);
+			properties.boxBackgroundFill = backgroundGradient;
 		} else {
-			textElement.set('backgroundColor', backgroundColor);
+			properties.backgroundColor = backgroundColor;
 		}
 
 		const textTransform = getTextTransform(option, sizeKey);
 
 		if (textTransform) {
-			textElement.set('textTransform', textTransform);
+			properties.textTransform = textTransform;
 		}
 
 		const lineThrough = isLineThrough(option, sizeKey);
@@ -379,26 +377,60 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		const underline = isUnderline(option, sizeKey);
 
 		if (lineThrough) {
-			textElement.set('linethrough', lineThrough);
+			properties.linethrough = lineThrough;
 		}
 
 		if (overline) {
-			textElement.set('overline', overline);
+			properties.overline = overline;
 		}
 
 		if (underline) {
-			textElement.set('underline', underline);
+			properties.underline = underline;
 		}
 
 		const boxBorder = getBoxBorder(option, sizeKey);
 
 		if (boxBorder) {
-			textElement.set('boxBorderWidth', boxBorder.width);
-			textElement.set('boxBorderColor', boxBorder.color);
-			textElement.set('boxBorderStyle', boxBorder.style);
+			properties.boxBorderWidth = boxBorder.width;
+			properties.boxBorderColor = boxBorder.color;
+			properties.boxBorderStyle = boxBorder.style;
 		}
 
-		return textElement;
+		return properties;
+	};
+
+	const getFabricImage = (option: any, sizeKey: string): IImageOptions & { src: string } => {
+		const overrides = option.overrides[sizeKey];
+		// const [boardWidth, boardHeight] = sizeKey.split('x');
+		const { top, left } = getPositionFromModifyLength(option, sizeKey);
+		const { width, height } = getDimensionsFromModifyLength(option, sizeKey);
+		const angle = getElementAngle(overrides.modifyLength);
+		const src = 'https:' + option.url;
+
+		const properties: IImageOptions & { src: string } = {
+			top,
+			left,
+			width,
+			height,
+			angle,
+			src,
+			type: 'image',
+			data: {
+				id: option.id,
+			},
+			name: option.templateRules?.helpText ?? 'Media',
+		};
+
+		const stroke = getBoxBorder(option, sizeKey);
+		if (stroke) {
+			properties.stroke = stroke.color;
+			properties.strokeWidth = stroke.width;
+			properties.strokeDashArray = stroke.style === 'dashed' ? [stroke.width + 5, 5] : [];
+			properties.strokeLineJoin = 'miter';
+			properties.strokeUniform = true;
+		}
+
+		return properties;
 	};
 
 	const getElementFromOptions = (options: any, sizeKey: string): fabric.Object[] => {
@@ -408,8 +440,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 				return getFabricText(option, sizeKey);
 			}
 			if (type === 'image') {
-				errors[sizeKey].push(`Image element is not supported in Editor v2. Skipping element ${option.id}`);
-				return null;
+				return getFabricImage(option, sizeKey);
 			}
 			if (type === 'path') {
 				errors[sizeKey].push(`Shape element is not supported in Editor v2. Skipping element ${option.id}`);
