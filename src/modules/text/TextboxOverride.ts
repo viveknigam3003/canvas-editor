@@ -63,38 +63,39 @@ const getTransformedText = (text: string, textTransform: 'none' | 'uppercase' | 
 fabric.Textbox.prototype._render = (function (_render) {
 	return function (this: fabric.Textbox & BoxProperties, ctx: CanvasRenderingContext2D) {
 		// Ensure custom properties are defined
-		const boxBorderColor = this.boxBorderColor || '';
-		const boxBorderWidth = this.boxBorderWidth || 0;
-		const boxBorderStyle = this.boxBorderStyle || 'solid';
+		// const boxBorderColor = this.boxBorderColor || '';
+		// const boxBorderWidth = this.boxBorderWidth || 0;
+		// const boxBorderStyle = this.boxBorderStyle || 'solid';
+		// const scale = this.scaleX || 1;
 
-		if (boxBorderWidth > 0 && boxBorderColor) {
-			// Save the current context state
-			ctx.save();
+		// if (boxBorderWidth > 0 && boxBorderColor) {
+		// 	// Save the current context state
+		// 	ctx.save();
 
-			// Set border style
-			ctx.strokeStyle = boxBorderColor;
-			ctx.lineWidth = boxBorderWidth;
-			if (boxBorderStyle === 'dashed') {
-				ctx.setLineDash([5, 5]);
-			} else if (boxBorderStyle === 'dotted') {
-				ctx.setLineDash([1, 3]);
-			} else {
-				ctx.setLineDash([]); // solid
-			}
+		// 	// Set border style
+		// 	ctx.strokeStyle = boxBorderColor;
+		// 	ctx.lineWidth = boxBorderWidth;
+		// 	if (boxBorderStyle === 'dashed') {
+		// 		ctx.setLineDash([boxBorderWidth + 5, 5]);
+		// 	} else if (boxBorderStyle === 'dotted') {
+		// 		ctx.setLineDash([1, 3]);
+		// 	} else {
+		// 		ctx.setLineDash([]); // solid
+		// 	}
 
-			// Adjust the position based on the border width
-			const halfBorderWidth = boxBorderWidth / 2;
-			const x = -this.width! / 2 - halfBorderWidth;
-			const y = -this.height! / 2 - halfBorderWidth;
-			const width = this.width! + boxBorderWidth;
-			const height = this.height! + boxBorderWidth;
+		// 	// Adjust the position based on the border width
+		// 	const halfBorderWidth = boxBorderWidth / 2;
+		// 	const x = -this.width! / 2 - halfBorderWidth;
+		// 	const y = -this.height! / 2 - halfBorderWidth;
+		// 	const width = this.width! + boxBorderWidth;
+		// 	const height = this.height! + boxBorderWidth;
 
-			// Draw the border
-			ctx.strokeRect(x, y, width, height);
+		// 	// Draw the border
+		// 	ctx.strokeRect(x, y, width, height);
 
-			// Restore the context to its previous state
-			ctx.restore();
-		}
+		// 	// Restore the context to its previous state
+		// 	ctx.restore();
+		// }
 
 		if (this.textTransform !== 'none') {
 			if (this.text !== undefined && this.textTransform !== undefined) {
