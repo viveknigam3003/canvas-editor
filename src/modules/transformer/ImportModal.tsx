@@ -45,7 +45,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ opened, onClose }) => {
 	const { classes } = useStyles();
 
 	const loadImage = async (properties: any): Promise<fabric.Image> => {
-		const { src, width, height, ...rest } = properties;
+		const { src, width, height, blurValue, invertFilter, ...rest } = properties;
 		return new Promise((resolve, reject) => {
 			try {
 				fabric.Image.fromURL(
@@ -56,15 +56,31 @@ const ImportModal: React.FC<ImportModalProps> = ({ opened, onClose }) => {
 						const topCrop = ogHeight - height;
 						const leftCrop = ogWidth - width;
 
+						const newWidth = Math.min(width, ogWidth);
+						const newHeight = Math.min(height, ogHeight);
+
 						img.set({
 							cropX: leftCrop,
 							cropY: topCrop,
-							width,
-							height,
+							width: newWidth,
+							height: newHeight,
 							...rest,
 						});
-						img.scaleToHeight(height);
-						img.scaleToWidth(width);
+
+						if (blurValue) {
+							img.filters?.push(
+								new fabric.Image.filters.Blur({
+									blur: blurValue / 20,
+								}),
+							);
+							img.applyFilters();
+						}
+
+						if (invertFilter) {
+							img.filters?.push(new fabric.Image.filters.Invert());
+							img.applyFilters();
+						}
+
 						resolve(img);
 					},
 					{ crossOrigin: 'anonymous' },

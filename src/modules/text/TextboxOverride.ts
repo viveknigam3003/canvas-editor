@@ -1,31 +1,46 @@
 import { fabric } from 'fabric';
 import { Gradient, ITextboxOptions } from 'fabric/fabric-impl';
 
-export interface BoxProperties extends ITextboxOptions {
-	boxBorderColor?: string;
-	boxBorderStyle?: string;
-	boxBorderWidth?: number;
-	boxBackgroundFill?: string | Gradient;
+export interface BoxBorder {
+	color: string;
+	width: number;
+	style: 'solid' | 'dashed' | 'custom';
+	customProperties?: {
+		dashArray?: number[];
+		lineCap?: 'butt' | 'round' | 'square';
+		lineJoin?: 'bevel' | 'round' | 'miter';
+		miterLimit?: number;
+	};
+}
+
+interface BoxProperties {
+	fill?: string | Gradient;
+	border?: BoxBorder | null;
+	radius: number | number[] | { tl: number; tr: number; br: number; bl: number };
+	padding?: number;
+}
+
+export interface SmartTextBox extends ITextboxOptions {
+	box?: BoxProperties;
 	textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
 declare module 'fabric' {
 	namespace fabric {
-		interface Textbox extends BoxProperties {
-			boxBorderColor?: string;
-			boxBorderStyle?: string;
-			boxBorderWidth?: number;
-			boxBackgroundFill: string | Gradient;
+		interface Textbox extends SmartTextBox {
+			box: BoxProperties;
 			textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 		}
 	}
 }
 
 // Add custom properties to the Textbox class
-fabric.Textbox.prototype.boxBorderColor = 'transparent';
-fabric.Textbox.prototype.boxBorderStyle = 'solid';
-fabric.Textbox.prototype.boxBorderWidth = 0;
-fabric.Textbox.prototype.boxBackgroundFill = 'transparent';
+fabric.Textbox.prototype.box = {
+	fill: 'transparent',
+	border: null,
+	radius: 0,
+	padding: 0,
+};
 fabric.Textbox.prototype.textTransform = 'none';
 
 /**
@@ -34,12 +49,7 @@ fabric.Textbox.prototype.textTransform = 'none';
  */
 fabric.Textbox.prototype.toObject = (function (toObject) {
 	return function (this: fabric.Textbox, propertiesToInclude: string[] = []) {
-		const extendedPropertiesToInclude = propertiesToInclude.concat([
-			'boxBorderColor',
-			'boxBorderStyle',
-			'boxBorderWidth',
-			'boxBackgroundFill',
-		]);
+		const extendedPropertiesToInclude = propertiesToInclude.concat(['box', 'textTransform']);
 		return toObject.apply(this, [extendedPropertiesToInclude]);
 	};
 })(fabric.Textbox.prototype.toObject);
@@ -63,39 +73,63 @@ const getTransformedText = (text: string, textTransform: 'none' | 'uppercase' | 
 fabric.Textbox.prototype._render = (function (_render) {
 	return function (this: fabric.Textbox & BoxProperties, ctx: CanvasRenderingContext2D) {
 		// Ensure custom properties are defined
-		// const boxBorderColor = this.boxBorderColor || '';
-		// const boxBorderWidth = this.boxBorderWidth || 0;
-		// const boxBorderStyle = this.boxBorderStyle || 'solid';
-		// const scale = this.scaleX || 1;
+		const box = this.box || {
+			fill: 'transparent',
+			border: null,
+			padding: 0,
+		};
 
-		// if (boxBorderWidth > 0 && boxBorderColor) {
-		// 	// Save the current context state
-		// 	ctx.save();
+		this.backgroundColor = 'transparent';
+		const rect = new fabric.Rect({
+			width: this.width,
+			height: this.height,
+			originX: 'center',
+			originY: 'center',
+			left: this.left,
+			top: this.top,
+			opacity: this.opacity,
+			angle: this.angle,
+			scaleX: this.scaleX,
+			scaleY: this.scaleY,
+		});
 
-		// 	// Set border style
-		// 	ctx.strokeStyle = boxBorderColor;
-		// 	ctx.lineWidth = boxBorderWidth;
-		// 	if (boxBorderStyle === 'dashed') {
-		// 		ctx.setLineDash([boxBorderWidth + 5, 5]);
-		// 	} else if (boxBorderStyle === 'dotted') {
-		// 		ctx.setLineDash([1, 3]);
-		// 	} else {
-		// 		ctx.setLineDash([]); // solid
-		// 	}
+		if (box.fill) {
+			rect.set('fill', box.fill);
+		}
 
-		// 	// Adjust the position based on the border width
-		// 	const halfBorderWidth = boxBorderWidth / 2;
-		// 	const x = -this.width! / 2 - halfBorderWidth;
-		// 	const y = -this.height! / 2 - halfBorderWidth;
-		// 	const width = this.width! + boxBorderWidth;
-		// 	const height = this.height! + boxBorderWidth;
+		if (box.border) {
+			if (box.border.style === 'custom' && box.border.customProperties) {
+				const { dashArray, lineCap, lineJoin, miterLimit } = box.border.customProperties;
+				if (dashArray) {
+					rect.set('strokeDashArray', dashArray);
+				}
+				if (lineCap) {
+					rect.set('strokeLineCap', lineCap);
+				}
+				if (lineJoin) {
+					rect.set('strokeLineJoin', lineJoin);
+				}
+				if (miterLimit) {
+					rect.set('strokeMiterLimit', miterLimit);
+				}
+			} else if (box.border.style === 'dashed') {
+				rect.set('strokeDashArray', [box.border.width + 5, 5]);
+				rect.set('strokeLineCap', 'butt');
+				rect.set('strokeLineJoin', 'miter');
+			} else if (box.border.style === 'solid') {
+				rect.set('strokeDashArray', []);
+			}
 
-		// 	// Draw the border
-		// 	ctx.strokeRect(x, y, width, height);
+			rect.set('stroke', box.border.color);
+			rect.set('strokeWidth', box.border.width);
+		}
 
-		// 	// Restore the context to its previous state
-		// 	ctx.restore();
-		// }
+		if (box.radius) {
+			rect.set('rx', (box.radius as number) / this.scaleX!);
+			rect.set('ry', (box.radius as number) / this.scaleY!);
+		}
+
+		rect.drawObject(ctx);
 
 		if (this.textTransform !== 'none') {
 			if (this.text !== undefined && this.textTransform !== undefined) {
@@ -107,3 +141,26 @@ fabric.Textbox.prototype._render = (function (_render) {
 		_render.call(this, ctx);
 	};
 })(fabric.Textbox.prototype._render);
+
+const originalFromObject = fabric.Textbox.fromObject;
+
+fabric.Textbox.fromObject = function (object: any, callback: (result: fabric.Textbox) => any) {
+	// Handle custom properties here
+	// Ensure custom properties are structured correctly
+	const customProps = {
+		...object,
+		box: object.box || {
+			fill: 'transparent',
+			border: null,
+			padding: 0,
+		},
+		textTransform: object.textTransform || 'none',
+	};
+
+	// Call the original fromObject method with the structured properties
+	return originalFromObject.call(fabric.Textbox, customProps, (result: fabric.Textbox) => {
+		// If there are any post-instantiation operations, perform them here
+		// Then, pass the result to the callback
+		callback(result);
+	});
+};

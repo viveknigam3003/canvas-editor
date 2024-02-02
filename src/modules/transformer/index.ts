@@ -5,10 +5,10 @@
  */
 
 import { fabric } from 'fabric';
-import { generateId } from '../../utils';
-import { BoxProperties } from '../text/TextboxOverride';
-import { Creative, Variant } from './types';
 import { IImageOptions } from 'fabric/fabric-impl';
+import { generateId } from '../../utils';
+import { BoxBorder, SmartTextBox } from '../text/TextboxOverride';
+import { Creative, Variant } from './types';
 
 const transformVariation = (capsuleData: any): { data: Variant; errors: Record<string, string[]> } => {
 	const { version } = capsuleData;
@@ -95,38 +95,40 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return rotateAngle;
 	};
 
-	const getBackgroundColor = (option: any, sizeKey: string): string => {
+	const getBoxFill = (option: any, sizeKey: string): string => {
 		// If option.overrides[sizeKey].backgroundColor is not present, then try for option.styles.backgroundColor, else return white
 		const overrideBackgroundColor = option.overrides[sizeKey].backgroundColor;
 
-		if (overrideBackgroundColor.type === 'solid-color') {
-			return overrideBackgroundColor.color;
+		if (typeof overrideBackgroundColor === 'object') {
+			if (overrideBackgroundColor.type === 'solid-color') {
+				return overrideBackgroundColor.color;
+			}
+
+			if (overrideBackgroundColor.type === 'linear-gradient') {
+				errors[sizeKey].push(
+					`Linear gradient is not supported in Editor v2. Skipping fill style for ${option.id}`,
+				);
+				return 'transparent';
+			}
+
+			if (overrideBackgroundColor.type === 'radial-gradient') {
+				errors[sizeKey].push(
+					`Radial gradient is not supported in Editor v2. Skipping fill style for ${option.id}`,
+				);
+				return 'transparent';
+			}
 		}
 
-		const styleBackgroundColor = option.styles.backgroundColor;
+		if (typeof overrideBackgroundColor === 'string') {
+			const styleBackgroundColor = option.styles.backgroundColor;
 
-		if (styleBackgroundColor) {
-			return styleBackgroundColor;
+			if (styleBackgroundColor) {
+				return styleBackgroundColor;
+			}
 		}
 
-		errors[sizeKey].push(`No background color found for element ${option.id}, setting it to white (#fff)`);
-		return '#fff';
-	};
-
-	const getBackgroundGradient = (option: any, sizeKey: string): fabric.Gradient | null => {
-		const overrideBackgroundColor = option.overrides[sizeKey].backgroundColor;
-
-		if (overrideBackgroundColor.type === 'linear-gradient') {
-			errors[sizeKey].push(`Linear gradient is not supported in Editor v2. Skipping fill style for ${option.id}`);
-			return null;
-		}
-
-		if (overrideBackgroundColor.type === 'radial-gradient') {
-			errors[sizeKey].push(`Radial gradient is not supported in Editor v2. Skipping fill style for ${option.id}`);
-			return null;
-		}
-
-		return null;
+		errors[sizeKey].push(`No background color found for element ${option.id}, setting it to transparent`);
+		return 'transparent';
 	};
 
 	const getTextColor = (option: any, sizeKey: string): string => {
@@ -188,7 +190,6 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		const textShadow = option.textShadow;
 		const stylesTextShadow = option.styles.textShadow;
 
-		console.log('textshadow called', overrideTextShadow, textShadow, stylesTextShadow);
 		const shadows = [overrideTextShadow, textShadow, stylesTextShadow];
 
 		const getFabricShadowWithShadowObject = (shadow: any) => {
@@ -262,15 +263,14 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return false;
 	};
 
-	const getBoxBorder = (option: any, sizeKey: string) => {
+	const getBoxBorder = (option: any, sizeKey: string): BoxBorder | null => {
 		const [width, height] = sizeKey.split('x');
 		const overrides = option.overrides[sizeKey];
 
-		const boxBorder = {
+		const boxBorder: BoxBorder = {
 			width: 0,
 			color: '',
 			style: 'solid',
-			radius: 0,
 		};
 
 		const borderStyle = overrides.borderStyle;
@@ -315,7 +315,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return Math.round(Math.max(percentageWidth, percentageHeight));
 	};
 
-	const getFabricText = (option: any, sizeKey: string): BoxProperties => {
+	const getFabricText = (option: any, sizeKey: string): SmartTextBox => {
 		const overrides = option.overrides[sizeKey];
 		const { top, left } = getPositionFromModifyLength(option, sizeKey);
 		const { width, height } = getDimensionsFromModifyLength(option, sizeKey);
@@ -334,11 +334,10 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		const fontSize = getFontSize(option, sizeKey);
 		const lineHeight = getLineHeight(option, sizeKey);
 
-		const properties: BoxProperties = {
+		const properties: SmartTextBox = {
 			type: 'textbox',
 			top,
 			left,
-			padding,
 			data,
 			fontFamily,
 			fill,
@@ -349,6 +348,12 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			width,
 			height,
 			text,
+			box: {
+				fill: 'transparent',
+				border: null,
+				padding,
+				radius: 0,
+			},
 		};
 
 		const textShadow = getTextShadow(option, sizeKey);
@@ -357,13 +362,10 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			properties.shadow = textShadow;
 		}
 
-		const backgroundColor = getBackgroundColor(option, sizeKey);
-		const backgroundGradient = getBackgroundGradient(option, sizeKey);
+		const boxFill = getBoxFill(option, sizeKey);
 
-		if (backgroundGradient) {
-			properties.boxBackgroundFill = backgroundGradient;
-		} else {
-			properties.backgroundColor = backgroundColor;
+		if (boxFill && properties.box) {
+			properties.box.fill = boxFill;
 		}
 
 		const textTransform = getTextTransform(option, sizeKey);
@@ -390,16 +392,17 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 
 		const boxBorder = getBoxBorder(option, sizeKey);
 
-		if (boxBorder) {
-			properties.boxBorderWidth = boxBorder.width;
-			properties.boxBorderColor = boxBorder.color;
-			properties.boxBorderStyle = boxBorder.style;
+		if (boxBorder && properties.box) {
+			properties.box.border = boxBorder;
 		}
 
 		return properties;
 	};
 
-	const getFabricImage = (option: any, sizeKey: string): IImageOptions & { src: string } => {
+	const getFabricImage = (
+		option: any,
+		sizeKey: string,
+	): IImageOptions & { src: string; blurValue: number; invertFilter: boolean } => {
 		const overrides = option.overrides[sizeKey];
 		// const [boardWidth, boardHeight] = sizeKey.split('x');
 		const { top, left } = getPositionFromModifyLength(option, sizeKey);
@@ -407,7 +410,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		const angle = getElementAngle(overrides.modifyLength);
 		const src = 'https:' + option.url;
 
-		const properties: IImageOptions & { src: string } = {
+		const properties: IImageOptions & { src: string; blurValue: number; invertFilter: boolean } = {
 			top,
 			left,
 			width,
@@ -419,6 +422,8 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 				id: option.id,
 			},
 			name: option.templateRules?.helpText ?? 'Media',
+			blurValue: overrides.elementBgBlur ?? 0,
+			invertFilter: overrides.colorInversion > 0,
 		};
 
 		const stroke = getBoxBorder(option, sizeKey);

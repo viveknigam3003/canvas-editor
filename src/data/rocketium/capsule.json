@@ -463,7 +463,7 @@
 							"textDecoration": "line-through",
 							"borderStyle": {
 								"width": 0.9259259259259257,
-								"style": "dashed",
+								"style": "solid",
 								"color": "#000000"
 							},
 							"borderRadius": {

@@ -17,4 +17,5 @@ export const FABRIC_JSON_ALLOWED_KEYS = [
 	'lockSkewingY',
 	'lockScalingFlip',
 	'src',
+	'padding',
 ];
