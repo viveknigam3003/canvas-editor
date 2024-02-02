@@ -7,7 +7,7 @@
 import { fabric } from 'fabric';
 import { IImageOptions } from 'fabric/fabric-impl';
 import { generateId } from '../../utils';
-import { BoxBorder, SmartTextBox } from '../text/TextboxOverride';
+import { BoxBorder, BoxGradient, SmartTextBox } from '../text/TextboxOverride';
 import { Creative, Variant } from './types';
 
 const transformVariation = (capsuleData: any): { data: Variant; errors: Record<string, string[]> } => {
@@ -95,7 +95,29 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return rotateAngle;
 	};
 
-	const getBoxFill = (option: any, sizeKey: string): string => {
+	const createLinearGradient = (option: any, sizeKey: string): BoxGradient => {
+		const overridesBackgroundColor = option.overrides[sizeKey].backgroundColor;
+
+		// Assuming that the overridesBackgroundColor is an object with type linear-gradient and colorStops[], and angle
+		const angle = overridesBackgroundColor.angle;
+		const colorStops = overridesBackgroundColor.colorStops;
+		const fabricColorStops = colorStops.map((colorStop: any) => {
+			return {
+				color: `rgba(${colorStop.r}, ${colorStop.g}, ${colorStop.b}, ${colorStop.a})`,
+				offset: colorStop.left / 100,
+			};
+		});
+
+		const gradient: BoxGradient = {
+			type: 'linear',
+			angle,
+			colorStops: fabricColorStops,
+		};
+
+		return gradient;
+	};
+
+	const getBoxFill = (option: any, sizeKey: string): string | BoxGradient => {
 		// If option.overrides[sizeKey].backgroundColor is not present, then try for option.styles.backgroundColor, else return white
 		const overrideBackgroundColor = option.overrides[sizeKey].backgroundColor;
 
@@ -105,10 +127,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			}
 
 			if (overrideBackgroundColor.type === 'linear-gradient') {
-				errors[sizeKey].push(
-					`Linear gradient is not supported in Editor v2. Skipping fill style for ${option.id}`,
-				);
-				return 'transparent';
+				return createLinearGradient(option, sizeKey);
 			}
 
 			if (overrideBackgroundColor.type === 'radial-gradient') {
@@ -363,7 +382,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		}
 
 		const boxFill = getBoxFill(option, sizeKey);
-
+		console.log('Box Fill', boxFill);
 		if (boxFill && properties.box) {
 			properties.box.fill = boxFill;
 		}

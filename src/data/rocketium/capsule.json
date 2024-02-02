@@ -260,7 +260,7 @@
 										"left": 100
 									}
 								],
-								"angle": 90
+								"angle": 0
 							},
 							"textColor": {
 								"type": "solid-color",

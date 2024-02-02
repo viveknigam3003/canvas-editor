@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import { Gradient, ITextboxOptions } from 'fabric/fabric-impl';
+import { ITextboxOptions } from 'fabric/fabric-impl';
 
 export interface BoxBorder {
 	color: string;
@@ -13,8 +13,17 @@ export interface BoxBorder {
 	};
 }
 
+export interface BoxGradient {
+	type: 'linear' | 'radial';
+	colorStops: {
+		offset: number;
+		color: string;
+	}[];
+	angle?: number;
+}
+
 interface BoxProperties {
-	fill?: string | Gradient;
+	fill?: string | BoxGradient;
 	border?: BoxBorder | null;
 	radius: number | number[] | { tl: number; tr: number; br: number; bl: number };
 	padding?: number;
@@ -94,7 +103,27 @@ fabric.Textbox.prototype._render = (function (_render) {
 		});
 
 		if (box.fill) {
-			rect.set('fill', box.fill);
+			if (typeof box.fill === 'string') {
+				rect.set('fill', box.fill);
+			}
+
+			if (typeof box.fill === 'object') {
+				const angle = box.fill.angle || 0;
+				const x2 = Math.cos((angle * Math.PI) / 180) * this.width!;
+				const y2 = Math.sin((angle * Math.PI) / 180) * this.height!;
+
+				const gradient = new fabric.Gradient({
+					type: box.fill.type,
+					coords: {
+						x1: 0,
+						y1: 0,
+						x2,
+						y2,
+					},
+					colorStops: box.fill.colorStops,
+				});
+				rect.set('fill', gradient);
+			}
 		}
 
 		if (box.border) {
