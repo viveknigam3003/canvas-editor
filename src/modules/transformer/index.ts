@@ -95,8 +95,8 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return rotateAngle;
 	};
 
-	const createLinearGradient = (option: any, sizeKey: string): BoxGradient => {
-		const overridesBackgroundColor = option.overrides[sizeKey].backgroundColor;
+	const createLinearGradient = (option: any, sizeKey: string, colorKey: string): BoxGradient => {
+		const overridesBackgroundColor = option.overrides[sizeKey][colorKey];
 
 		// Assuming that the overridesBackgroundColor is an object with type linear-gradient and colorStops[], and angle
 		const angle = overridesBackgroundColor.angle;
@@ -117,6 +117,28 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return gradient;
 	};
 
+	const createRadialGradient = (option: any, sizeKey: string, colorKey: string): BoxGradient => {
+		const overridesBackgroundColor = option.overrides[sizeKey][colorKey];
+
+		// Assuming that the overridesBackgroundColor is an object with type linear-gradient and colorStops[], and angle
+		const angle = overridesBackgroundColor.angle;
+		const colorStops = overridesBackgroundColor.colorStops;
+		const fabricColorStops = colorStops.map((colorStop: any) => {
+			return {
+				color: `rgba(${colorStop.r}, ${colorStop.g}, ${colorStop.b}, ${colorStop.a})`,
+				offset: colorStop.left / 100,
+			};
+		});
+
+		const gradient: BoxGradient = {
+			type: 'radial',
+			angle,
+			colorStops: fabricColorStops,
+		};
+
+		return gradient;
+	};
+
 	const getBoxFill = (option: any, sizeKey: string): string | BoxGradient => {
 		// If option.overrides[sizeKey].backgroundColor is not present, then try for option.styles.backgroundColor, else return white
 		const overrideBackgroundColor = option.overrides[sizeKey].backgroundColor;
@@ -127,14 +149,11 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			}
 
 			if (overrideBackgroundColor.type === 'linear-gradient') {
-				return createLinearGradient(option, sizeKey);
+				return createLinearGradient(option, sizeKey, 'backgroundColor');
 			}
 
 			if (overrideBackgroundColor.type === 'radial-gradient') {
-				errors[sizeKey].push(
-					`Radial gradient is not supported in Editor v2. Skipping fill style for ${option.id}`,
-				);
-				return 'transparent';
+				return createRadialGradient(option, sizeKey, 'backgroundColor');
 			}
 		}
 
@@ -150,22 +169,25 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		return 'transparent';
 	};
 
-	const getTextColor = (option: any, sizeKey: string): string => {
+	const getTextColor = (option: any, sizeKey: string): string | BoxGradient => {
 		const overrideTextColor = option.overrides[sizeKey].textColor;
 		const stylesTextColor = option.styles.textColor;
 		const textColor = option.textColor;
 
 		const checkColor = (color: any) => {
-			if (typeof color === 'object' && color.type === 'solid-color') {
-				return color.color;
-			}
-			if (typeof color === 'string') {
+			if (typeof color === 'object') {
+				switch (color.type) {
+					case 'solid-color':
+						return color.color;
+					case 'linear-gradient':
+						return createLinearGradient(option, sizeKey, 'textColor');
+					case 'radial-gradient':
+						return createRadialGradient(option, sizeKey, 'textColor');
+				}
+			} else if (typeof color === 'string') {
 				return color;
 			}
-			if (typeof color === 'object') {
-				errors[sizeKey].push(`Gradient text color is not supported in Editor v2. Setting text color to black`);
-				return '#000';
-			}
+			return '#000'; // Handle any other unexpected color values
 		};
 
 		return checkColor(overrideTextColor) || stylesTextColor || checkColor(textColor) || '#000';
@@ -293,7 +315,6 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		};
 
 		const borderStyle = overrides.borderStyle;
-		const borderRadius = overrides.borderRadius;
 
 		if (!borderStyle) {
 			return null;
@@ -308,12 +329,41 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			boxBorder.style = 'solid';
 		}
 
-		const { all, top, right, bottom, left } = borderRadius;
-		if (all > 0 || top > 0 || right > 0 || bottom > 0 || left > 0) {
-			errors[sizeKey].push(`Border radius is not supported in Editor v2, setting border radius to 0`);
+		return boxBorder;
+	};
+
+	const getBoxBorderRadius = (option: any, sizeKey: string) => {
+		const [width, height] = sizeKey.split('x');
+		const overrides = option.overrides[sizeKey];
+
+		const borderRadius = overrides.borderRadius;
+
+		if (!borderRadius) {
+			errors[sizeKey].push(`No border radius found for element ${option.id}, setting it to 0`);
+			return 0;
 		}
 
-		return boxBorder;
+		const all = borderRadius.all;
+		const top = borderRadius.topLeft;
+		const right = borderRadius.topRight;
+		const bottom = borderRadius.bottomLeft;
+		const left = borderRadius.bottomRight;
+
+		if (!all) {
+			errors[sizeKey].push(`No border radius found for element ${option.id}, setting it to 0`);
+			return 0;
+		}
+
+		if (all !== top || all !== right || all !== bottom || all !== left) {
+			errors[sizeKey].push(
+				`Unequal radius is not supported in Editor v2, setting border radius to minimum of all`,
+			);
+			return Math.round(
+				(Math.min(all, top, right, bottom, left) / 100) * Math.min(Number(width), Number(height)),
+			);
+		}
+
+		return Math.round((all / 100) * Math.min(Number(width), Number(height)));
 	};
 
 	const getFontSize = (option: any, sizeKey: string) => {
@@ -348,7 +398,6 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			displayText: option.templateRules?.helpText ?? option.text,
 		};
 		const fontFamily = overrides.font ?? option.styles.font;
-		const fill = getTextColor(option, sizeKey);
 		const textAlign = getHorizontalTextAlign(option, sizeKey);
 		const fontSize = getFontSize(option, sizeKey);
 		const lineHeight = getLineHeight(option, sizeKey);
@@ -359,7 +408,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			left,
 			data,
 			fontFamily,
-			fill,
+			// fill,
 			textAlign,
 			fontSize,
 			angle,
@@ -367,6 +416,7 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			width,
 			height,
 			text,
+			padding: 0,
 			box: {
 				fill: 'transparent',
 				border: null,
@@ -375,6 +425,13 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 			},
 		};
 
+		const fill = getTextColor(option, sizeKey);
+
+		if (fill) {
+			console.log('fill', fill);
+			properties.objectFill = fill;
+		}
+
 		const textShadow = getTextShadow(option, sizeKey);
 
 		if (textShadow) {
@@ -382,9 +439,14 @@ const transformVariation = (capsuleData: any): { data: Variant; errors: Record<s
 		}
 
 		const boxFill = getBoxFill(option, sizeKey);
-		console.log('Box Fill', boxFill);
 		if (boxFill && properties.box) {
 			properties.box.fill = boxFill;
+		}
+
+		const radius = getBoxBorderRadius(option, sizeKey);
+
+		if (radius && properties.box) {
+			properties.box.radius = radius;
 		}
 
 		const textTransform = getTextTransform(option, sizeKey);

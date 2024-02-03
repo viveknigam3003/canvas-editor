@@ -31,6 +31,7 @@ interface BoxProperties {
 
 export interface SmartTextBox extends ITextboxOptions {
 	box?: BoxProperties;
+	objectFill?: string | BoxGradient;
 	textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
@@ -38,6 +39,7 @@ declare module 'fabric' {
 	namespace fabric {
 		interface Textbox extends SmartTextBox {
 			box: BoxProperties;
+			objectFill: string | BoxGradient;
 			textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 		}
 	}
@@ -51,6 +53,7 @@ fabric.Textbox.prototype.box = {
 	padding: 0,
 };
 fabric.Textbox.prototype.textTransform = 'none';
+fabric.Textbox.prototype.objectFill = '#000';
 
 /**
  * Override the toObject method to include our custom properties
@@ -58,7 +61,7 @@ fabric.Textbox.prototype.textTransform = 'none';
  */
 fabric.Textbox.prototype.toObject = (function (toObject) {
 	return function (this: fabric.Textbox, propertiesToInclude: string[] = []) {
-		const extendedPropertiesToInclude = propertiesToInclude.concat(['box', 'textTransform']);
+		const extendedPropertiesToInclude = propertiesToInclude.concat(['box', 'objectFill', 'textTransform']);
 		return toObject.apply(this, [extendedPropertiesToInclude]);
 	};
 })(fabric.Textbox.prototype.toObject);
@@ -102,6 +105,47 @@ fabric.Textbox.prototype._render = (function (_render) {
 			scaleY: this.scaleY,
 		});
 
+		if (this.objectFill) {
+			if (typeof this.objectFill === 'string') {
+				this.set('fill', this.objectFill as string);
+			}
+
+			if (typeof this.objectFill === 'object') {
+				const angle = this.objectFill.angle || 0;
+				const x2 = Number((Math.cos((angle * Math.PI) / 180) * this.width!).toFixed(2));
+				const y2 = Number((Math.sin((angle * Math.PI) / 180) * this.height!).toFixed(2));
+
+				if (this.objectFill.type === 'linear') {
+					const gradient = new fabric.Gradient({
+						type: this.objectFill.type,
+						coords: {
+							x1: 0,
+							y1: 0,
+							x2,
+							y2,
+						},
+						colorStops: this.objectFill.colorStops,
+					});
+					(this as fabric.Textbox).set('fill', gradient);
+				} else if (this.objectFill.type === 'radial') {
+					const colorStops = this.objectFill.colorStops;
+					const gradient = new fabric.Gradient({
+						type: this.objectFill.type,
+						colorStops,
+						coords: {
+							x1: this.width! / 2,
+							y1: this.height! / 2,
+							x2: this.width! / 2,
+							y2: this.height! / 2,
+							r1: this.width! * colorStops[0].offset, // inner circle radius
+							r2: this.width! * colorStops[colorStops.length - 1].offset, // outer circle radius
+						},
+					});
+					(this as fabric.Textbox).set('fill', gradient);
+				}
+			}
+		}
+
 		if (box.fill) {
 			if (typeof box.fill === 'string') {
 				rect.set('fill', box.fill);
@@ -112,17 +156,34 @@ fabric.Textbox.prototype._render = (function (_render) {
 				const x2 = Math.cos((angle * Math.PI) / 180) * this.width!;
 				const y2 = Math.sin((angle * Math.PI) / 180) * this.height!;
 
-				const gradient = new fabric.Gradient({
-					type: box.fill.type,
-					coords: {
-						x1: 0,
-						y1: 0,
-						x2,
-						y2,
-					},
-					colorStops: box.fill.colorStops,
-				});
-				rect.set('fill', gradient);
+				if (box.fill.type === 'linear') {
+					const gradient = new fabric.Gradient({
+						type: box.fill.type,
+						coords: {
+							x1: 0,
+							y1: 0,
+							x2,
+							y2,
+						},
+						colorStops: box.fill.colorStops,
+					});
+					rect.set('fill', gradient);
+				} else if (box.fill.type === 'radial') {
+					const colorStops = box.fill.colorStops;
+					const gradient = new fabric.Gradient({
+						type: box.fill.type,
+						colorStops,
+						coords: {
+							x1: this.width! / 2,
+							y1: this.height! / 2,
+							x2: this.width! / 2,
+							y2: this.height! / 2,
+							r1: this.width! * colorStops[0].offset, // inner circle radius
+							r2: this.width! * colorStops[colorStops.length - 1].offset, // outer circle radius
+						},
+					});
+					rect.set('fill', gradient);
+				}
 			}
 		}
 
@@ -183,6 +244,7 @@ fabric.Textbox.fromObject = function (object: any, callback: (result: fabric.Tex
 			border: null,
 			padding: 0,
 		},
+		objectFill: object.objectFill || '#000',
 		textTransform: object.textTransform || 'none',
 	};
 
