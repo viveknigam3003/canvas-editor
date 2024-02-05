@@ -129,7 +129,7 @@ export class FabricGuide {
 		const snapYPoints: Set<number> = new Set();
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
-		for (let i = canvasObjects.length; i--;) {
+		for (let i = canvasObjects.length; i--; ) {
 			const objCoords = {
 				...this.getCoords(canvasObjects[i]),
 				c: canvasObjects[i].getCenterPoint(),
@@ -259,7 +259,6 @@ export class FabricGuide {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
 		const ctx = this.canvas.getTopContext();
-		// console.log('first', x, y);
 		ctx.strokeStyle = this.aligningLineColor;
 		ctx.beginPath();
 
@@ -314,12 +313,12 @@ export class FabricGuide {
 
 		const movingCoords = this.getObjDraggingObjCoords(this.activeObj);
 
-		for (let i = this.verticalLines.length; i--;) {
+		for (let i = this.verticalLines.length; i--; ) {
 			this.drawVerticalLine(this.verticalLines[i], movingCoords);
 		}
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
-		for (let i = this.horizontalLines.length; i--;) {
+		for (let i = this.horizontalLines.length; i--; ) {
 			this.drawHorizontalLine(this.horizontalLines[i], movingCoords);
 		}
 	}

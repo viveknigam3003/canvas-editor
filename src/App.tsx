@@ -4,6 +4,7 @@ import {
 	Button,
 	Flex,
 	Group,
+	Menu,
 	Stack,
 	Text,
 	Tooltip,
@@ -13,8 +14,10 @@ import {
 import { getHotkeyHandler, useDisclosure, useHotkeys, useLocalStorage } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
+	IconChevronDown,
 	IconCircleCheck,
 	IconCopy,
+	IconDatabaseImport,
 	IconDeviceFloppy,
 	IconDownload,
 	IconPlus,
@@ -33,8 +36,8 @@ import {
 	setActiveArtboard,
 	setArtboards,
 	setSelectedArtboards,
-	updateActiveArtboardLayers,
 	setZoomLevel,
+	updateActiveArtboardLayers,
 } from './modules/app/actions';
 import NewArtboardModal from './modules/artboard/NewArtboardModal';
 import { getArtboardDimensions, getArtboardPosition } from './modules/artboard/helpers';
@@ -62,16 +65,17 @@ import {
 } from './modules/ruler';
 import SettingsMenu from './modules/settings';
 
+import workflows from './data/workflows.json';
+import { FabricGuide } from './modules/snapping/fabricGuide';
+import ImportModal from './modules/transformer/ImportModal';
 import { filterExportExcludes, filterSaveExcludes } from './modules/utils/fabricObjectUtils';
+import WorkflowComponent from './modules/workflows';
 import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType } from './types';
 import { generateId, getMultiplierFor4K } from './utils';
 // lazy load demo json
-import workflows from './data/workflows.json';
-import WorkflowComponent from './modules/workflows';
-import { FabricGuide } from './modules/snapping/fabricGuide';
 
 store.dispatch(appStart());
 
@@ -168,7 +172,6 @@ const useStyles = createStyles(theme => ({
 
 function App() {
 	const dispatch = useDispatch();
-	console.log('first');
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const activeArtboard = useSelector((state: RootState) => state.app.activeArtboard);
 	const selectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
@@ -180,7 +183,7 @@ function App() {
 		key: 'showPlugins',
 		defaultValue: 'false',
 	});
-	const [showRuler, setShowRuler] = useState(true);
+	const [showRuler, setShowRuler] = useState(false);
 	const theme = useMantineTheme();
 	const colorSchemeRef = useRef(theme.colorScheme);
 	const { classes } = useStyles();
@@ -190,6 +193,7 @@ function App() {
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
 	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
 	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
+	const [isImportModalOpen, { open: openImportModal, close: closeImportModal }] = useDisclosure();
 	const canvasRef = useRef<fabric.Canvas | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
@@ -826,7 +830,6 @@ function App() {
 				}
 			});
 
-			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard.id as string);
 			if (showRuler) {
 				renderRuler();
 			}
@@ -1264,11 +1267,42 @@ function App() {
 							<Flex sx={{ padding: '0.5rem 1rem' }} align={'center'} justify={'space-between'}>
 								<Flex align={'center'} justify={'space-between'} w={'100%'}>
 									<SectionTitle>Variants ({artboards.length})</SectionTitle>
-									<Tooltip label="Create new artboard" openDelay={500}>
-										<ActionIcon onClick={openNewArtboardModal} color="violet" size={16}>
-											<IconPlus />
-										</ActionIcon>
-									</Tooltip>
+									<Group spacing={1}>
+										<Tooltip label="Create new artboard" openDelay={500}>
+											<ActionIcon
+												onClick={openNewArtboardModal}
+												color="violet"
+												size={16}
+												variant="light"
+											>
+												<IconPlus />
+											</ActionIcon>
+										</Tooltip>
+										<Menu position="bottom">
+											<Menu.Target>
+												<ActionIcon size={16} variant="subtle">
+													<IconChevronDown />
+												</ActionIcon>
+											</Menu.Target>
+											<Menu.Dropdown>
+												<Menu.Item
+													icon={
+														<IconDatabaseImport
+															size={14}
+															color={
+																theme.colorScheme === 'dark'
+																	? theme.colors.gray[4]
+																	: theme.colors.gray[6]
+															}
+														/>
+													}
+													onClick={openImportModal}
+												>
+													<Text size={12}>Import Rocketium v1 JSON</Text>
+												</Menu.Item>
+											</Menu.Dropdown>
+										</Menu>
+									</Group>
 								</Flex>
 								<Box>
 									{artboards.length >= 100 ? (
@@ -1293,16 +1327,6 @@ function App() {
 											>
 												<Group w={'70%'}>
 													<Text size={14}>{artboard.name}</Text>
-													<Text
-														size={12}
-														color={
-															theme.colorScheme === 'dark'
-																? theme.colors.gray[5]
-																: theme.colors.gray[6]
-														}
-													>
-														{artboard.width}x{artboard.height}
-													</Text>
 												</Group>
 
 												<Group
@@ -1369,6 +1393,7 @@ function App() {
 				}}
 				canvas={canvasRef.current}
 			/>
+			<ImportModal opened={isImportModalOpen} onClose={closeImportModal} canvas={canvasRef.current} />
 		</Box>
 	);
 }

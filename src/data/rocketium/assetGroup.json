@@ -1,0 +1,55 @@
+{
+	"_id": "asset-group-65ae4dadf215a459dbdeb76c",
+	"chatChannelInfo": {
+		"isChatChannelCreated": false,
+		"channelUrl": null,
+		"presentMembers": []
+	},
+	"count": {
+		"creatives": 2,
+		"variations": 1,
+		"styles": 1,
+		"sizes": 2
+	},
+	"name": "Test Project",
+	"image": "https://rocketium.com/img/workspace-placeholder-6.jpg",
+	"variations": [
+		{
+			"_id": "39313102-c0fa-4018-1c55-b622457d1832",
+			"name": "Variant 1",
+			"styles": ["2cad2d27-ac8a-4d4d-14de-a3190fe594e0"],
+			"error": "successful",
+			"image": "https://rocketium.com/shapeIcons/rectangle.png"
+		}
+	],
+	"timestamp": {
+		"$date": "2024-01-22T11:25:48.473Z"
+	},
+	"sizes": [],
+	"groupIds": [],
+	"isDeleted": false,
+	"numberOfCreatives": 2,
+	"status": null,
+	"tags": [],
+	"amazonReviewers": [],
+	"assetFolderId": null,
+	"teamId": "61c939e514526b130d183dc0",
+	"parentGroupId": null,
+	"modifiedBy": "vivek.nigam@rocketium.com",
+	"outputFormat": "image",
+	"templateId": null,
+	"templateSizes": {},
+	"shortId": "RobPCAe0YWFe",
+	"createdBy": "vivek.nigam@rocketium.com",
+	"draftLink": "https://rocketium.com/advertising/campaign/editor/RobPCAe0YWFe/Test Project",
+	"createdAt": {
+		"$date": "2024-01-22T11:12:45.087Z"
+	},
+	"updatedAt": {
+		"$date": "2024-01-22T11:25:48.502Z"
+	},
+	"__v": 0,
+	"customField": {},
+	"clientMetadata": null,
+	"metadata": null
+}
