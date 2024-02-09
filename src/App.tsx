@@ -72,6 +72,10 @@ import { generateId, getMultiplierFor4K } from './utils';
 import workflows from './data/workflows.json';
 import WorkflowComponent from './modules/workflows';
 import { FabricGuide } from './modules/snapping/fabricGuide';
+import { actions } from '@liveblocks/redux';
+import ActiveUsers from './modules/collaboration/ActiveUsers';
+import { setCursor } from './modules/collaboration/actions';
+import CursorDisplay from './modules/collaboration/CursorDisplay';
 
 store.dispatch(appStart());
 
@@ -168,7 +172,6 @@ const useStyles = createStyles(theme => ({
 
 function App() {
 	const dispatch = useDispatch();
-	console.log('first');
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const activeArtboard = useSelector((state: RootState) => state.app.activeArtboard);
 	const selectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);
@@ -207,6 +210,19 @@ function App() {
 	const undoable = useSelector((state: RootState) => state.history.undoable);
 	const redoable = useSelector((state: RootState) => state.history.redoable);
 	const keyboardShortcuts = getKeyboardShortcuts();
+	const isLoading = useSelector((state: any) => state.liveblocks.isStorageLoading);
+
+	useEffect(() => {
+		console.log('isLoading', isLoading);
+	}, [isLoading]);
+
+	useEffect(() => {
+		dispatch(actions.enterRoom('phoenix-public'));
+
+		return () => {
+			dispatch(actions.leaveRoom());
+		};
+	}, [dispatch]);
 
 	useEffect(() => {
 		if (canvasRef.current && colorSchemeRef.current !== theme.colorScheme) {
@@ -1218,6 +1234,7 @@ function App() {
 					<MiscMenu artboards={artboards} canvasRef={canvasRef} />
 				</Flex>
 				<Group>
+					<ActiveUsers />
 					<Tooltip label="Workflows" openDelay={200}>
 						<ActionIcon
 							variant={isWorkflowsPanelActive ? 'filled' : 'light'}
@@ -1229,6 +1246,7 @@ function App() {
 							<IconPuzzle size={16} />
 						</ActionIcon>
 					</Tooltip>
+
 					<SettingsMenu
 						recreateCanvas={recreateCanvas}
 						canvasRef={canvasRef}
@@ -1335,9 +1353,14 @@ function App() {
 						</Stack>
 					</Box>
 				) : null}
-				<Box className={classes.center} ref={canvasContainerRef}>
+				<Box
+					className={classes.center}
+					ref={canvasContainerRef}
+					onPointerMove={e => dispatch(setCursor({ x: e.clientX, y: e.clientY }))}
+				>
 					<canvas className={classes.canvas} id="canvas" />
 				</Box>
+				<CursorDisplay />
 				{showSidebar ? (
 					<Box className={classes.right}>
 						{isWorkflowsPanelActive ? (
