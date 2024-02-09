@@ -1,16 +1,15 @@
 import { Action } from '@reduxjs/toolkit';
-import deepDiff from 'deep-diff';
-import { call, debounce, put, select, takeEvery } from 'redux-saga/effects';
+// import deepDiff from 'deep-diff';
+import { debounce, put, select, takeEvery } from 'redux-saga/effects';
 import { RootState } from '../../store/rootReducer';
 import { Artboard } from '../../types';
-import { updatePointer, updateStateHistory } from '../history/actions';
-import { Delta } from '../history/reducer';
-import { recordChanges } from '../history/saga';
+import { updatePointer } from '../history/actions';
+// import { Delta } from '../history/reducer';
 import {
 	addArtboard,
 	appStart,
 	applyBulkEdit,
-	initState,
+	// initState,
 	setActiveArtboard,
 	setArtboards,
 	setSelectedArtboards,
@@ -18,51 +17,51 @@ import {
 	updateArtboards,
 	updateSelectedArtboards,
 } from './actions';
-import { ApplicationState } from './reducer';
-import { getBulkEditedArtboards } from './bulkEdit';
+// import { ApplicationState } from './reducer';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
-import { loadFontsFromArtboards } from './FontLoader';
+import { getBulkEditedArtboards } from './bulkEdit';
+// import { loadFontsFromArtboards } from './FontLoader';
 
 function* initStateSaga() {
-	const savedState: string = yield call([localStorage, 'getItem'], 'artboards');
+	// const savedState: string = yield call([localStorage, 'getItem'], 'artboards');
 
-	const artboards: Artboard[] = savedState ? JSON.parse(savedState) : [];
+	// const artboards: Artboard[] = savedState ? JSON.parse(savedState) : [];
 
-	if (artboards.length === 0) {
-		// Set state to local storage
-		const serializedState = JSON.stringify(artboards);
-		yield call([localStorage, 'setItem'], 'artboards', serializedState);
-	}
+	// if (artboards.length === 0) {
+	// 	// Set state to local storage
+	// 	const serializedState = JSON.stringify(artboards);
+	// 	yield call([localStorage, 'setItem'], 'artboards', serializedState);
+	// }
 
-	// Load fonts from artboards
-	try {
-		yield call(loadFontsFromArtboards, artboards);
-	} catch (error) {
-		console.error('Error loading fonts:', error);
-	}
+	// // Load fonts from artboards
+	// try {
+	// 	yield call(loadFontsFromArtboards, artboards);
+	// } catch (error) {
+	// 	console.error('Error loading fonts:', error);
+	// }
 
-	yield put(
-		initState({
-			artboards,
-			activeArtboard: artboards[0] ?? null,
-			selectedArtboards: [artboards[0]?.id ?? ''],
-		}),
-	);
+	// yield put(
+	// 	initState({
+	// 		artboards,
+	// 		activeArtboard: artboards[0] ?? null,
+	// 		selectedArtboards: [artboards[0]?.id ?? ''],
+	// 	}),
+	// );
 
-	// Save the initial state in history redux
-	const diff = deepDiff.diff({} as ApplicationState, { artboards });
+	// // Save the initial state in history redux
+	// const diff = deepDiff.diff({} as ApplicationState, { artboards });
 
-	if (!diff) {
-		console.log('no diff');
-		return;
-	}
+	// if (!diff) {
+	// 	console.log('no diff');
+	// 	return;
+	// }
 
-	const delta: Delta = {
-		actionType: appStart.type,
-		key: 'app.artboards',
-		diff,
-	};
-	yield put(updateStateHistory([delta]));
+	// const delta: Delta = {
+	// 	actionType: appStart.type,
+	// 	key: 'app.artboards',
+	// 	diff,
+	// };
+	// yield put(updateStateHistory([delta]));
 	yield put(updatePointer(0));
 }
 
@@ -71,19 +70,19 @@ function* setArtboardsSaga(action: Action) {
 		return;
 	}
 
-	const previousState: string = yield call([localStorage, 'getItem'], 'artboards');
-	const nextState: Artboard[] = action.payload;
+	// const previousState: string = yield call([localStorage, 'getItem'], 'artboards');
+	// const nextState: Artboard[] = action.payload;
 
-	const serializedState = JSON.stringify(nextState);
-	yield call([localStorage, 'setItem'], 'artboards', serializedState);
+	// const serializedState = JSON.stringify(nextState);
+	// yield call([localStorage, 'setItem'], 'artboards', serializedState);
 	// Save the difference between the current state and the previous state in history redux
 	yield put(updateArtboards(action.payload));
-	yield recordChanges({
-		previousState: JSON.parse(previousState),
-		nextState,
-		action: updateArtboards(action.payload),
-		key: 'app.artboards',
-	});
+	// yield recordChanges({
+	// 	previousState: JSON.parse(previousState),
+	// 	nextState,
+	// 	action: updateArtboards(action.payload),
+	// 	key: 'app.artboards',
+	// });
 }
 
 function* setActiveArtboardSaga(action: Action) {
