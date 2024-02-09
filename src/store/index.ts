@@ -9,7 +9,6 @@ const sagaMiddleware = createSagaMiddleware();
 
 export const client = createClient({
 	publicApiKey: import.meta.env.VITE_LIVEBLOCKS_KEY,
-	throttle: 120,
 });
 
 const store = configureStore({

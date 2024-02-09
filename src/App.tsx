@@ -35,6 +35,7 @@ import {
 	setSelectedArtboards,
 	updateActiveArtboardLayers,
 	setZoomLevel,
+	updateActiveArtboard,
 } from './modules/app/actions';
 import NewArtboardModal from './modules/artboard/NewArtboardModal';
 import { getArtboardDimensions, getArtboardPosition } from './modules/artboard/helpers';
@@ -211,6 +212,7 @@ function App() {
 	const redoable = useSelector((state: RootState) => state.history.redoable);
 	const keyboardShortcuts = getKeyboardShortcuts();
 	const isLoading = useSelector((state: any) => state.liveblocks.isStorageLoading);
+	const zoomLevel = useSelector((state: RootState) => state.app.zoomLevel);
 
 	useEffect(() => {
 		console.log('isLoading', isLoading);
@@ -557,6 +559,7 @@ function App() {
 			return item;
 		});
 		dispatch(setArtboards(updatedArtboards));
+		dispatch(updateActiveArtboard(updatedArtboards.find(item => item.id === activeArtboard.id) as Artboard));
 	};
 
 	const getMaxMinZoomLevel = (dimensions: { width: number; height: number }) => {
@@ -616,6 +619,12 @@ function App() {
 		);
 	};
 
+	useEffect(() => {
+		if (canvasRef.current) {
+			zoomFromCenter(zoomLevel);
+		}
+	}, [zoomLevel]);
+
 	const renderRuler = () => {
 		renderRulerAxisBackground(canvasRef, colorSchemeRef.current);
 		adjustRulerBackgroundPosition(canvasRef, colorSchemeRef.current);
@@ -664,10 +673,10 @@ function App() {
 	};
 
 	const zoomIn = () => {
-		const zoom = canvasRef.current?.getZoom();
+		const zoom = zoomLevel;
 		if (zoom) {
 			zoomFromCenter(zoom + 0.1);
-			dispatch(setZoomLevel(canvasRef.current?.getZoom() || zoom + 0.1));
+			dispatch(setZoomLevel(zoom + 0.1));
 		}
 		if (showRuler) {
 			renderRuler();
@@ -675,10 +684,10 @@ function App() {
 	};
 
 	const zoomOut = () => {
-		const zoom = canvasRef.current?.getZoom();
+		const zoom = zoomLevel;
 		if (zoom) {
 			zoomFromCenter(zoom - 0.1);
-			dispatch(setZoomLevel(canvasRef.current?.getZoom() || zoom - 0.1));
+			dispatch(setZoomLevel(zoom - 0.1));
 		}
 		if (showRuler) {
 			renderRuler();
@@ -1054,7 +1063,7 @@ function App() {
 			console.log('Object modified');
 			timeout = setTimeout(() => {
 				setHasUnsavedChanges(true);
-			}, 2000);
+			}, 120);
 		};
 
 		canvas.on('object:modified', handleCanvasObjectModification);
