@@ -2,11 +2,11 @@ import { createReducer } from '@reduxjs/toolkit';
 import { Artboard } from '../../types';
 import {
 	initState,
+	setZoomLevel,
+	updateActiveArtboard,
 	updateActiveArtboardLayers,
 	updateArtboards,
-	updateActiveArtboard,
 	updateSelectedArtboards,
-	setZoomLevel,
 } from './actions';
 
 export interface ApplicationState {
