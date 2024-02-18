@@ -1,5 +1,5 @@
 import { Divider, Stack } from '@mantine/core';
-import Animation from '../modules/animate';
+import { Animation } from '../modules/animate';
 import ClipMask from '../modules/clipmask';
 import ImagePanel from '../modules/image/Panel';
 import Opacity from '../modules/opacity';

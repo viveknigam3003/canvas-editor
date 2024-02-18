@@ -1,5 +1,12 @@
 import { Artboard } from '../../types';
 
+/**
+ * Get updated artboards with the updated element properties in the selected artboards
+ * @param elementId Element ID to be updated
+ * @param properties Object with properties to be updated
+ * @param data Additional data to be used for updating - artboards and selectedArtboards
+ * @returns Array of updated artboards
+ */
 export const getBulkEditedArtboards = (
 	elementId: string,
 	properties: { [key: string]: any },

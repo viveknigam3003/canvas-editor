@@ -85,6 +85,10 @@ async function loadFontWithObserver(fontFamily: string): Promise<void> {
 	}
 }
 
+/**
+ * Returns a promise that resolves when all fonts from the artboards are loaded
+ * @param artboards Array of artboards to load fonts from
+ */
 export const loadFontsFromArtboards = async (artboards: Artboard[]) => {
 	const artboardTexts = artboards
 		.map(artboard => artboard.state?.objects)

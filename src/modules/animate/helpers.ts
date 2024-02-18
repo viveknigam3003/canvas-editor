@@ -1,4 +1,4 @@
-import { Keyframe } from '.';
+import { Keyframe } from './types';
 import { evaluateEasingFunction } from './easing';
 
 export const getNearestFps = (fps: number) => {
@@ -7,6 +7,25 @@ export const getNearestFps = (fps: number) => {
 	return nearestFps;
 };
 
+/**
+ * Function to interpolate the value of a property at a given time using an easing function
+ *
+ * @example
+ * const keyframes = [
+ * 	{ id: '1', property: 'opacity', value: 0, timeMark: 0, easing: 'linear' },
+ * 	{ id: '2', property: 'opacity', value: 1, timeMark: 1000, easing: 'linear' },
+ * 	{ id: '3', property: 'opacity', value: 0, timeMark: 2000, easing: 'linear' },
+ * ];
+ *
+ * interpolatePropertyValue(keyframes, 500, 'opacity'); // 0.5
+ * interpolatePropertyValue(keyframes, 1500, 'opacity'); // 0.5
+ * interpolatePropertyValue(keyframes, 2500, 'opacity'); // 0
+ *
+ * @param keyframes Keyframes array
+ * @param time Time in milliseconds
+ * @param property Property to interpolate
+ * @returns Value of the property at the given time
+ */
 export function interpolatePropertyValue(keyframes: Keyframe[], time: number, property: string): number | string {
 	// Sort the keyframes based on timeMark
 	const sortedKeyframes = keyframes.filter(kf => kf.property === property).sort((a, b) => a.timeMark - b.timeMark);
