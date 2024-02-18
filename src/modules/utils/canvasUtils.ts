@@ -1,5 +1,10 @@
 import { FixedArray } from '../../types';
 
+/**
+ * Get the top and left values of the visible area of the canvas. Helps in positioning the elements
+ * @param canvasRef Canvas reference
+ * @returns Returns the { top, left } of the visible area of the canvas
+ */
 export const getCanvasVisibleTopLeft = (canvasRef: React.MutableRefObject<fabric.Canvas | null>) => {
 	const canvas = canvasRef.current as fabric.Canvas;
 	const vpt = canvas.viewportTransform as FixedArray<number, 6>;
