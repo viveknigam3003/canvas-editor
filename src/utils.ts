@@ -1,7 +1,17 @@
+/**
+ * Generates a random ID
+ * @returns Returns a random ID string
+ */
 export const generateId = () => {
 	return Math.random().toString(36).substring(2, 9);
 };
 
+/**
+ * Calculate the multiplier to scale the canvas to 4K resolution
+ * @param width Width of the canvas
+ * @param height Height of the canvas
+ * @returns Multiplier to scale the canvas to 4K resolution
+ */
 export const getMultiplierFor4K = (width?: number, height?: number): number => {
 	// Assuming the canvas is not already 4K, calculate the multiplier needed
 	// to scale the current canvas size up to 4K resolution

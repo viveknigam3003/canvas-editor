@@ -1,0 +1,8 @@
+{
+	"$schema": "https://typedoc.org/schema.json",
+	"tsconfig": "./tsconfig.json",
+	"entryPoints": ["./src/index.ts"],
+	"out": "./docs",
+	"name": "Canvas Editor",
+	"gitRemote": "docs"
+}
