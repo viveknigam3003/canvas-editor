@@ -3,5 +3,6 @@
 	"tsconfig": "./tsconfig.json",
 	"entryPoints": ["./src/index.ts"],
 	"out": "./docs",
-	"name": "Canvas Editor"
+	"name": "Canvas Editor",
+	"gitRemote": "docs"
 }

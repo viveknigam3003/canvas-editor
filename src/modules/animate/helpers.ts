@@ -21,6 +21,7 @@ export const getNearestFps = (fps: number) => {
  * interpolatePropertyValue(keyframes, 1500, 'opacity'); // 0.5
  * interpolatePropertyValue(keyframes, 2500, 'opacity'); // 0
  *
+ * @category Utils
  * @param keyframes Keyframes array
  * @param time Time in milliseconds
  * @param property Property to interpolate

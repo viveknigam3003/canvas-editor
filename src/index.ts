@@ -1,3 +1,6 @@
+/**
+ * @module App
+ */
 export { generateId, getMultiplierFor4K } from './utils';
 export { getArtboardCenter, getArtboardDimensions, getArtboardPosition } from './modules/artboard/helpers';
 

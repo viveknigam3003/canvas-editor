@@ -14,6 +14,7 @@ const MAX_DURATION = 60 * 1000;
 
 /**
  * Animation component to add keyframes and render video
+ * @category Components
  * @param props Props for Animation component
  * @returns React.FC
  */
