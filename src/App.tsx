@@ -447,10 +447,10 @@ function App() {
 		};
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			const multiplier = getMultiplierFor4K(artboardDimensions.width, artboardDimensions.height);
+			// const multiplier = getMultiplierFor4K(artboardDimensions.width, artboardDimensions.height);
 			const config = {
 				format: 'png',
-				multiplier,
+				// multiplier,
 			};
 			// render the offscreen canvas to a dataURL
 			const dataURL = offscreenCanvas.toDataURL(config);
