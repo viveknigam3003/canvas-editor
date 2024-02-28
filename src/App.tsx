@@ -67,7 +67,7 @@ import ZoomMenu from './modules/zoom';
 import store from './store';
 import { RootState } from './store/rootReducer';
 import { Artboard, FixedArray, colorSpaceType, guidesRefType } from './types';
-import { generateId, getMultiplierFor4K } from './utils';
+import { generateId } from './utils';
 // lazy load demo json
 import workflows from './data/workflows.json';
 import WorkflowComponent from './modules/workflows';
@@ -447,10 +447,8 @@ function App() {
 		};
 		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
 			offscreenCanvas.renderAll();
-			const multiplier = getMultiplierFor4K(artboardDimensions.width, artboardDimensions.height);
 			const config = {
 				format: 'png',
-				multiplier,
 			};
 			// render the offscreen canvas to a dataURL
 			const dataURL = offscreenCanvas.toDataURL(config);
