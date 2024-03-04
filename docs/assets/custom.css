@@ -86,7 +86,7 @@ a {
 
 
 :root {
-    --font-family-code: "Fira Code", Menlo, Consolas, Monaco, Liberation Mono,
+    --font-family-code: "JetBrains Mono", Menlo, Consolas, Monaco, Liberation Mono,
       Lucida Console, monospace;
     --font-family-system: Inter, Roboto, "Helvetica Neue", "Arial Nova",
       "Nimbus Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -478,7 +478,7 @@ a {
     font-weight: 400;
     cursor: text;
     padding: 0.4rem 1rem;
-    width: 100%;
+    width: 80%;
   }
   
   #tsd-search .results li:nth-child(even),
@@ -516,7 +516,7 @@ a {
   
   @media (min-width: 770px) {
     #tsd-search .results {
-      min-width: 380px;
+      min-width: 260px;
     }
   }
   
