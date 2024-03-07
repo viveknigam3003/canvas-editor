@@ -129,6 +129,9 @@ const Node: React.FC<{
 			}
 			return 'folder';
 		}
+		if ((node.data as fabric.Object)?.type === 'imagebox') {
+			return 'image';
+		}
 		if ((node.data as fabric.Object)?.data?.type === 'video') {
 			return 'video';
 		}
@@ -137,6 +140,8 @@ const Node: React.FC<{
 
 	const getNodeText = (node: NodeModel) => {
 		switch (node.text) {
+			case 'imagebox':
+				return 'Image';
 			case 'image':
 				if ((node.data as fabric.Object)?.data?.type === 'video') {
 					return 'Video';

@@ -1321,7 +1321,7 @@ function App() {
 													</ActionIcon>
 												</Group>
 											</Group>
-									  ))
+										))
 									: null}
 							</Group>
 						</Stack>

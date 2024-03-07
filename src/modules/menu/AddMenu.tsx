@@ -11,6 +11,7 @@ import { getArtboardCenter } from '../artboard/helpers';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
+import { Imagebox } from '../image/Imagebox';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -109,10 +110,6 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		const containerWidth = 300;
 		const containerHeight = 300;
 
-		const image = await new Promise<fabric.Image>(resolve => {
-			fabric.Image.fromURL(src_2, resolve, { crossOrigin: 'anonymous' });
-		});
-
 		const canvas = canvasRef.current;
 		const artboardId = activeArtboard?.id;
 
@@ -120,44 +117,15 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			return;
 		}
 
-		image.set({
+		const box = new Imagebox({
+			width: containerWidth,
+			height: containerHeight,
 			data: {
 				id: generateId(),
 			},
-			originX: 'center',
-			originY: 'center',
 		});
-
-		const container = new fabric.Group([image], {
-			left: 0,
-			top: 0,
-			width: containerWidth,
-			height: containerHeight,
-			objectCaching: false,
-			data: {
-				id: generateId(),
-			},
-			name: 'My Image',
-		});
-
-		// Calculate scale based on if the image is wider or taller than the container
-		// If the image is taller, we will scale it to the width of the container
-		// If the image is wider, we will scale it to the height of the container
-		const isWide = image.width! / image.height! > container.width! / container.height!;
-		if (isWide) {
-			image.scaleToHeight(containerHeight);
-		} else {
-			image.scaleToWidth(containerWidth);
-		}
-
-		container.clipPath = new fabric.Rect({
-			left: -container.width! / 2,
-			top: -container.height! / 2,
-			width: containerWidth,
-			height: containerHeight,
-		});
-		container.setCoords();
-		canvas.add(container);
+		await box.loadImage(src_2);
+		canvas.add(box);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();
