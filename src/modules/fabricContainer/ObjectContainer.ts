@@ -62,11 +62,11 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	},
 
 	getBackgroundObject(): fabric.Rect {
-		return this._objects[0] as fabric.Rect;
+		return this.getObjects()[0] as fabric.Rect;
 	},
 
 	getObject(): fabric.Object {
-		return this._objects[1];
+		return this.getObjects()[1];
 	},
 
 	_setContainerProperty(property: keyof ObjectContainerOptions['containerProperties'], value: any) {
