@@ -81,6 +81,10 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			this.setObjectPosition(props.objectPosition);
 		}
 
+		if (props.objectFit && this.getObject()) {
+			this.setObjectFit(props.objectFit);
+		}
+
 		// if (properties.padding) {
 		// 	this.setPadding(properties.padding);
 		// }
@@ -303,7 +307,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			throw new Error('Invalid position');
 		}
 	},
-
 	toObject(propertiesToInclude: string[] = []) {
 		return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
 			properties: this.properties,
