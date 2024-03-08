@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import { generateId } from '../..';
-import { FillOptions, ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
+import { ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
 
 export interface ImageContainerOptions extends ObjectContainerOptions {
 	src: string;
@@ -20,10 +20,10 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 		this.callSuper('initialize', options);
 		this.src = options.src;
 	},
-	async loadImage(src: string): Promise<fabric.ImageContainer> {
+	async loadImage(): Promise<fabric.ImageContainer> {
 		return new Promise(resolve => {
 			fabric.Image.fromURL(
-				src,
+				this.src,
 				img => {
 					const isWide = img.width! / img.height! > this.width / this.height;
 					if (isWide) {
@@ -37,9 +37,6 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 						data: { id: generateId() },
 					});
 					this.add(img);
-					this.set({
-						src,
-					});
 					this.setCoords();
 					resolve(this);
 				},
@@ -99,14 +96,7 @@ ImageContainer.fromObject = (
 		src: object.src,
 	}) as fabric.ImageContainer;
 
-	const fill = object.objects[0].fill as FillOptions;
-	imagebox._fillBackground(fill);
-
-	const objectPosition = object.containerProperties.objectPosition;
-	if (objectPosition) {
-		imagebox._setContainerProperty('objectPosition', objectPosition);
-	}
-
+	imagebox.setProperties(object.properties);
 	if (object.src) {
 		fabric.util.enlivenObjects(
 			[object.objects[1]],

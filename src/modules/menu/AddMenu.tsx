@@ -8,11 +8,11 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { updateActiveArtboardLayers } from '../app/actions';
 import { getArtboardCenter } from '../artboard/helpers';
+import { ImageContainer } from '../fabricContainer/ImageContainer';
+import { ObjectContainer } from '../fabricContainer/ObjectContainer';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
-import { ObjectContainer } from '../fabricContainer/ObjectContainer';
-import { ImageContainer } from '../fabricContainer/ImageContainer';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -122,14 +122,17 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			data: {
 				id: generateId(),
 			},
-			fill: new fabric.Gradient({
-				type: 'linear',
-				coords: { x1: 0, y1: 0, x2: 0, y2: containerHeight },
-				colorStops: [
-					{ offset: 0, color: 'rgba(255, 255, 255, 1)' },
-					{ offset: 1, color: '#ff223f' },
-				],
-			}),
+			src: src_2,
+			properties: {
+				fill: new fabric.Gradient({
+					type: 'linear',
+					coords: { x1: 0, y1: 0, x2: 0, y2: containerHeight },
+					colorStops: [
+						{ offset: 0, color: 'rgba(255, 255, 255, 1)' },
+						{ offset: 1, color: '#ff223f' },
+					],
+				}),
+			},
 		}) as fabric.ImageContainer;
 
 		const oc = new ObjectContainer({
@@ -140,10 +143,12 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			},
 			left: 100,
 			top: 100,
-			fill: 'blue',
+			properties: {
+				fill: 'blue',
+			},
 		}) as fabric.ObjectContainer;
 
-		await container.loadImage(src_2);
+		await container.loadImage();
 		canvas.add(container);
 		canvas.add(oc);
 		canvas.requestRenderAll();

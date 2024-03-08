@@ -1,22 +1,19 @@
 import 'fabric';
-import { FillOptions, ObjectPosition } from './ObjectContainer';
+import { ObjectPosition } from './ObjectContainer';
+import { Properties } from './types';
 
 declare module 'fabric' {
 	namespace fabric {
 		interface ObjectContainer extends fabric.Group {
-			type: string;
-			containerProperties: {
-				objectPosition: ObjectPosition;
-			};
+			properties: Properties;
 			getBackgroundObject(): fabric.Rect;
 			getObject(): fabric.Object;
 			setObjectPosition(position: ObjectPosition): void;
-			_fillBackground(fill: FillOptions): void;
-			_setContainerProperty(property: string, value: any): void;
+			setProperties(properties: Properties): void;
 		}
 		interface ImageContainer extends ObjectContainer {
-			type: string;
-			loadImage(src: string): Promise<fabric.ImageContainer>;
+			src: string;
+			loadImage(): Promise<fabric.ImageContainer>;
 			renderImage(image: fabric.Image): Promise<fabric.ImageContainer>;
 			fitImageToContainer(): void;
 		}

@@ -1,5 +1,6 @@
 import { fabric } from 'fabric';
 import { IGradientOptions, IPatternOptions } from 'fabric/fabric-impl';
+import { ObjectPosition, Properties } from './types';
 
 /**
  * Object container
@@ -16,31 +17,37 @@ import { IGradientOptions, IPatternOptions } from 'fabric/fabric-impl';
  * - backgroundFill ✅ - Rect fill
  * - objectPosition (set) ✅ - top-left, top-center, top-right, center-left, center, center-right, bottom-left, bottom-center, bottom-right
  */
-export type FillOptions = IGradientOptions | IPatternOptions | string;
-export type ObjectPosition =
-	| 'top-left'
-	| 'top-center'
-	| 'top-right'
-	| 'center-left'
-	| 'center'
-	| 'center-right'
-	| 'bottom-left'
-	| 'bottom-center'
-	| 'bottom-right';
 
-export type Border = {
-	width: number;
-	color: string;
-	style: 'dashed' | 'solid';
-};
-
-export interface ObjectContainerOptions extends fabric.IGroupOptions {
-	containerProperties: {
-		objectPosition: ObjectPosition;
-		border: Border;
-	};
+export interface ObjectContainerOptions extends Omit<fabric.IGroupOptions, 'fill'> {
+	properties: Properties;
 	objects: fabric.Object[];
 }
+
+const defaultProperties: Properties = {
+	objectPosition: 'center',
+	border: {
+		color: 'transparent',
+		style: 'solid',
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+	},
+	fill: 'transparent',
+	padding: {
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+	},
+	radius: {
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+	},
+	objectFit: 'fit',
+};
 
 export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	type: 'object-container',
@@ -50,9 +57,8 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			width: options.width,
 			height: options.height,
 		});
-		const { fill, ...rest } = options;
 
-		this.callSuper('initialize', [backgroundRect], rest);
+		this.callSuper('initialize', [backgroundRect], options);
 
 		this.clipPath = new fabric.Rect({
 			left: -this.width / 2,
@@ -60,28 +66,55 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			width: this.width,
 			height: this.height,
 		});
+		this.setProperties(options.properties || defaultProperties);
+	},
 
-		this.set({
-			containerProperties: options.containerProperties || {
-				objectPosition: 'center',
-				border: { width: 0, color: 'transparent', style: 'solid' },
-			},
-		});
-		if (fill) {
-			this._fillBackground(fill);
+	setProperties(properties: ObjectContainerOptions['properties']) {
+		// Check whatever properties are set or not
+
+		const props = { ...defaultProperties, ...properties };
+		if (props.fill) {
+			this._fillBackground(props.fill);
 		}
+
+		if (props.objectPosition && this.getObject()) {
+			this.setObjectPosition(props.objectPosition);
+		}
+
+		// if (properties.padding) {
+		// 	this.setPadding(properties.padding);
+		// }
+
+		// if (properties.radius) {
+		// 	this.setRadius(properties.radius);
+		// }
+
+		// if (properties.border) {
+		// 	this.setBorder(properties.border);
+		// }
+
+		this.properties = props;
+		this.setCoords();
 	},
 
 	getBackgroundObject(): fabric.Rect {
+		const background = this.getObjects()[0] as fabric.Rect;
+		if (!background) {
+			null;
+		}
 		return this.getObjects()[0] as fabric.Rect;
 	},
 
 	getObject(): fabric.Object {
+		const object = this.getObjects()[1];
+		if (!object) {
+			null;
+		}
 		return this.getObjects()[1];
 	},
 
-	_setContainerProperty(property: keyof ObjectContainerOptions['containerProperties'], value: any) {
-		this.set({ containerProperties: { ...this.containerProperties, [property]: value } });
+	_setContainerProperty(property: keyof ObjectContainerOptions['properties'], value: any) {
+		this.set({ properties: { ...this.properties, [property]: value } });
 	},
 
 	_fillBackground(fill: IGradientOptions | IPatternOptions | string) {
@@ -273,24 +306,14 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	toObject(propertiesToInclude: string[] = []) {
 		return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
-			containerProperties: this.containerProperties,
+			properties: this.properties,
 		});
 	},
 });
 
 ObjectContainer.fromObject = (object: ObjectContainerOptions, callback: (obj: fabric.ObjectContainer) => void) => {
 	const objectContainer = new ObjectContainer(object) as fabric.ObjectContainer;
-
-	// Set fill from object
-	const fill = object.objects[0].fill as FillOptions;
-	objectContainer._fillBackground(fill);
-
-	const objectPosition = object.containerProperties.objectPosition;
-	if (objectPosition) {
-		objectContainer._setContainerProperty('objectPosition', objectPosition);
-	}
-
-	console.log('Loading ObjectContainer from object', object);
+	objectContainer.setProperties(object.properties);
 	callback(objectContainer);
 };
 

@@ -22,7 +22,7 @@ import {
 import { fabric } from 'fabric';
 import React, { useEffect } from 'react';
 import SectionTitle from '../../components/SectionTitle';
-import { ObjectPosition } from '../fabricContainer/ObjectContainer';
+import { ObjectPosition } from '../fabricContainer/types';
 
 interface Props {
 	currentSelectedElements: fabric.Object[];
@@ -40,7 +40,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		const scale = container.getObject().scaleX;
 		if (scale) {
 			setZoomValue(scale * 100);
-			const layoutPosition = container.containerProperties?.objectPosition;
+			const layoutPosition = container.properties.objectPosition;
 			if (layoutPosition) {
 				setLayoutPosition(layoutPosition);
 			}
