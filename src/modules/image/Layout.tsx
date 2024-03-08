@@ -34,39 +34,13 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const [layoutPosition, setLayoutPosition] = React.useState<ObjectPosition | null>(null);
 	const theme = useMantineTheme();
 
-	// const getCurrentLayoutPosition = () => {
-	// 	const container = currentSelectedElements[0] as fabric.ImageContainer;
-	// 	const object = container.getObject();
-	// 	if (object.originX === 'left' && object.originY === 'top') {
-	// 		return 'top-left';
-	// 	} else if (object.originX === 'center' && object.originY === 'top') {
-	// 		return 'top-center';
-	// 	} else if (object.originX === 'right' && object.originY === 'top') {
-	// 		return 'top-right';
-	// 	} else if (object.originX === 'left' && object.originY === 'center') {
-	// 		return 'center-left';
-	// 	} else if (object.originX === 'center' && object.originY === 'center') {
-	// 		return 'center';
-	// 	} else if (object.originX === 'right' && object.originY === 'center') {
-	// 		return 'center-right';
-	// 	} else if (object.originX === 'left' && object.originY === 'bottom') {
-	// 		return 'bottom-left';
-	// 	} else if (object.originX === 'center' && object.originY === 'bottom') {
-	// 		return 'bottom-center';
-	// 	} else if (object.originX === 'right' && object.originY === 'bottom') {
-	// 		return 'bottom-right';
-	// 	} else {
-	// 		return null;
-	// 	}
-	// };
-
 	useEffect(() => {
 		// Get the scale of the image from inside the group
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		const scale = container.getObject().scaleX;
 		if (scale) {
 			setZoomValue(scale * 100);
-			const layoutPosition = container.containerProperties.objectPosition;
+			const layoutPosition = container.containerProperties?.objectPosition;
 			if (layoutPosition) {
 				setLayoutPosition(layoutPosition);
 			}
