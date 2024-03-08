@@ -9,6 +9,8 @@ declare module 'fabric' {
 			src?: string;
 			loadImage(src: string): Promise<Imagebox>;
 			renderImage(image: FabricImage): Promise<Imagebox>;
+			getBackground(): fabric.Rect;
+			getElement(): fabric.Image;
 		}
 	}
 }
@@ -25,13 +27,25 @@ interface SerializedImagebox extends fabric.Group {
 	height: number;
 	left?: number;
 	top?: number;
-	objects: fabric.Image[]; // Adjust to match the shape of the serialized objects
+	objects: [fabric.Rect, fabric.Image]; // Adjust to match the shape of the serialized objects
 }
 
 export const Imagebox = fabric.util.createClass(fabric.Group, {
 	type: 'imagebox',
 	initialize(options: ImageboxOptions) {
-		this.callSuper('initialize', [], options);
+		const backgroundRect = new fabric.Rect({
+			fill: '#e3e3e3',
+			width: options.width,
+			height: options.height,
+		}); // Create a background rect here
+		this.callSuper('initialize', [backgroundRect], options);
+		this.clipPath = new fabric.Rect({
+			left: -this.width / 2,
+			top: -this.height / 2,
+			width: this.width,
+			height: this.height,
+			strokeWidth: 0,
+		});
 		this.src = options.src;
 	},
 	async loadImage(src: string): Promise<fabric.Imagebox> {
@@ -51,16 +65,7 @@ export const Imagebox = fabric.util.createClass(fabric.Group, {
 						data: { id: generateId() },
 					});
 					this.add(img);
-
-					this.clipPath = new fabric.Rect({
-						left: -this.width / 2,
-						top: -this.height / 2,
-						width: this.width,
-						height: this.height,
-					});
 					this.set({
-						width: this.width,
-						height: this.height,
 						src,
 					});
 					this.setCoords();
@@ -89,15 +94,7 @@ export const Imagebox = fabric.util.createClass(fabric.Group, {
 						height: image.height,
 					});
 					this.add(img);
-
-					this.clipPath = new fabric.Rect({
-						left: -this.width / 2,
-						top: -this.height / 2,
-						width: this.width,
-						height: this.height,
-					});
 					this.setCoords();
-					this.set('dirty', true);
 					resolve(this);
 				},
 				{ crossOrigin: 'anonymous' },
@@ -108,7 +105,15 @@ export const Imagebox = fabric.util.createClass(fabric.Group, {
 		return fabric.util.object.extend(this.callSuper('toObject'), {
 			src: this.src,
 			data: this.data,
+			scaleX: this.scaleX,
+			scaleY: this.scaleY,
 		});
+	},
+	getBackground(): fabric.Rect {
+		return this.getObjects()[0] as fabric.Rect;
+	},
+	getElement(): fabric.Image {
+		return this.getObjects()[1] as fabric.Image;
 	},
 });
 
@@ -121,7 +126,7 @@ Imagebox.fromObject = (object: SerializedImagebox, callback: (imagebox: fabric.G
 
 	if (object.src) {
 		fabric.util.enlivenObjects(
-			[object.objects[0]],
+			[object.objects[1]],
 			([image]: fabric.Image[]) => {
 				imagebox.renderImage(image).then(() => {
 					callback(imagebox);

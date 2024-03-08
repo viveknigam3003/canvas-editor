@@ -19,7 +19,6 @@ import {
 	IconAlignBoxTopCenter,
 	IconAlignBoxTopCenterFilled,
 } from '@tabler/icons-react';
-import { Group as FabricGroup } from 'fabric/fabric-impl';
 import { fabric } from 'fabric';
 import React, { useEffect } from 'react';
 import SectionTitle from '../../components/SectionTitle';
@@ -46,8 +45,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const theme = useMantineTheme();
 
 	const getCurrentLayoutPosition = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		if (subElement.originX === 'left' && subElement.originY === 'top') {
 			return 'top-left';
 		} else if (subElement.originX === 'center' && subElement.originY === 'top') {
@@ -73,7 +72,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 
 	useEffect(() => {
 		// Get the scale of the image from inside the group
-		const scale = (currentSelectedElements[0] as FabricGroup).getObjects()[0].scaleX;
+		const scale = (currentSelectedElements[0] as fabric.ImageContainer).getElement().scaleX;
 		if (scale) {
 			setZoomValue(scale * 100);
 			const layoutPosition = getCurrentLayoutPosition();
@@ -86,13 +85,13 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const updateZoomValue = (value: number) => {
 		setZoomValue(value);
 		// Update the scale of the image inside the group
-		(currentSelectedElements[0] as FabricGroup).getObjects()[0].scale(value / 100);
+		(currentSelectedElements[0] as fabric.ImageContainer).getElement().scale(value / 100);
 		canvas.renderAll();
 	};
 
 	const resetElementZoom = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 
 		const isWide = subElement.width! / subElement.height! > element.width! / element.height!;
 		if (isWide) {
@@ -106,8 +105,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToTopLeft = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: -element.width! / 2,
 			top: -element.height! / 2,
@@ -120,8 +119,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToTopRight = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: element.width! / 2,
 			top: -element.height! / 2,
@@ -134,8 +133,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToBottomLeft = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: -element.width! / 2,
 			top: element.height! / 2,
@@ -148,8 +147,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToBottomRight = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: element.width! / 2,
 			top: element.height! / 2,
@@ -162,8 +161,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToTopCenter = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: 0,
 			top: -element.height! / 2,
@@ -176,8 +175,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToBottomCenter = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: 0,
 			top: element.height! / 2,
@@ -190,8 +189,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToCenterRight = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: element.width! / 2,
 			top: 0,
@@ -204,8 +203,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToCenterLeft = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: -element.width! / 2,
 			top: 0,
@@ -218,8 +217,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	};
 
 	const alignElementToCenter = () => {
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 		subElement.set({
 			left: 0,
 			top: 0,
@@ -233,8 +232,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 
 	const fitImageInContainer = () => {
 		// Fit the image in container maintaining the aspect ratio
-		const element = currentSelectedElements[0] as FabricGroup;
-		const subElement = element.getObjects()[0];
+		const element = currentSelectedElements[0] as fabric.ImageContainer;
+		const subElement = element.getElement();
 
 		// Calculate scale based on if the image is wider or taller than the container
 		// If the image is wider than the container, scale it to fit the width

@@ -11,7 +11,7 @@ import { getArtboardCenter } from '../artboard/helpers';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
-import { Imagebox } from '../image/Imagebox';
+import { ImageContainer } from '../fabricContainer/ImageContainer';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -102,8 +102,6 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 	};
 
 	const addImageFromUrl = async () => {
-		// const src =
-		// 'https://ik.imagekit.io/mfsshclpl/A%20man%20and%20a%20woman%20walking%20in%20the%20desert.jpg?updatedAt=1699352535525';
 		const src_2 =
 			'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
@@ -117,15 +115,17 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			return;
 		}
 
-		const box = new Imagebox({
+		const container = new ImageContainer({
 			width: containerWidth,
 			height: containerHeight,
 			data: {
 				id: generateId(),
 			},
-		});
-		await box.loadImage(src_2);
-		canvas.add(box);
+			fill: 'red',
+		}) as fabric.ImageContainer;
+
+		await container.loadImage(src_2);
+		canvas.add(container);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();
