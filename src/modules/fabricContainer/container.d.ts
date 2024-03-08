@@ -1,6 +1,6 @@
 import 'fabric';
 import { ObjectPosition } from './ObjectContainer';
-import { Properties } from './types';
+import { ObjectFit, Properties } from './types';
 
 declare module 'fabric' {
 	namespace fabric {
@@ -13,9 +13,11 @@ declare module 'fabric' {
 		}
 		interface ImageContainer extends ObjectContainer {
 			src: string;
+			fitScale?: number;
+			fillScale?: number;
 			loadImage(): Promise<fabric.ImageContainer>;
 			renderImage(image: fabric.Image): Promise<fabric.ImageContainer>;
-			fitImageToContainer(): void;
+			setObjectFit(fit: ObjectFit): void;
 		}
 	}
 }
