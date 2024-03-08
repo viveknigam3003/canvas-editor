@@ -12,6 +12,7 @@ declare module 'fabric' {
 			getObject(): fabric.Object;
 			setObjectPosition(position: ObjectPosition): void;
 			_fillBackground(fill: FillOptions): void;
+			_setContainerProperty(property: string, value: any): void;
 		}
 		interface ImageContainer extends ObjectContainer {
 			type: string;

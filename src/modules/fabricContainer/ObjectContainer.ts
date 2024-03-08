@@ -28,9 +28,16 @@ export type ObjectPosition =
 	| 'bottom-center'
 	| 'bottom-right';
 
+export type Border = {
+	width: number;
+	color: string;
+	style: 'dashed' | 'solid';
+};
+
 export interface ObjectContainerOptions extends fabric.IGroupOptions {
 	containerProperties: {
 		objectPosition: ObjectPosition;
+		border: Border;
 	};
 	objects: fabric.Object[];
 }
@@ -44,7 +51,9 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			height: options.height,
 		});
 		const { fill, ...rest } = options;
+
 		this.callSuper('initialize', [backgroundRect], rest);
+
 		this.clipPath = new fabric.Rect({
 			left: -this.width / 2,
 			top: -this.height / 2,
@@ -52,10 +61,12 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			height: this.height,
 		});
 
-		const objectPosition = this._calculateObjectPosition();
-		if (objectPosition) {
-			this._setContainerProperty('objectPosition', objectPosition);
-		}
+		this.set({
+			containerProperties: options.containerProperties || {
+				objectPosition: 'center',
+				border: { width: 0, color: 'transparent', style: 'solid' },
+			},
+		});
 		if (fill) {
 			this._fillBackground(fill);
 		}
@@ -269,8 +280,17 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 ObjectContainer.fromObject = (object: ObjectContainerOptions, callback: (obj: fabric.ObjectContainer) => void) => {
 	const objectContainer = new ObjectContainer(object) as fabric.ObjectContainer;
+
+	// Set fill from object
 	const fill = object.objects[0].fill as FillOptions;
 	objectContainer._fillBackground(fill);
+
+	const objectPosition = object.containerProperties.objectPosition;
+	if (objectPosition) {
+		objectContainer._setContainerProperty('objectPosition', objectPosition);
+	}
+
+	console.log('Loading ObjectContainer from object', object);
 	callback(objectContainer);
 };
 

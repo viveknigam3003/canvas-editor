@@ -94,7 +94,6 @@ ImageContainer.fromObject = (
 	object: ImageContainerOptions,
 	callback: (imageContainer: fabric.ImageContainer) => void,
 ) => {
-	console.log('Loading ImageContainer from object', object);
 	const imagebox = new ImageContainer({
 		...object,
 		src: object.src,
@@ -102,6 +101,11 @@ ImageContainer.fromObject = (
 
 	const fill = object.objects[0].fill as FillOptions;
 	imagebox._fillBackground(fill);
+
+	const objectPosition = object.containerProperties.objectPosition;
+	if (objectPosition) {
+		imagebox._setContainerProperty('objectPosition', objectPosition);
+	}
 
 	if (object.src) {
 		fabric.util.enlivenObjects(
