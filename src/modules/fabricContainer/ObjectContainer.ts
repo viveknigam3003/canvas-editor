@@ -32,10 +32,11 @@ export interface ObjectContainerOptions extends fabric.IGroupOptions {
 	containerProperties: {
 		objectPosition: ObjectPosition;
 	};
+	objects: fabric.Object[];
 }
 
 export const ObjectContainer = fabric.util.createClass(fabric.Group, {
-	type: 'container',
+	type: 'object-container',
 	initialize(options: ObjectContainerOptions) {
 		const backgroundRect = new fabric.Rect({
 			fill: 'transparent',
@@ -61,11 +62,11 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	},
 
 	getBackgroundObject(): fabric.Rect {
-		return this.getObjects()[0] as fabric.Rect;
+		return this._objects[0] as fabric.Rect;
 	},
 
 	getObject(): fabric.Object {
-		return this.getObjects()[1];
+		return this._objects[1];
 	},
 
 	_setContainerProperty(property: keyof ObjectContainerOptions['containerProperties'], value: any) {
@@ -266,10 +267,11 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	},
 });
 
-ObjectContainer.fromObject = (options: ObjectContainerOptions, callback: (obj: fabric.ObjectContainer) => void) => {
-	console.log('Loading ObjectContainer from object', options);
-	const object = new ObjectContainer(options) as fabric.ObjectContainer;
-	callback(object);
+ObjectContainer.fromObject = (object: ObjectContainerOptions, callback: (obj: fabric.ObjectContainer) => void) => {
+	const objectContainer = new ObjectContainer(object) as fabric.ObjectContainer;
+	const fill = object.objects[0].fill as FillOptions;
+	objectContainer._fillBackground(fill);
+	callback(objectContainer);
 };
 
 (fabric as any).ObjectContainer = ObjectContainer;

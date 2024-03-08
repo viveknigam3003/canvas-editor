@@ -4,6 +4,7 @@ import { FillOptions, ObjectContainer, ObjectContainerOptions } from './ObjectCo
 
 export interface ImageContainerOptions extends ObjectContainerOptions {
 	src: string;
+	objects: [fabric.Rect, fabric.Image];
 }
 
 /**
@@ -89,13 +90,8 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 	},
 });
 
-interface SerializedImageContainer extends ImageContainerOptions {
-	src: string;
-	objects: [fabric.Rect, fabric.Image];
-}
-
 ImageContainer.fromObject = (
-	object: SerializedImageContainer,
+	object: ImageContainerOptions,
 	callback: (imageContainer: fabric.ImageContainer) => void,
 ) => {
 	console.log('Loading ImageContainer from object', object);
@@ -121,10 +117,7 @@ ImageContainer.fromObject = (
 		callback(imagebox);
 	}
 };
-(fabric as any).ObjectContainer = ObjectContainer;
-(fabric as any).ObjectContainer.fromObject = ObjectContainer.fromObject;
 
-fabric.Object._fromObject('ObjectContainer', ObjectContainer.fromObject);
 (fabric as any).ImageContainer = ImageContainer;
 (fabric as any).ImageContainer.fromObject = ImageContainer.fromObject;
 
