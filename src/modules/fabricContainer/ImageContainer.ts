@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
-import { ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
 import { generateId } from '../..';
+import { ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
 
 export interface ImageContainerOptions extends ObjectContainerOptions {
 	src: string;
