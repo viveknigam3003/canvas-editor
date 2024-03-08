@@ -22,7 +22,7 @@ import {
 import { fabric } from 'fabric';
 import React, { useEffect } from 'react';
 import SectionTitle from '../../components/SectionTitle';
-import { ObjectPosition } from '../fabricContainer/types';
+import { ObjectFit, ObjectPosition } from '../fabricContainer/types';
 
 interface Props {
 	currentSelectedElements: fabric.Object[];
@@ -32,6 +32,7 @@ interface Props {
 const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const [zoomValue, setZoomValue] = React.useState(0);
 	const [layoutPosition, setLayoutPosition] = React.useState<ObjectPosition | null>(null);
+	const [objectFit, setObjectFit] = React.useState<ObjectFit>('custom');
 	const theme = useMantineTheme();
 
 	useEffect(() => {
@@ -44,8 +45,22 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 			if (layoutPosition) {
 				setLayoutPosition(layoutPosition);
 			}
+			const fit = container.properties.objectFit;
+			if (fit) {
+				setObjectFit(fit);
+			}
 		}
 	}, [currentSelectedElements]);
+
+	useEffect(() => {
+		// When scale is not fitScale or fillScale, set custom
+		const container = currentSelectedElements[0] as fabric.ImageContainer;
+		const scale = container.getObject().scaleX;
+		if (scale !== container.fitScale && scale !== container.fillScale) {
+			setObjectFit('custom');
+			container.setObjectFit('custom');
+		}
+	}, [(currentSelectedElements[0] as fabric.ImageContainer).getObject().scaleX]);
 
 	const updateZoomValue = (value: number) => {
 		setZoomValue(value);
@@ -54,18 +69,20 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		canvas.renderAll();
 	};
 
-	const resetElementZoom = () => {
+	const fillImageInContainer = () => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
-		const object = container.getObject();
+		container.setObjectFit('fill');
+		setZoomValue(container.fillScale! * 100);
+		setObjectFit('fill');
+		canvas.renderAll();
+	};
 
-		const isWide = object.width! / object.height! > container.width! / container.height!;
-		if (isWide) {
-			object.scaleToHeight(container.height!);
-			setZoomValue(object.scaleY! * 100);
-		} else {
-			object.scaleToWidth(container.width!);
-			setZoomValue(object.scaleX! * 100);
-		}
+	const fitImageInContainer = () => {
+		// Fit the image in container maintaining the aspect ratio
+		const container = currentSelectedElements[0] as fabric.ImageContainer;
+		container.setObjectFit('fit');
+		setZoomValue(container.fitScale! * 100);
+		setObjectFit('fit');
 		canvas.renderAll();
 	};
 
@@ -73,14 +90,6 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		container.setObjectPosition(position);
 		setLayoutPosition(position);
-		canvas.renderAll();
-	};
-
-	const fitImageInContainer = () => {
-		// Fit the image in container maintaining the aspect ratio
-		const container = currentSelectedElements[0] as fabric.ImageContainer;
-		container.fitImageToContainer();
-		setZoomValue(container.getObject().scaleX! * 100);
 		canvas.renderAll();
 	};
 
@@ -97,8 +106,12 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 				stepHoldDelay={100}
 				stepHoldInterval={50}
 			/>
-			<Button onClick={resetElementZoom}>Fill image in container</Button>
-			<Button onClick={fitImageInContainer}>Fit in container</Button>
+			<Button onClick={fillImageInContainer} variant={objectFit === 'fill' ? 'filled' : 'outline'}>
+				Fill image in container
+			</Button>
+			<Button onClick={fitImageInContainer} variant={objectFit === 'fit' ? 'filled' : 'outline'}>
+				Fit in container
+			</Button>
 			<SectionTitle>Layout</SectionTitle>
 			<Group>
 				<ActionIcon
