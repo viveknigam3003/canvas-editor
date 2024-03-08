@@ -1,4 +1,5 @@
 import { fabric } from 'fabric';
+import { IGradientOptions, IPatternOptions } from 'fabric/fabric-impl';
 
 /**
  * Object container
@@ -15,7 +16,7 @@ import { fabric } from 'fabric';
  * - backgroundFill ✅ - Rect fill
  * - objectPosition (set) ✅ - top-left, top-center, top-right, center-left, center, center-right, bottom-left, bottom-center, bottom-right
  */
-
+export type FillOptions = IGradientOptions | IPatternOptions | string;
 export type ObjectPosition =
 	| 'top-left'
 	| 'top-center'
@@ -37,11 +38,12 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	type: 'container',
 	initialize(options: ObjectContainerOptions) {
 		const backgroundRect = new fabric.Rect({
-			fill: options.fill || 'transparent',
+			fill: 'transparent',
 			width: options.width,
 			height: options.height,
 		});
-		this.callSuper('initialize', [backgroundRect], options);
+		const { fill, ...rest } = options;
+		this.callSuper('initialize', [backgroundRect], rest);
 		this.clipPath = new fabric.Rect({
 			left: -this.width / 2,
 			top: -this.height / 2,
@@ -53,19 +55,47 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		if (objectPosition) {
 			this._setContainerProperty('objectPosition', objectPosition);
 		}
+		if (fill) {
+			this._fillBackground(fill);
+		}
 	},
-	fillBackground(fill: fabric.Rect['fill']) {
-		this.getBackgrounElement().set({ fill });
-		this.setCoords();
-	},
+
 	getBackgroundObject(): fabric.Rect {
 		return this.getObjects()[0] as fabric.Rect;
 	},
+
 	getObject(): fabric.Object {
 		return this.getObjects()[1];
 	},
+
 	_setContainerProperty(property: keyof ObjectContainerOptions['containerProperties'], value: any) {
 		this.set({ containerProperties: { ...this.containerProperties, [property]: value } });
+	},
+
+	_fillBackground(fill: IGradientOptions | IPatternOptions | string) {
+		if (typeof fill === 'undefined') {
+			return;
+		}
+
+		if (typeof fill === 'string') {
+			this.getBackgroundObject().set({ fill });
+			this.setCoords();
+			return;
+		}
+
+		if (typeof fill === 'object') {
+			if ((fill as IGradientOptions).type === 'linear' || (fill as IGradientOptions).type === 'radial') {
+				const gradient = new fabric.Gradient(fill);
+				this.getBackgroundObject().set({ fill: gradient });
+				this.setCoords();
+				return;
+			} else if ((fill as IPatternOptions).source) {
+				const pattern = new fabric.Pattern(fill as IPatternOptions);
+				this.getBackgroundObject().set({ fill: pattern });
+				this.setCoords();
+				return;
+			}
+		}
 	},
 
 	_calculateObjectPosition(): ObjectPosition {
@@ -237,7 +267,8 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 });
 
 ObjectContainer.fromObject = (options: ObjectContainerOptions, callback: (obj: fabric.ObjectContainer) => void) => {
-	const object = new ObjectContainer(options);
+	console.log('Loading ObjectContainer from object', options);
+	const object = new ObjectContainer(options) as fabric.ObjectContainer;
 	callback(object);
 };
 

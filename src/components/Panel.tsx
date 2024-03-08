@@ -42,7 +42,7 @@ const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArt
 					<Divider />
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
 
-					{currentSelectedElements?.[0].type?.includes('container') && (
+					{currentSelectedElements?.[0].type === 'image-container' && (
 						<Stack>
 							<SectionTitle>Element adjustment</SectionTitle>
 							<Layout currentSelectedElements={currentSelectedElements} canvas={canvas} />

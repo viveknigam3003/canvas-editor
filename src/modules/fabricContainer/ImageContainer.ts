@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import { generateId } from '../..';
-import { ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
+import { FillOptions, ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
 
 export interface ImageContainerOptions extends ObjectContainerOptions {
 	src: string;
@@ -72,6 +72,13 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 			);
 		});
 	},
+	fitImageToContainer() {
+		const object = this.getObject();
+		const isWide = object.width! / object.height! > this.width / this.height;
+		const scale = isWide ? this.width / object.width! : this.height / object.height!;
+		object.scale(scale);
+		this.setCoords();
+	},
 	toObject(propertiesToInclude: string[] = []) {
 		return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
 			src: this.src,
@@ -91,10 +98,14 @@ ImageContainer.fromObject = (
 	object: SerializedImageContainer,
 	callback: (imageContainer: fabric.ImageContainer) => void,
 ) => {
+	console.log('Loading ImageContainer from object', object);
 	const imagebox = new ImageContainer({
 		...object,
 		src: object.src,
 	}) as fabric.ImageContainer;
+
+	const fill = object.objects[0].fill as FillOptions;
+	imagebox._fillBackground(fill);
 
 	if (object.src) {
 		fabric.util.enlivenObjects(
@@ -110,7 +121,10 @@ ImageContainer.fromObject = (
 		callback(imagebox);
 	}
 };
+(fabric as any).ObjectContainer = ObjectContainer;
+(fabric as any).ObjectContainer.fromObject = ObjectContainer.fromObject;
 
+fabric.Object._fromObject('ObjectContainer', ObjectContainer.fromObject);
 (fabric as any).ImageContainer = ImageContainer;
 (fabric as any).ImageContainer.fromObject = ImageContainer.fromObject;
 
