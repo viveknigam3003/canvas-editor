@@ -167,7 +167,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 
 		await container.loadImage();
 		canvas.add(container);
-		// canvas.add(oc);
+		canvas.add(oc);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();

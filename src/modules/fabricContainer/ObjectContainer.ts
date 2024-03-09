@@ -13,8 +13,13 @@ import { ObjectPosition, Properties } from './types';
  *
  * // addtional - containerProps
  * - padding - { top, right, bottom, left }
- * - border - { width, color, style: 'dashed' | 'solid' }
- * - backgroundFill ✅ - Rect fill
+ * - radius - { top, right, bottom, left }
+ *
+ * - border - ✅ { width, color, style: 'solid' | 'dashed ⚠️', position: 'center' | 'inside ⚠️' | 'outside ⚠️', dashWidth ⚠️, dashGap ⚠️, dashCap ⚠️ }
+ *   - TODO: Implement border position
+ *   - TODO: Implement dashed border
+ * - fill - ✅ - string | IGradientOptions | IPatternOptions
+ * - objectFit - 'fill' | 'fit' | 'custom' ✅
  * - objectPosition (set) ✅ - top-left, top-center, top-right, center-left, center, center-right, bottom-left, bottom-center, bottom-right
  */
 
