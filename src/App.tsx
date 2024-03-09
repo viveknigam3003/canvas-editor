@@ -168,7 +168,6 @@ const useStyles = createStyles(theme => ({
 
 function App() {
 	const dispatch = useDispatch();
-	console.log('first');
 	const artboards = useSelector((state: RootState) => state.app.artboards);
 	const activeArtboard = useSelector((state: RootState) => state.app.activeArtboard);
 	const selectedArtboards = useSelector((state: RootState) => state.app.selectedArtboards);

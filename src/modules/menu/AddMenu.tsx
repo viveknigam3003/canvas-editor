@@ -8,11 +8,11 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { updateActiveArtboardLayers } from '../app/actions';
 import { getArtboardCenter } from '../artboard/helpers';
-import { ImageContainer } from '../fabricContainer/ImageContainer';
 import { ObjectContainer } from '../fabricContainer/ObjectContainer';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
+import { ImageContainer } from '../fabricContainer/ImageContainer';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -132,6 +132,15 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 						{ offset: 1, color: '#ff223f' },
 					],
 				}),
+				// fill: '#e3e3e3',
+				border: {
+					color: 'blue',
+					style: 'dashed',
+					top: 8,
+					bottom: 3,
+					left: 5,
+					right: 2,
+				},
 			},
 		}) as fabric.ImageContainer;
 
@@ -144,13 +153,21 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			left: 100,
 			top: 100,
 			properties: {
-				fill: 'blue',
+				fill: '#e3e3e3',
+				border: {
+					color: 'red',
+					style: 'dashed',
+					top: 8,
+					bottom: 3,
+					left: 5,
+					right: 2,
+				},
 			},
 		}) as fabric.ObjectContainer;
 
 		await container.loadImage();
 		canvas.add(container);
-		canvas.add(oc);
+		// canvas.add(oc);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();

@@ -32,6 +32,10 @@ const defaultProperties: Properties = {
 		right: 0,
 		bottom: 0,
 		left: 0,
+		position: 'center',
+		dashWidth: 5,
+		dashGap: 2,
+		dashCap: 'butt',
 	},
 	fill: 'transparent',
 	padding: {
@@ -85,17 +89,17 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			this.setObjectFit(props.objectFit);
 		}
 
-		// if (properties.padding) {
-		// 	this.setPadding(properties.padding);
+		// if (props.padding) {
+		// 	this.setPadding(props.padding);
 		// }
 
-		// if (properties.radius) {
-		// 	this.setRadius(properties.radius);
+		// if (props.radius) {
+		// 	this.setRadius(props.radius);
 		// }
 
-		// if (properties.border) {
-		// 	this.setBorder(properties.border);
-		// }
+		if (props.border) {
+			this.setBorder(props.border);
+		}
 
 		this.properties = props;
 		this.setCoords();
@@ -307,10 +311,135 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			throw new Error('Invalid position');
 		}
 	},
+
+	setBorder(border: Properties['border']) {
+		if (border) {
+			this.set({
+				properties: {
+					...this.properties,
+					border,
+				},
+			});
+		}
+	},
+
+	_drawBorderSide(ctx: CanvasRenderingContext2D, side: 'top' | 'right' | 'bottom' | 'left') {
+		if (!this.properties.border) {
+			return;
+		}
+
+		const borderWidth = this.properties.border[side];
+		if (borderWidth <= 0) {
+			return; // Skip if border width is zero or negative
+		}
+
+		ctx.strokeStyle = this.properties.border.color;
+		ctx.lineWidth = borderWidth;
+
+		const scaledWidth = this.width * this.scaleX;
+		const scaledHeight = this.height * this.scaleY;
+
+		// Draw the border
+		let startX, startY, endX, endY;
+		switch (side) {
+			case 'top':
+				startX = this.left;
+				startY = this.top;
+				endX = this.left + scaledWidth;
+				endY = this.top;
+				break;
+			case 'right':
+				startX = this.left + scaledWidth;
+				startY = this.top;
+				endX = this.left + scaledWidth;
+				endY = this.top + scaledHeight;
+				break;
+			case 'bottom':
+				startX = this.left;
+				startY = this.top + scaledHeight;
+				endX = this.left + scaledWidth;
+				endY = this.top + scaledHeight;
+				break;
+			case 'left':
+				startX = this.left;
+				startY = this.top;
+				endX = this.left;
+				endY = this.top + scaledHeight;
+				break;
+		}
+
+		// These adjustments are just considering that border is placed in 'center'.
+		// TODO: Handle cases for 'inside' and 'outside' border separately
+		if (side === 'top') {
+			if (this.properties.border.right > 0) {
+				endX += this.properties.border.right / 2;
+			}
+			if (this.properties.border.left > 0) {
+				startX -= this.properties.border.left / 2;
+			}
+		}
+
+		if (side === 'right') {
+			if (this.properties.border.top > 0) {
+				startY -= this.properties.border.top / 2;
+			}
+			if (this.properties.border.bottom > 0) {
+				endY += this.properties.border.bottom / 2;
+			}
+		}
+
+		if (side === 'bottom') {
+			if (this.properties.border.right > 0) {
+				endX += this.properties.border.right / 2;
+			}
+			if (this.properties.border.left > 0) {
+				startX -= this.properties.border.left / 2;
+			}
+		}
+
+		if (side === 'left') {
+			if (this.properties.border.top > 0) {
+				startY -= this.properties.border.top / 2;
+			}
+			if (this.properties.border.bottom > 0) {
+				endY += this.properties.border.bottom / 2;
+			}
+		}
+
+		ctx.beginPath();
+		ctx.moveTo(startX, startY);
+		ctx.lineTo(endX, endY);
+		ctx.stroke();
+	},
+
 	toObject(propertiesToInclude: string[] = []) {
 		return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
 			properties: this.properties,
 		});
+	},
+
+	render(ctx: CanvasRenderingContext2D) {
+		this.callSuper('render', ctx);
+
+		// Save the current context
+		ctx.save();
+
+		// Draw each border considering its style
+		if (this.properties.border.top) {
+			this._drawBorderSide(ctx, 'top');
+		}
+		if (this.properties.border.right) {
+			this._drawBorderSide(ctx, 'right');
+		}
+		if (this.properties.border.bottom) {
+			this._drawBorderSide(ctx, 'bottom');
+		}
+		if (this.properties.border.left) {
+			this._drawBorderSide(ctx, 'left');
+		}
+
+		// Restore the context to its original state
+		ctx.restore();
 	},
 });
 

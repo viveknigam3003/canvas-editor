@@ -13,6 +13,8 @@ export type ObjectPosition =
 	| 'bottom-center'
 	| 'bottom-right';
 
+export type BorderPosition = 'center' | 'inside' | 'outside';
+
 export type Border = {
 	color: string;
 	style: 'dashed' | 'solid';
@@ -20,6 +22,10 @@ export type Border = {
 	right: number;
 	bottom: number;
 	left: number;
+	position?: BorderPosition;
+	dashWidth?: number;
+	dashGap?: number;
+	dashCap?: string;
 };
 
 export type ObjectFit = 'fill' | 'fit' | 'custom';

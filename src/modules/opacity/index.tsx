@@ -18,7 +18,6 @@ const Opacity: React.FC<OpacityProps> = ({ canvas, currentSelectedElements, save
 
 	useEffect(() => {
 		const opacity = currentSelectedElements?.[0]?.opacity;
-		console.log('opacity', opacity);
 		if (opacity) {
 			setOpacity(opacity);
 		}
