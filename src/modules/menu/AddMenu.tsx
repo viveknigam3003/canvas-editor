@@ -12,8 +12,6 @@ import { ObjectContainer } from '../fabricContainer/ObjectContainer';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
-import { ImageContainer } from '../fabricContainer/ImageContainer';
-import { RoundedRect } from '../fabricContainer/RoundedRectangle';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -104,11 +102,11 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 	};
 
 	const addImageFromUrl = async () => {
-		const src_2 =
-			'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+		// const src_2 =
+		// 	'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
-		const containerWidth = 300;
-		const containerHeight = 300;
+		// const containerWidth = 300;
+		// const containerHeight = 300;
 
 		const canvas = canvasRef.current;
 		const artboardId = activeArtboard?.id;
