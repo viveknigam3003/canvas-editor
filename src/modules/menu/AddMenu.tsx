@@ -13,6 +13,7 @@ import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
 import { ImageContainer } from '../fabricContainer/ImageContainer';
+import { RoundedRect } from '../fabricContainer/RoundedRectangle';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -116,36 +117,35 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			return;
 		}
 
-		const container = new ImageContainer({
-			width: containerWidth,
-			height: containerHeight,
-			data: {
-				id: generateId(),
-			},
-			src: src_2,
-			properties: {
-				padding: {
-					top: 20,
-				},
-				fill: new fabric.Gradient({
-					type: 'linear',
-					coords: { x1: 0, y1: 0, x2: 0, y2: containerHeight },
-					colorStops: [
-						{ offset: 0, color: 'rgba(255, 255, 255, 1)' },
-						{ offset: 1, color: '#ff223f' },
-					],
-				}),
-				// fill: '#e3e3e3',
-				// border: {
-				// 	color: 'blue',
-				// 	style: 'dashed',
-				// 	// top: 8,
-				// 	bottom: 5,
-				// 	left: 5,
-				// 	right: 5,
-				// },
-			},
-		}) as fabric.ImageContainer;
+		// const container = new ImageContainer({
+		// 	width: containerWidth,
+		// 	height: containerHeight,
+		// 	data: {
+		// 		id: generateId(),
+		// 	},
+		// 	src: src_2,
+		// 	properties: {
+		// 		padding: {
+		// 			top: 20,
+		// 		},
+		// 		fill: 'red',
+		// 		radius: {
+		// 			tl: 20,
+		// 			tr: 20,
+		// 			br: 20,
+		// 			bl: 20,
+		// 		},
+		// 		// fill: '#e3e3e3',
+		// 		// border: {
+		// 		// 	color: 'blue',
+		// 		// 	style: 'dashed',
+		// 		// 	// top: 8,
+		// 		// 	bottom: 5,
+		// 		// 	left: 5,
+		// 		// 	right: 5,
+		// 		// },
+		// 	},
+		// }) as fabric.ImageContainer;
 
 		// const oc = new ObjectContainer({
 		// 	width: containerWidth,
@@ -168,8 +168,21 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		// 	},
 		// }) as fabric.ObjectContainer;
 
-		await container.loadImage();
-		canvas.add(container);
+		const rr = new RoundedRect({
+			width: 40,
+			height: 40,
+			fill: 'red',
+			cornerRadius: { tl: 10, tr: 10, br: 10, bl: 10 },
+			left: 100,
+			top: 100,
+			data: {
+				id: generateId(),
+			},
+		});
+		canvas.add(rr);
+
+		// await container.loadImage();
+		// canvas.add(container);
 		// canvas.add(oc);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));

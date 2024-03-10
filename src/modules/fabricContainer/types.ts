@@ -38,10 +38,10 @@ export type Padding = {
 };
 
 export type Radius = {
-	top: number;
-	right: number;
-	bottom: number;
-	left: number;
+	tl: number;
+	tr: number;
+	bl: number;
+	br: number;
 };
 
 export type Properties = {

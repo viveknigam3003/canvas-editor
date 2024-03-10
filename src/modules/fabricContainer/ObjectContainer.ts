@@ -1,6 +1,7 @@
 import { fabric } from 'fabric';
 import { IGradientOptions, IPatternOptions } from 'fabric/fabric-impl';
 import { ObjectPosition, Properties } from './types';
+import { RoundedRect } from './RoundedRectangle';
 
 /**
  * Object container
@@ -50,10 +51,10 @@ const defaultProperties: Properties = {
 		left: 0,
 	},
 	radius: {
-		top: 0,
-		right: 0,
-		bottom: 0,
-		left: 0,
+		tl: 0,
+		tr: 0,
+		bl: 0,
+		br: 0,
 	},
 	objectFit: 'fit',
 };
@@ -61,20 +62,32 @@ const defaultProperties: Properties = {
 export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	type: 'object-container',
 	initialize(options: ObjectContainerOptions) {
-		const backgroundRect = new fabric.Rect({
+		const backgroundRect = new RoundedRect({
 			fill: 'transparent',
 			width: options.width,
 			height: options.height,
-		});
+			cornerRadius: {
+				tl: options.properties?.radius?.tl || 0,
+				tr: options.properties?.radius?.tr || 0,
+				bl: options.properties?.radius?.bl || 0,
+				br: options.properties?.radius?.br || 0,
+			},
+		}) as fabric.RoundedRect;
 
 		this.callSuper('initialize', [backgroundRect], options);
 
-		this.clipPath = new fabric.Rect({
+		this.clipPath = new RoundedRect({
 			left: -this.width / 2,
 			top: -this.height / 2,
 			width: this.width,
 			height: this.height,
-		});
+			cornerRadius: {
+				tl: options.properties?.radius?.tl || 0,
+				tr: options.properties?.radius?.tr || 0,
+				bl: options.properties?.radius?.bl || 0,
+				br: options.properties?.radius?.br || 0,
+			},
+		}) as fabric.RoundedRect;
 		this.setProperties(options.properties || defaultProperties);
 	},
 
@@ -99,9 +112,9 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			this.setPadding(props.padding);
 		}
 
-		// if (props.radius) {
-		// 	this.setRadius(props.radius);
-		// }
+		if (props.radius) {
+			this.setRadius(props.radius);
+		}
 
 		if (props.border) {
 			this.setBorder(props.border);
@@ -335,6 +348,16 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			properties: {
 				...this.properties,
 				padding: calculatedPadding,
+			},
+		});
+	},
+
+	setRadius(radius: Properties['radius']) {
+		const calculatedRadius = Object.assign({}, defaultProperties.radius, radius);
+		this.set({
+			properties: {
+				...this.properties,
+				radius: calculatedRadius,
 			},
 		});
 	},
