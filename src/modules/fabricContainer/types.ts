@@ -51,4 +51,12 @@ export type Properties = {
 	padding: Padding;
 	radius: Radius;
 	objectFit: ObjectFit;
+	inner: Inner;
+};
+
+export type Inner = {
+	top: number;
+	left: number;
+	width: number;
+	height: number;
 };

@@ -78,7 +78,6 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 	},
 	_fitImageToContainer() {
 		const object = this.getObject();
-		console.log('Object', object);
 		if (object && this.fitScale) {
 			object.scale(this.fitScale);
 			this.setCoords();
