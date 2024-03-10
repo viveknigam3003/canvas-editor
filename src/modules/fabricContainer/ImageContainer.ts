@@ -36,6 +36,8 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 					this.fitScale = isWide ? this.width / img.width! : this.height / img.height!;
 					this.fillScale = isWide ? this.height / img.height! : this.width / img.width!;
 
+					console.log('Fit Scale', this.fitScale, 'Fill Scale', this.fillScale);
+
 					img.set({
 						originX: 'center',
 						originY: 'center',
@@ -81,6 +83,7 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 		if (object && this.fitScale) {
 			object.scale(this.fitScale);
 			this.setCoords();
+			this._setContainerProperty('objectFit', 'fit');
 		}
 	},
 	_fillImageInContainer() {
@@ -88,15 +91,14 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 		if (object && this.fillScale) {
 			object.scale(this.fillScale);
 			this.setCoords();
+			this._setContainerProperty('objectFit', 'fill');
 		}
 	},
 	setObjectFit(fit: ObjectFit) {
 		if (fit === 'fill') {
 			this._fillImageInContainer();
-			this._setContainerProperty('objectFit', 'fill');
 		} else if (fit === 'fit') {
 			this._fitImageToContainer();
-			this._setContainerProperty('objectFit', 'fit');
 		} else {
 			this._setContainerProperty('objectFit', 'custom');
 		}

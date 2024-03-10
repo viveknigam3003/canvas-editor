@@ -56,12 +56,6 @@ const defaultProperties: Properties = {
 		left: 0,
 	},
 	objectFit: 'fit',
-	inner: {
-		top: 0,
-		left: 0,
-		width: 0,
-		height: 0,
-	},
 };
 
 export const ObjectContainer = fabric.util.createClass(fabric.Group, {
@@ -88,9 +82,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		// Check whatever properties are set or not
 
 		const props = Object.assign({}, defaultProperties, properties);
-		if (props.inner) {
-			this.setInner(props.inner);
-		}
 
 		if (props.fill) {
 			this._fillBackground(props.fill);
@@ -105,7 +96,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		}
 
 		if (props.padding) {
-			console.log('inside setProperties', props.padding);
 			this.setPadding(props.padding);
 		}
 
@@ -339,17 +329,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		}
 	},
 
-	setInner(inner: Properties['inner']) {
-		if (inner) {
-			this.set({
-				properties: {
-					...this.properties,
-					inner,
-				},
-			});
-		}
-	},
-
 	setPadding(padding: Properties['padding']) {
 		const calculatedPadding = Object.assign({}, defaultProperties.padding, padding);
 		this.set({
@@ -358,7 +337,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 				padding: calculatedPadding,
 			},
 		});
-		this._adjustInternalWithPadding();
 	},
 
 	_drawBorderSide(ctx: CanvasRenderingContext2D, side: 'top' | 'right' | 'bottom' | 'left') {
@@ -448,39 +426,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		ctx.moveTo(startX, startY);
 		ctx.lineTo(endX, endY);
 		ctx.stroke();
-	},
-
-	_adjustInternalWithPadding() {
-		console.log('inside _adjustInternalWithPadding PADDING =', this.properties.padding);
-
-		const padding = this.properties.padding;
-		if (!padding) {
-			return;
-		}
-
-		const topPadding = padding.top;
-		const rightPadding = padding.right;
-		const bottomPadding = padding.bottom;
-		const leftPadding = padding.left;
-
-		const newTop = this.properties.inner.top + topPadding;
-		const newLeft = this.properties.inner.left + leftPadding;
-		const newWidth = this.properties.inner.width - leftPadding - rightPadding;
-		const newHeight = this.properties.inner.height - topPadding - bottomPadding;
-
-		const newInternal = {
-			top: newTop,
-			left: newLeft,
-			width: newWidth,
-			height: newHeight,
-		};
-
-		this.set({
-			properties: {
-				...this.properties,
-				inner: newInternal,
-			},
-		});
 	},
 
 	toObject(propertiesToInclude: string[] = []) {
