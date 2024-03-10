@@ -107,8 +107,8 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		const src_2 =
 			'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
-		const containerWidth = 500;
-		const containerHeight = 500;
+		const containerWidth = 300;
+		const containerHeight = 300;
 
 		const canvas = canvasRef.current;
 		const artboardId = activeArtboard?.id;
@@ -147,43 +147,45 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		// 	},
 		// }) as fabric.ImageContainer;
 
-		// const oc = new ObjectContainer({
-		// 	width: containerWidth,
-		// 	height: containerHeight,
-		// 	data: {
-		// 		id: generateId(),
-		// 	},
-		// 	left: 100,
-		// 	top: 100,
-		// 	properties: {
-		// 		fill: '#e3e3e3',
-		// 		// border: {
-		// 		// 	color: 'red',
-		// 		// 	style: 'dashed',
-		// 		// 	top: 8,
-		// 		// 	bottom: 3,
-		// 		// 	left: 5,
-		// 		// 	right: 2,
-		// 		// },
-		// 	},
-		// }) as fabric.ObjectContainer;
-
-		const rr = new RoundedRect({
-			width: 40,
-			height: 40,
-			fill: 'red',
-			cornerRadius: { tl: 10, tr: 10, br: 10, bl: 10 },
-			left: 100,
-			top: 100,
+		const oc = new ObjectContainer({
+			width: 100,
+			height: 100,
 			data: {
 				id: generateId(),
 			},
-		});
-		canvas.add(rr);
+			left: 100,
+			top: 100,
+			properties: {
+				radius: { tr: 20, br: 0, bl: 20, tl: 0 },
+				fill: '#e3e3e3',
+				border: {
+					color: 'red',
+					style: 'solid',
+					top: 2,
+					bottom: 2,
+					left: 2,
+					right: 2,
+				},
+			},
+		}) as fabric.ObjectContainer;
+
+		// const rr = new RoundedRect({
+		// 	width: 40,
+		// 	height: 40,
+		// 	fill: '#fff820',
+		// 	cornerSmoothing: 0.1,
+		// 	cornerRadius: { tl: 10, tr: 10, br: 10, bl: 10 },
+		// 	left: 100,
+		// 	top: 100,
+		// 	data: {
+		// 		id: generateId(),
+		// 	},
+		// });
+		// canvas.add(rr);
 
 		// await container.loadImage();
 		// canvas.add(container);
-		// canvas.add(oc);
+		canvas.add(oc);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();

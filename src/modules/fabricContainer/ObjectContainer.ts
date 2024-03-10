@@ -362,92 +362,190 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		});
 	},
 
-	_drawBorderSide(ctx: CanvasRenderingContext2D, side: 'top' | 'right' | 'bottom' | 'left') {
+	_drawBorders(ctx: CanvasRenderingContext2D) {
 		if (!this.properties.border) {
 			return;
 		}
 
-		const borderWidth = this.properties.border[side];
-		if (borderWidth <= 0) {
-			return; // Skip if border width is zero or negative
-		}
+		const borderWidth = this.properties.border;
 
 		ctx.strokeStyle = this.properties.border.color;
 		ctx.lineWidth = borderWidth;
 
 		const scaledWidth = this.width * this.scaleX;
 		const scaledHeight = this.height * this.scaleY;
+		const scaledCornerRadius = {
+			tl: this.properties.radius.tl * this.scaleX,
+			tr: this.properties.radius.tr * this.scaleX,
+			br: this.properties.radius.br * this.scaleX,
+			bl: this.properties.radius.bl * this.scaleX,
+		};
 
-		// Draw the border
-		let startX, startY, endX, endY;
-		switch (side) {
-			case 'top':
-				startX = this.left;
-				startY = this.top;
-				endX = this.left + scaledWidth;
-				endY = this.top;
-				break;
-			case 'right':
-				startX = this.left + scaledWidth;
-				startY = this.top;
-				endX = this.left + scaledWidth;
-				endY = this.top + scaledHeight;
-				break;
-			case 'bottom':
-				startX = this.left;
-				startY = this.top + scaledHeight;
-				endX = this.left + scaledWidth;
-				endY = this.top + scaledHeight;
-				break;
-			case 'left':
-				startX = this.left;
-				startY = this.top;
-				endX = this.left;
-				endY = this.top + scaledHeight;
-				break;
-		}
+		// Also adding a corner radius to the border
+		const cornerRadius = Object.assign({}, defaultProperties.radius, scaledCornerRadius);
 
-		// These adjustments are just considering that border is placed in 'center'.
-		// TODO: Handle cases for 'inside' and 'outside' border separately
-		if (side === 'top') {
-			if (this.properties.border.right > 0) {
-				endX += this.properties.border.right / 2;
-			}
-			if (this.properties.border.left > 0) {
-				startX -= this.properties.border.left / 2;
-			}
-		}
+		const K = 1 - 0.5522847498; // Bezier approximation
 
-		if (side === 'right') {
-			if (this.properties.border.top > 0) {
-				startY -= this.properties.border.top / 2;
-			}
-			if (this.properties.border.bottom > 0) {
-				endY += this.properties.border.bottom / 2;
-			}
-		}
-
-		if (side === 'bottom') {
-			if (this.properties.border.right > 0) {
-				endX += this.properties.border.right / 2;
-			}
-			if (this.properties.border.left > 0) {
-				startX -= this.properties.border.left / 2;
-			}
-		}
-
-		if (side === 'left') {
-			if (this.properties.border.top > 0) {
-				startY -= this.properties.border.top / 2;
-			}
-			if (this.properties.border.bottom > 0) {
-				endY += this.properties.border.bottom / 2;
-			}
-		}
-
+		// Draw a continuous border if borderWidth is set, with bezier curves at corners if radius is set
 		ctx.beginPath();
-		ctx.moveTo(startX, startY);
-		ctx.lineTo(endX, endY);
+
+		// Top border
+		if (borderWidth.top > 0) {
+			// Case 1: Top Left border is rounded
+			if (cornerRadius.tl > 0) {
+				// Leave the corner
+				ctx.moveTo(this.left + cornerRadius.tl, this.top);
+			} else {
+				// Is left border present?
+				if (borderWidth.left > 0) {
+					ctx.moveTo(this.left - borderWidth.left / 4, this.top);
+				} else {
+					ctx.moveTo(this.left, this.top);
+				}
+			}
+
+			// Case 2: Top right border is rounded
+			if (cornerRadius.tr > 0) {
+				ctx.lineTo(this.left + scaledWidth - cornerRadius.tr, this.top);
+				// Draw the curve corner
+				ctx.bezierCurveTo(
+					this.left + scaledWidth - K * cornerRadius.tr,
+					this.top,
+					this.left + scaledWidth,
+					this.top + K * cornerRadius.tr,
+					this.left + scaledWidth,
+					this.top + cornerRadius.tr,
+				);
+			} else {
+				// Is right border present?
+				if (borderWidth.right > 0) {
+					ctx.lineTo(this.left + scaledWidth + borderWidth.right / 4, this.top);
+				} else {
+					ctx.lineTo(this.left + scaledWidth, this.top);
+				}
+			}
+		} else {
+			// If top border is not set, then move to the start of the right border
+			ctx.moveTo(this.left + scaledWidth, this.top);
+		}
+
+		// Right border
+		if (borderWidth.right > 0) {
+			// Case 1: Top right border is rounded
+			if (cornerRadius.tr > 0) {
+				ctx.moveTo(this.left + scaledWidth, this.top + cornerRadius.tr);
+			} else {
+				// Is top border present?
+				if (borderWidth.top > 0) {
+					ctx.moveTo(this.left + scaledWidth, this.top - borderWidth.top / 4);
+				} else {
+					ctx.moveTo(this.left + scaledWidth, this.top);
+				}
+			}
+
+			// Case 2: Bottom right border is rounded
+			if (cornerRadius.br > 0) {
+				ctx.lineTo(this.left + scaledWidth, this.top + scaledHeight - cornerRadius.br);
+				// Draw the curve corner
+				ctx.bezierCurveTo(
+					this.left + scaledWidth,
+					this.top + scaledHeight - K * cornerRadius.br,
+					this.left + scaledWidth - K * cornerRadius.br,
+					this.top + scaledHeight,
+					this.left + scaledWidth - cornerRadius.br,
+					this.top + scaledHeight,
+				);
+			} else {
+				// Is bottom border present?
+				if (borderWidth.bottom > 0) {
+					ctx.lineTo(this.left + scaledWidth, this.top + scaledHeight + borderWidth.bottom / 4);
+				} else {
+					ctx.lineTo(this.left + scaledWidth, this.top + scaledHeight);
+				}
+			}
+		} else {
+			// If right border is not set, then move to the start of the bottom border
+			ctx.moveTo(this.left + scaledWidth, this.top + scaledHeight);
+		}
+
+		// Bottom border
+		if (borderWidth.bottom > 0) {
+			// Case 1: Bottom right border is rounded
+			if (cornerRadius.br > 0) {
+				ctx.moveTo(this.left + scaledWidth - cornerRadius.br, this.top + scaledHeight);
+			} else {
+				// Is right border present?
+				if (borderWidth.right > 0) {
+					ctx.moveTo(this.left + scaledWidth + borderWidth.right / 4, this.top + scaledHeight);
+				} else {
+					ctx.moveTo(this.left + scaledWidth, this.top + scaledHeight);
+				}
+			}
+
+			// Case 2: Bottom left border is rounded
+			if (cornerRadius.bl > 0) {
+				ctx.lineTo(this.left + cornerRadius.bl, this.top + scaledHeight);
+				// Draw the curve corner
+				ctx.bezierCurveTo(
+					this.left + K * cornerRadius.bl,
+					this.top + scaledHeight,
+					this.left,
+					this.top + scaledHeight - K * cornerRadius.bl,
+					this.left,
+					this.top + scaledHeight - cornerRadius.bl,
+				);
+			} else {
+				// Is left border present?
+				if (borderWidth.left > 0) {
+					ctx.lineTo(this.left - borderWidth.left / 4, this.top + scaledHeight);
+				} else {
+					ctx.lineTo(this.left, this.top + scaledHeight);
+				}
+			}
+		} else {
+			// If bottom border is not set, then move to the start of the left border
+			ctx.moveTo(this.left, this.top + scaledHeight);
+		}
+
+		// Left border
+		if (borderWidth.left > 0) {
+			// Case 1: Bottom left border is rounded
+			if (cornerRadius.bl > 0) {
+				ctx.moveTo(this.left, this.top + scaledHeight - cornerRadius.bl);
+			} else {
+				// Is bottom border present?
+				if (borderWidth.bottom > 0) {
+					ctx.moveTo(this.left, this.top + scaledHeight + borderWidth.bottom / 4);
+				} else {
+					ctx.moveTo(this.left, this.top + scaledHeight);
+				}
+			}
+
+			// Case 2: Top left border is rounded
+			if (cornerRadius.tl > 0) {
+				ctx.lineTo(this.left, this.top + cornerRadius.tl);
+				// Draw the curve corner
+				ctx.bezierCurveTo(
+					this.left,
+					this.top + K * cornerRadius.tl,
+					this.left + K * cornerRadius.tl,
+					this.top,
+					this.left + cornerRadius.tl,
+					this.top,
+				);
+			} else {
+				// Is top border present?
+				if (borderWidth.top > 0) {
+					ctx.lineTo(this.left, this.top - borderWidth.top / 4);
+				} else {
+					ctx.lineTo(this.left, this.top);
+				}
+			}
+		} else {
+			// If left border is not set, then move to the start of the top border
+			ctx.moveTo(this.left, this.top);
+		}
+
 		ctx.stroke();
 	},
 
@@ -462,21 +560,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 		// Save the current context
 		ctx.save();
-
-		// Draw each border considering its style
-		if (this.properties.border.top) {
-			this._drawBorderSide(ctx, 'top');
-		}
-		if (this.properties.border.right) {
-			this._drawBorderSide(ctx, 'right');
-		}
-		if (this.properties.border.bottom) {
-			this._drawBorderSide(ctx, 'bottom');
-		}
-		if (this.properties.border.left) {
-			this._drawBorderSide(ctx, 'left');
-		}
-
+		this._drawBorders(ctx);
 		// Restore the context to its original state
 		ctx.restore();
 	},

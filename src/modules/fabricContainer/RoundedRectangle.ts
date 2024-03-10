@@ -19,10 +19,10 @@ export const RoundedRect = fabric.util.createClass(fabric.Rect, {
 	},
 
 	_render: function (ctx: CanvasRenderingContext2D) {
-		const w = this.width,
-			h = this.height,
-			x = -this.width / 2,
-			y = -this.height / 2,
+		const w = this.getScaledWidth(),
+			h = this.getScaledHeight(),
+			x = -this.getScaledWidth() / 2,
+			y = -this.getScaledHeight() / 2,
 			k = 1 - 0.5522847498; // Bezier approximation
 
 		ctx.beginPath();
