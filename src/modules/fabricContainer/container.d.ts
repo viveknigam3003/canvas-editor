@@ -6,7 +6,7 @@ declare module 'fabric' {
 	namespace fabric {
 		interface ObjectContainer extends fabric.Group {
 			properties: Properties;
-			getBackgroundObject(): fabric.Rect;
+			getBackgroundObject(): fabric.RoundedRect;
 			getObject(): fabric.Object;
 			setObjectPosition(position: ObjectPosition): void;
 			setProperties(properties: Properties): void;

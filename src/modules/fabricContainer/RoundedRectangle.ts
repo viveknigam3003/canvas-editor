@@ -1,12 +1,8 @@
 import { fabric } from 'fabric';
+import { Radius } from './types';
 
 interface RoundedRectOptions extends fabric.IRectOptions {
-	cornerRadius: {
-		tl: number;
-		tr: number;
-		br: number;
-		bl: number;
-	};
+	cornerRadius: Radius;
 }
 
 export const RoundedRect = fabric.util.createClass(fabric.Rect, {
@@ -19,10 +15,11 @@ export const RoundedRect = fabric.util.createClass(fabric.Rect, {
 	},
 
 	_render: function (ctx: CanvasRenderingContext2D) {
-		const w = this.getScaledWidth(),
-			h = this.getScaledHeight(),
-			x = -this.getScaledWidth() / 2,
-			y = -this.getScaledHeight() / 2,
+		console.log('rendering rounded rect, corner radius: ', this.cornerRadius);
+		const w = this.width,
+			h = this.height,
+			x = -this.width / 2,
+			y = -this.height / 2,
 			k = 1 - 0.5522847498; // Bezier approximation
 
 		ctx.beginPath();
@@ -72,8 +69,10 @@ export const RoundedRect = fabric.util.createClass(fabric.Rect, {
 
 		ctx.closePath();
 
-		this._renderPaintInOrder(ctx);
+		this._renderFill(ctx);
+		this._renderStroke(ctx);
 	},
+
 	toObject(propertiesToInclude: string[] = []) {
 		return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
 			cornerRadius: this.cornerRadius,
