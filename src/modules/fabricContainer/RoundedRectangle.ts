@@ -12,10 +12,10 @@ export const RoundedRect = fabric.util.createClass(fabric.Rect, {
 		this.callSuper('initialize', options);
 		this.strokeWidth = 0;
 		this.cornerRadius = Object.assign({ tl: 0, tr: 0, br: 0, bl: 0 }, options.cornerRadius);
+		this.cacheProperties = this.cacheProperties.concat('cornerRadius');
 	},
 
-	_render: function (ctx: CanvasRenderingContext2D) {
-		console.log('rendering rounded rect, corner radius: ', this.cornerRadius);
+	_drawRoundedRectPath(ctx: CanvasRenderingContext2D) {
 		const w = this.width,
 			h = this.height,
 			x = -this.width / 2,
@@ -71,6 +71,12 @@ export const RoundedRect = fabric.util.createClass(fabric.Rect, {
 
 		this._renderFill(ctx);
 		this._renderStroke(ctx);
+	},
+
+	_render: function (ctx: CanvasRenderingContext2D) {
+		ctx.save();
+		this._drawRoundedRectPath(ctx);
+		ctx.restore();
 	},
 
 	toObject(propertiesToInclude: string[] = []) {

@@ -41,14 +41,14 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 					img.set({
 						originX: 'center',
 						originY: 'center',
-						data: { id: generateId() },
+						data: { id: generateId(), ignoreSnapping: true },
 					});
 					this.add(img);
 					this.setObjectFit('fit');
 					this.setCoords();
 					resolve(this);
 				},
-				{ crossOrigin: 'anonymous' },
+				{ crossOrigin: 'anonymous', hasControls: false },
 			);
 		});
 	},

@@ -362,6 +362,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		});
 		const background = (this as fabric.ObjectContainer).getBackgroundObject();
 		background.set({ cornerRadius: calculatedRadius });
+		this.clipPath.set({ cornerRadius: calculatedRadius });
 	},
 
 	_drawBorder(ctx: CanvasRenderingContext2D, side: 'top' | 'right' | 'bottom' | 'left') {
