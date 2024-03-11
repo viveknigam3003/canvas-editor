@@ -182,10 +182,20 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		});
 		canvas.add(rr);
 
-		// await container.loadImage();
-		// canvas.add(container);
+		await container.loadImage();
+		canvas.add(container);
 		// canvas.add(oc);
+		const obj = container.getObject();
 		canvas.requestRenderAll();
+		container.on('mousedblclick', () => {
+			console.log('dblclick');
+			canvas._setActiveObject(obj);
+			// canvas.setActiveObject(obj);
+		});
+
+		obj.on('deselected', function () {
+			console.log('selection cleared');
+		});
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();
 	};

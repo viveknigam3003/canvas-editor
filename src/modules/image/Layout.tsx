@@ -240,7 +240,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 					w={'45%'}
 					label="Top left"
 					min={0}
-					max={100}
+					max={500}
 					step={1}
 					precision={0}
 					placeholder="Top left"
@@ -254,7 +254,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 					w={'45%'}
 					label="Top right"
 					min={0}
-					max={100}
+					max={500}
 					step={1}
 					precision={0}
 					placeholder="Top right"
@@ -270,7 +270,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 					w={'45%'}
 					label="Bottom left"
 					min={0}
-					max={100}
+					max={500}
 					step={1}
 					precision={0}
 					placeholder="Bottom left"
@@ -284,7 +284,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 					w={'45%'}
 					label="Bottom right"
 					min={0}
-					max={100}
+					max={500}
 					step={1}
 					precision={0}
 					placeholder="Bottom right"
