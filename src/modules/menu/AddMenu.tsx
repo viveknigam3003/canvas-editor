@@ -8,10 +8,11 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { updateActiveArtboardLayers } from '../app/actions';
 import { getArtboardCenter } from '../artboard/helpers';
-import { ObjectContainer } from '../fabricContainer/ObjectContainer';
+import { ImageContainer } from '../fabricContainer/ImageContainer';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
+import { RoundedRect } from '../fabricContainer/RoundedRectangle';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -102,11 +103,11 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 	};
 
 	const addImageFromUrl = async () => {
-		// const src_2 =
-		// 	'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+		const src_2 =
+			'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
-		// const containerWidth = 300;
-		// const containerHeight = 300;
+		const containerWidth = 300;
+		const containerHeight = 300;
 
 		const canvas = canvasRef.current;
 		const artboardId = activeArtboard?.id;
@@ -115,75 +116,75 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			return;
 		}
 
-		// const container = new ImageContainer({
-		// 	width: containerWidth,
-		// 	height: containerHeight,
-		// 	data: {
-		// 		id: generateId(),
-		// 	},
-		// 	src: src_2,
-		// 	properties: {
-		// 		padding: {
-		// 			top: 20,
-		// 		},
-		// 		fill: 'red',
-		// 		radius: {
-		// 			tl: 20,
-		// 			tr: 20,
-		// 			br: 20,
-		// 			bl: 20,
-		// 		},
-		// 		// fill: '#e3e3e3',
-		// 		// border: {
-		// 		// 	color: 'blue',
-		// 		// 	style: 'dashed',
-		// 		// 	// top: 8,
-		// 		// 	bottom: 5,
-		// 		// 	left: 5,
-		// 		// 	right: 5,
-		// 		// },
-		// 	},
-		// }) as fabric.ImageContainer;
-
-		const oc = new ObjectContainer({
-			width: 100,
-			height: 100,
+		const container = new ImageContainer({
+			width: containerWidth,
+			height: containerHeight,
 			data: {
 				id: generateId(),
 			},
-			left: 100,
-			top: 100,
+			src: src_2,
 			properties: {
-				radius: { tr: 20, br: 0, bl: 20, tl: 0 },
-				fill: '#e3e3e3',
-				border: {
-					color: 'red',
-					style: 'solid',
-					top: 2,
-					bottom: 2,
-					left: 2,
-					right: 2,
+				padding: {
+					top: 20,
 				},
+				fill: 'red',
+				radius: {
+					tl: 20,
+					tr: 20,
+					br: 20,
+					bl: 20,
+				},
+				// fill: '#e3e3e3',
+				// border: {
+				// 	color: 'blue',
+				// 	style: 'dashed',
+				// 	// top: 8,
+				// 	bottom: 5,
+				// 	left: 5,
+				// 	right: 5,
+				// },
 			},
-		}) as fabric.ObjectContainer;
+		}) as fabric.ImageContainer;
 
-		// const rr = new RoundedRect({
-		// 	width: 40,
-		// 	height: 40,
-		// 	fill: '#fff820',
-		// 	cornerSmoothing: 0.1,
-		// 	cornerRadius: { tl: 10, tr: 10, br: 10, bl: 10 },
-		// 	left: 100,
-		// 	top: 100,
+		// const oc = new ObjectContainer({
+		// 	width: 100,
+		// 	height: 100,
 		// 	data: {
 		// 		id: generateId(),
 		// 	},
-		// });
-		// canvas.add(rr);
+		// 	left: 100,
+		// 	top: 100,
+		// 	properties: {
+		// 		radius: { tr: 20, br: 0, bl: 20, tl: 0 },
+		// 		fill: '#e3e3e3',
+		// 		border: {
+		// 			color: 'red',
+		// 			style: 'solid',
+		// 			top: 2,
+		// 			bottom: 2,
+		// 			left: 2,
+		// 			right: 2,
+		// 		},
+		// 	},
+		// }) as fabric.ObjectContainer;
+
+		const rr = new RoundedRect({
+			width: 100,
+			height: 100,
+			fill: '#fff820',
+			cornerSmoothing: 0.1,
+			cornerRadius: { tl: 20, tr: 10, br: 0, bl: 20 },
+			left: 100,
+			top: 100,
+			data: {
+				id: generateId(),
+			},
+		});
+		canvas.add(rr);
 
 		// await container.loadImage();
 		// canvas.add(container);
-		canvas.add(oc);
+		// canvas.add(oc);
 		canvas.requestRenderAll();
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();

@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, NumberInput, Stack, useMantineTheme } from '@mantine/core';
+import { ActionIcon, Button, Divider, Group, NumberInput, Stack, useMantineTheme } from '@mantine/core';
 import {
 	IconAlignBoxBottomCenter,
 	IconAlignBoxBottomCenterFilled,
@@ -33,6 +33,8 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const [zoomValue, setZoomValue] = React.useState(0);
 	const [layoutPosition, setLayoutPosition] = React.useState<ObjectPosition | null>(null);
 	const [objectFit, setObjectFit] = React.useState<ObjectFit>('custom');
+	const [border, setBorder] = React.useState({ width: 0, color: '#000' });
+	const [borderRadius, setBorderRadius] = React.useState({ tl: 0, tr: 0, br: 0, bl: 0 });
 	const theme = useMantineTheme();
 
 	useEffect(() => {
@@ -48,6 +50,14 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 			const fit = container.properties.objectFit;
 			if (fit) {
 				setObjectFit(fit);
+			}
+			const border = container.properties.border;
+			if (border) {
+				setBorder({ width: border.top, color: border.color });
+			}
+			const radius = container.properties.radius;
+			if (radius) {
+				setBorderRadius({ ...radius });
 			}
 		}
 	}, [currentSelectedElements]);
@@ -90,6 +100,31 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		container.setObjectPosition(position);
 		setLayoutPosition(position);
+		canvas.renderAll();
+	};
+
+	const handleBorderWidthChange = (value: number) => {
+		setBorder({ ...border, width: value });
+		const container = currentSelectedElements[0] as fabric.ImageContainer;
+		container.setProperties({
+			...container.properties,
+			border: {
+				...container.properties.border,
+				top: value,
+				left: value,
+				right: value,
+				bottom: value,
+				color: '#000',
+			},
+		});
+		canvas.renderAll();
+	};
+
+	const handleBorderRadiusChange = (value: number, position: 'tl' | 'tr' | 'br' | 'bl') => {
+		const container = currentSelectedElements[0] as fabric.ImageContainer;
+		const radius = { ...container.properties.radius, [position]: value };
+		setBorderRadius(radius);
+		container.setProperties({ ...container.properties, radius });
 		canvas.renderAll();
 	};
 
@@ -184,6 +219,81 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 						<IconAlignBoxRightBottom />
 					)}
 				</ActionIcon>
+			</Group>
+			<Divider />
+			<SectionTitle>Border</SectionTitle>
+			<NumberInput
+				label="Border width"
+				min={0}
+				max={100}
+				step={1}
+				precision={0}
+				placeholder="Border width"
+				size="xs"
+				value={border.width}
+				onChange={handleBorderWidthChange}
+				stepHoldDelay={100}
+				stepHoldInterval={50}
+			/>
+			<Group>
+				<NumberInput
+					w={'45%'}
+					label="Top left"
+					min={0}
+					max={100}
+					step={1}
+					precision={0}
+					placeholder="Top left"
+					size="xs"
+					value={borderRadius.tl}
+					onChange={value => handleBorderRadiusChange(Number(value), 'tl')}
+					stepHoldDelay={100}
+					stepHoldInterval={50}
+				/>
+				<NumberInput
+					w={'45%'}
+					label="Top right"
+					min={0}
+					max={100}
+					step={1}
+					precision={0}
+					placeholder="Top right"
+					size="xs"
+					value={borderRadius.tr}
+					onChange={value => handleBorderRadiusChange(Number(value), 'tr')}
+					stepHoldDelay={100}
+					stepHoldInterval={50}
+				/>
+			</Group>
+			<Group>
+				<NumberInput
+					w={'45%'}
+					label="Bottom left"
+					min={0}
+					max={100}
+					step={1}
+					precision={0}
+					placeholder="Bottom left"
+					size="xs"
+					value={borderRadius.bl}
+					onChange={value => handleBorderRadiusChange(Number(value), 'bl')}
+					stepHoldDelay={100}
+					stepHoldInterval={50}
+				/>
+				<NumberInput
+					w={'45%'}
+					label="Bottom right"
+					min={0}
+					max={100}
+					step={1}
+					precision={0}
+					placeholder="Bottom right"
+					size="xs"
+					value={borderRadius.br}
+					onChange={value => handleBorderRadiusChange(Number(value), 'br')}
+					stepHoldDelay={100}
+					stepHoldInterval={50}
+				/>
 			</Group>
 		</Stack>
 	);
