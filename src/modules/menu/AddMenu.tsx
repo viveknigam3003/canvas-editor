@@ -12,7 +12,6 @@ import { ImageContainer } from '../fabricContainer/ImageContainer';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
-import { RoundedRect } from '../fabricContainer/RoundedRectangle';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;

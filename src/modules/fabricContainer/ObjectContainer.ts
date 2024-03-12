@@ -1,7 +1,7 @@
 import { fabric } from 'fabric';
 import { IGradientOptions, IPatternOptions } from 'fabric/fabric-impl';
-import { ObjectPosition, Properties } from './types';
 import { RoundedRect } from './RoundedRectangle';
+import { ObjectPosition, Properties } from './types';
 
 /**
  * Object container
@@ -390,52 +390,8 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 		const K = 1 - 0.5522847498; // Bezier approximation
 
-		const getObjectOrigin = (): [number, number] => {
-			if (this.originX === 'left' && this.originY === 'top') {
-				return [this.left, this.top];
-			} else if (this.originX === 'center' && this.originY === 'top') {
-				return [this.left + this.width / 2, this.top];
-			} else if (this.originX === 'right' && this.originY === 'top') {
-				return [this.left + this.width, this.top];
-			} else if (this.originX === 'left' && this.originY === 'center') {
-				return [this.left, this.top + this.height / 2];
-			} else if (this.originX === 'center' && this.originY === 'center') {
-				return [this.left + this.width / 2, this.top + this.height / 2];
-			} else if (this.originX === 'right' && this.originY === 'center') {
-				return [this.left + this.width, this.top + this.height / 2];
-			} else if (this.originX === 'left' && this.originY === 'bottom') {
-				return [this.left, this.top + this.height];
-			} else if (this.originX === 'center' && this.originY === 'bottom') {
-				return [this.left + this.width / 2, this.top + this.height];
-			} else if (this.originX === 'right' && this.originY === 'bottom') {
-				return [this.left + this.width, this.top + this.height];
-			} else {
-				throw new Error('Invalid position');
-			}
-		};
-
-		const rotatePoint =
-			(anchorX = 0, anchorY = 0, angle: number) =>
-			(pointX: number, pointY: number): [number, number] => {
-				// Converting angle in degrees to radians
-				const angleInRadians = fabric.util.degreesToRadians(angle);
-				const cosVal = Math.cos(angleInRadians);
-				const sinVal = Math.sin(angleInRadians);
-
-				// Translating the co-ordinate system to make anchor point as origin
-				const Px = pointX - anchorX;
-				const Py = pointY - anchorY;
-
-				// Rotating the point
-				const PxRotated = Px * cosVal - Py * sinVal;
-				const PyRotated = Px * sinVal + Py * cosVal;
-
-				// Translating the co-ordinate system back to the original
-				return [PxRotated + anchorX, PyRotated + anchorY];
-			};
-
-		const [originX, originY] = getObjectOrigin();
-		const rotateAroundObjectOrigin = rotatePoint(originX, originY, this.angle);
+		// const [originX, originY] = getObjectOrigin(this);
+		const rotateAroundObjectOrigin = (x: number, y: number): [number, number] => [x, y];
 
 		const rotateBezierPointsAroundOrigin = (
 			cp1x: number,
@@ -661,14 +617,19 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	render(ctx: CanvasRenderingContext2D) {
 		this.callSuper('render', ctx);
-
 		// Save the current context
 		ctx.save();
-		this._drawBorder(ctx, 'top');
-		this._drawBorder(ctx, 'right');
-		this._drawBorder(ctx, 'bottom');
-		this._drawBorder(ctx, 'left');
 
+		// Hiding border due to buggy rendering on multiple active objects
+		const isPartOfSelection =
+			this.canvas.getActiveObjects().findIndex((obj: fabric.Object) => obj.data.id === this.data.id) !== -1 &&
+			this.canvas.getActiveObjects().length > 1;
+		if (!isPartOfSelection) {
+			this._drawBorder(ctx, 'top');
+			this._drawBorder(ctx, 'right');
+			this._drawBorder(ctx, 'bottom');
+			this._drawBorder(ctx, 'left');
+		}
 		// Restore the context to its original state
 		ctx.restore();
 	},
