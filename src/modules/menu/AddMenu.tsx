@@ -124,25 +124,14 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			},
 			src: src_2,
 			properties: {
-				padding: {
-					top: 20,
+				fill: '#e3e3e3',
+				border: {
+					color: 'blue',
+					top: 4,
+					bottom: 4,
+					left: 4,
+					right: 4,
 				},
-				fill: 'red',
-				radius: {
-					tl: 20,
-					tr: 20,
-					br: 20,
-					bl: 20,
-				},
-				// fill: '#e3e3e3',
-				// border: {
-				// 	color: 'blue',
-				// 	style: 'dashed',
-				// 	// top: 8,
-				// 	bottom: 5,
-				// 	left: 5,
-				// 	right: 5,
-				// },
 			},
 		}) as fabric.ImageContainer;
 
@@ -168,19 +157,19 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		// 	},
 		// }) as fabric.ObjectContainer;
 
-		const rr = new RoundedRect({
-			width: 100,
-			height: 100,
-			fill: '#fff820',
-			cornerSmoothing: 0.1,
-			cornerRadius: { tl: 20, tr: 10, br: 0, bl: 20 },
-			left: 100,
-			top: 100,
-			data: {
-				id: generateId(),
-			},
-		});
-		canvas.add(rr);
+		// const rr = new RoundedRect({
+		// 	width: 100,
+		// 	height: 100,
+		// 	fill: '#fff820',
+		// 	cornerSmoothing: 0.1,
+		// 	cornerRadius: { tl: 20, tr: 10, br: 0, bl: 20 },
+		// 	left: 100,
+		// 	top: 100,
+		// 	data: {
+		// 		id: generateId(),
+		// 	},
+		// });
+		// canvas.add(rr);
 
 		await container.loadImage();
 		canvas.add(container);
@@ -189,7 +178,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		canvas.requestRenderAll();
 		container.on('mousedblclick', () => {
 			console.log('dblclick');
-			canvas._setActiveObject(obj);
+			canvas.setActiveObject(obj);
 			// canvas.setActiveObject(obj);
 		});
 
