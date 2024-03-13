@@ -11,6 +11,7 @@ import TextPanel from '../modules/text/Panel';
 import { Artboard } from '../types';
 import Layout from '../modules/image/Layout';
 import SectionTitle from './SectionTitle';
+import TextLayout from '../modules/text/TextLayout';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -46,6 +47,12 @@ const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArt
 						<Stack>
 							<SectionTitle>Element adjustment</SectionTitle>
 							<Layout currentSelectedElements={currentSelectedElements} canvas={canvas} />
+						</Stack>
+					)}
+					{currentSelectedElements?.[0].type === 'text-container' && (
+						<Stack>
+							<SectionTitle>Element adjustment</SectionTitle>
+							<TextLayout currentSelectedElements={currentSelectedElements} canvas={canvas} />
 						</Stack>
 					)}
 					{currentSelectedElements?.[0]?.data?.type === 'shape' && (

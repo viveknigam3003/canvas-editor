@@ -13,6 +13,7 @@ import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
 import { RoundedRect } from '../fabricContainer/RoundedRectangle';
+import { TextContainer } from '../fabricContainer/TextContainer';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
@@ -38,7 +39,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			left: centerX,
 			top: centerY,
 			fontFamily: 'Inter',
-			fontSize: 20,
+			fontSize: 40,
 			data: {
 				displayText: 'Text',
 				id: generateId(),
@@ -102,6 +103,41 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		saveArtboardChanges();
 	};
 
+	const addTextBox = () => {
+		const containerWidth = 300;
+		const containerHeight = 300;
+		const container = new TextContainer({
+			text: 'Hello World',
+			width: containerWidth,
+			height: containerHeight,
+			data: {
+				id: 'textcontainer',
+			},
+			properties: {
+				padding: {
+					top: 20,
+				},
+				fill: 'red',
+				radius: {
+					tl: 20,
+					tr: 20,
+					br: 20,
+					bl: 20,
+				},
+				// fill: '#e3e3e3',
+				// border: {
+				// 	color: 'blue',
+				// 	style: 'dashed',
+				// 	// top: 8,
+				// 	bottom: 5,
+				// 	left: 5,
+				// 	right: 5,
+				// },
+			},
+		}) as fabric.ImageContainer;
+		canvasRef.current?.add(container);
+		canvasRef.current?.requestRenderAll();
+	};
 	const addImageFromUrl = async () => {
 		const src_2 =
 			'https://images.unsplash.com/photo-1709325454201-e81c76d0487c?q=80&w=2871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
@@ -211,6 +247,14 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 				<ShapePopover canvasRef={canvasRef} activeArtboard={activeArtboard} />
 				<Tooltip label="Add image (I)" openDelay={500}>
 					<ActionIcon onClick={addImageFromUrl}>
+						<IconPhotoCircle
+							size={14}
+							color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
+						/>
+					</ActionIcon>
+				</Tooltip>
+				<Tooltip label="Add Textbox (I)" openDelay={500}>
+					<ActionIcon onClick={addTextBox}>
 						<IconPhotoCircle
 							size={14}
 							color={theme.colorScheme === 'dark' ? theme.colors.gray[5] : theme.colors.gray[7]}
