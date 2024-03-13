@@ -3,11 +3,16 @@ import { generateId } from '../..';
 import { ObjectContainer, ObjectContainerOptions } from './ObjectContainer';
 import { ObjectFit } from './types';
 
+export type ImageContainerProperties = ObjectContainerOptions['properties'] & {
+	objectFit: ObjectFit;
+	fitScale: number;
+	fillScale: number;
+};
+
 export interface ImageContainerOptions extends ObjectContainerOptions {
 	src: string;
-	fitScale?: number;
-	fillScale?: number;
 	objects: [fabric.Rect, fabric.Image];
+	properties: ImageContainerProperties;
 }
 
 /**
@@ -24,6 +29,11 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 		this.src = options.src;
 		this.fitScale = 1;
 		this.fillScale = 1;
+		this.properties = Object.assign(this.properties, {
+			fitScale: 1,
+			fillScale: 1,
+			objectFit: options.properties?.objectFit || 'fit',
+		});
 	},
 	async loadImage(): Promise<fabric.ImageContainer> {
 		return new Promise(resolve => {
@@ -33,10 +43,10 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 					const isWide = img.width! / img.height! > this.width / this.height;
 
 					// Constant values for the image
-					this.fitScale = isWide ? this.width / img.width! : this.height / img.height!;
-					this.fillScale = isWide ? this.height / img.height! : this.width / img.width!;
+					this.properties.fitScale = isWide ? this.width / img.width! : this.height / img.height!;
+					this.properties.fillScale = isWide ? this.height / img.height! : this.width / img.width!;
 
-					console.log('Fit Scale', this.fitScale, 'Fill Scale', this.fillScale);
+					console.log('Fit Scale', this.properties.fitScale, 'Fill Scale', this.properties.fillScale);
 
 					img.set({
 						originX: 'center',
@@ -44,7 +54,7 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 						data: { id: generateId(), ignoreSnapping: true },
 					});
 					this.add(img);
-					this.setObjectFit('fit');
+					this.setObjectFit(this.properties.objectFit);
 					this.setCoords();
 					resolve(this);
 				},
@@ -80,16 +90,16 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 	},
 	_fitImageToContainer() {
 		const object = this.getObject();
-		if (object && this.fitScale) {
-			object.scale(this.fitScale);
+		if (object && this.properties.fitScale) {
+			object.scale(this.properties.fitScale);
 			this.setCoords();
 			this._setContainerProperty('objectFit', 'fit');
 		}
 	},
 	_fillImageInContainer() {
 		const object = this.getObject();
-		if (object && this.fillScale) {
-			object.scale(this.fillScale);
+		if (object && this.properties.fillScale) {
+			object.scale(this.properties.fillScale);
 			this.setCoords();
 			this._setContainerProperty('objectFit', 'fill');
 		}
@@ -106,8 +116,6 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 	toObject(propertiesToInclude: string[] = []) {
 		return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
 			src: this.src,
-			fitScale: this.fitScale,
-			fillScale: this.fillScale,
 		});
 	},
 });
@@ -120,8 +128,6 @@ ImageContainer.fromObject = (
 		...object,
 		src: object.src,
 	}) as fabric.ImageContainer;
-	imagebox.fillScale = object.fillScale;
-	imagebox.fitScale = object.fitScale;
 
 	imagebox.setProperties(object.properties);
 	if (object.src) {

@@ -56,7 +56,6 @@ const defaultProperties: Properties = {
 		bl: 0,
 		br: 0,
 	},
-	objectFit: 'fit',
 };
 
 export const ObjectContainer = fabric.util.createClass(fabric.Group, {
@@ -103,10 +102,6 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 		if (props.objectPosition && this.getObject()) {
 			this.setObjectPosition(props.objectPosition);
-		}
-
-		if (props.objectFit && this.getObject()) {
-			this.setObjectFit(props.objectFit);
 		}
 
 		if (props.padding) {

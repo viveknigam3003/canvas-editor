@@ -50,5 +50,4 @@ export type Properties = {
 	fill: FillOptions;
 	padding: Padding;
 	radius: Radius;
-	objectFit: ObjectFit;
 };

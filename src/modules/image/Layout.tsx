@@ -66,7 +66,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		// When scale is not fitScale or fillScale, set custom
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		const scale = container.getObject().scaleX;
-		if (scale !== container.fitScale && scale !== container.fillScale) {
+		if (scale !== container.properties.fitScale && scale !== container.properties.fillScale) {
 			setObjectFit('custom');
 			container.setObjectFit('custom');
 		}
@@ -82,7 +82,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const fillImageInContainer = () => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		container.setObjectFit('fill');
-		setZoomValue(container.fillScale! * 100);
+		setZoomValue(container.properties.fillScale! * 100);
 		setObjectFit('fill');
 		canvas.renderAll();
 	};
@@ -91,7 +91,7 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		// Fit the image in container maintaining the aspect ratio
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		container.setObjectFit('fit');
-		setZoomValue(container.fitScale! * 100);
+		setZoomValue(container.properties.fitScale! * 100);
 		setObjectFit('fit');
 		canvas.renderAll();
 	};

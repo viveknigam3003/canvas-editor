@@ -123,6 +123,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			},
 			src: src_2,
 			properties: {
+				objectFit: 'fill',
 				fill: '#e3e3e3',
 				border: {
 					color: 'blue',
