@@ -78,7 +78,7 @@ const changeWidth = fabric.controlsUtils.wrapWithFireEvent(
 	'scaling',
 	fabric.controlsUtils.wrapWithFixedAnchor(fabric.controlsUtils.changeWidth),
 );
-const wrapWithWrap = (fn: any) => (eventData: any, transform: any, x: number, y: number) => {
+const updateWithSideEffect = (fn: any) => (eventData: any, transform: any, x: number, y: number) => {
 	fn(eventData, transform, x, y);
 	const { target } = transform;
 	target.getTextElement().set({ width: target.width, dirty: true });
@@ -127,8 +127,8 @@ const changeHeight = fabric.controlsUtils.wrapWithFireEvent(
 	fabric.controlsUtils.wrapWithFixedAnchor(changeObjectHeight),
 );
 
-const changeWidthWithWrap = wrapWithWrap(changeWidth);
-const changeHeightWithWrap = wrapWithWrap(changeHeight);
+const changeWidthWithWrap = updateWithSideEffect(changeWidth);
+const changeHeightWithWrap = updateWithSideEffect(changeHeight);
 
 const changeHeightWidth = (...args: Parameters<typeof changeHeightWithWrap>) => {
 	changeHeightWithWrap(...args);
