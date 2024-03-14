@@ -4,6 +4,43 @@ import { ObjectFit, Properties } from './types';
 
 declare module 'fabric' {
 	namespace fabric {
+		export interface Canvas {
+			contextTop: CanvasRenderingContext2D;
+			lowerCanvasEl: HTMLElement;
+		}
+		function ControlMouseEventHandler(
+			eventData: MouseEvent,
+			transformData: Transform,
+			x: number,
+			y: number,
+		): boolean;
+
+		function ControlStringHandler(
+			eventData: MouseEvent,
+			control: fabric.Control,
+			fabricObject: fabric.Object,
+		): string;
+
+		export const controlsUtils: {
+			rotationWithSnapping: ControlMouseEventHandler;
+			scalingEqually: ControlMouseEventHandler;
+			scalingYOrSkewingX: ControlMouseEventHandler;
+			scalingXOrSkewingY: ControlMouseEventHandler;
+			scaleCursorStyleHandler: ControlStringHandler;
+			scaleSkewCursorStyleHandler: ControlStringHandler;
+			scaleOrSkewActionName: ControlStringHandler;
+			rotationStyleHandler: ControlStringHandler;
+			wrapWithFixedAnchor: (fn: any) => any;
+			wrapWithFireEvent: (eventName: string, fn: any) => any;
+			changeWidth: any;
+			getLocalPoint(
+				transform: Transform,
+				originX: string,
+				originY: string,
+				x: number,
+				y: number,
+			): { x: number; y: number };
+		};
 		interface ObjectContainer extends fabric.Group {
 			properties: Properties;
 			getBackgroundObject(): fabric.RoundedRect;
@@ -18,6 +55,12 @@ declare module 'fabric' {
 			loadImage(): Promise<fabric.ImageContainer>;
 			renderImage(image: fabric.Image): Promise<fabric.ImageContainer>;
 			setObjectFit(fit: ObjectFit): void;
+		}
+		interface TextContainer extends ObjectContainer {
+			text: string;
+			setObjectFit(fit: ObjectFit): void;
+			getTextElement(): fabric.Text;
+			setText(text: string): void;
 		}
 		interface RoundedRect extends fabric.Rect {
 			cornerRadius: {

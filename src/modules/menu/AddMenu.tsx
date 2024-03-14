@@ -9,11 +9,10 @@ import { generateId } from '../../utils';
 import { updateActiveArtboardLayers } from '../app/actions';
 import { getArtboardCenter } from '../artboard/helpers';
 import { ImageContainer } from '../fabricContainer/ImageContainer';
+import { TextContainer } from '../fabricContainer/TextContainer';
 import ImageModal from '../image/AddImage';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 import ShapePopover from '../shapes/ShapePopover';
-import { RoundedRect } from '../fabricContainer/RoundedRectangle';
-import { TextContainer } from '../fabricContainer/TextContainer';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;

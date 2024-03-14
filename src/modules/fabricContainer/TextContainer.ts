@@ -78,11 +78,37 @@ const changeWidth = fabric.controlsUtils.wrapWithFireEvent(
 	'scaling',
 	fabric.controlsUtils.wrapWithFixedAnchor(fabric.controlsUtils.changeWidth),
 );
+const wrapWithWrap = (fn: any) => (eventData: any, transform: any, x: number, y: number) => {
+	fn(eventData, transform, x, y);
+	const { target } = transform;
+	target.getTextElement().set({ width: target.width, dirty: true });
+	target.getBackgroundObject().set({
+		width: target.width,
+		height: target.height,
+		dirty: true,
+		scaleX: target.scaleX,
+		scaleY: target.scaleY,
+	});
+	target.getTextElement().setCoords();
+	target.clipPath?.set({
+		scaleX: target.scaleX,
+		scaleY: target.scaleY,
+		width: target.width,
+		height: target.height,
+		left: -target.width / 2,
+		top: -target.height / 2,
+		dirty: true,
+	});
+	target.setObjectPosition(target.properties.objectPosition);
+	target.set('dirty', true);
+	target.clipPath?.setCoords();
+	target.setCoords();
+	console.log(target, 'target');
+	return true;
+};
 
-export const changeObjectHeight: any = (eventData: any, transform: any, x: number, y: number) => {
+export const changeObjectHeight: any = (_eventData: any, transform: any, x: number, y: number) => {
 	const localPoint = fabric.controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y);
-
-	//  make sure the control changes width ONLY from it's side of target
 	const { target } = transform;
 	if ((transform.originY === 'top' && localPoint.y > 0) || (transform.originY === 'bottom' && localPoint.y < 0)) {
 		const strokeWidth = target.strokeWidth ? target.strokeWidth : 0;
@@ -101,75 +127,67 @@ const changeHeight = fabric.controlsUtils.wrapWithFireEvent(
 	fabric.controlsUtils.wrapWithFixedAnchor(changeObjectHeight),
 );
 
-const changeHeightWidth = (...args) => {
-	changeHeight(...args);
-	changeWidth(...args);
+const changeWidthWithWrap = wrapWithWrap(changeWidth);
+const changeHeightWithWrap = wrapWithWrap(changeHeight);
+
+const changeHeightWidth = (...args: Parameters<typeof changeHeightWithWrap>) => {
+	changeHeightWithWrap(...args);
+	changeWidthWithWrap(...args);
 	return true;
 };
-(fabric.TextContainer as any).prototype.controls.mt = new fabric.Control({
+
+(fabric as any).TextContainer.prototype.controls.mt = new fabric.Control({
 	x: 0,
 	y: -0.5,
-	actionHandler: changeHeight,
+	actionHandler: changeHeightWithWrap,
 	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
 });
-(fabric.TextContainer as any).prototype.controls.mb = new fabric.Control({
+
+(fabric as any).TextContainer.prototype.controls.mb = new fabric.Control({
 	x: 0,
 	y: 0.5,
-	actionHandler: changeHeight,
+	actionHandler: changeHeightWithWrap,
 	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
-});
-(fabric.TextContainer as any).prototype.controls.mr = new fabric.Control({
-	x: 0.5,
-	y: 0,
-	actionHandler: changeWidth,
-	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
-});
-(fabric.TextContainer as any).prototype.controls.ml = new fabric.Control({
-	x: -0.5,
-	y: 0,
-	actionHandler: changeWidth,
-	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
 });
 
-(fabric.TextContainer as any).prototype.controls.tl = new fabric.Control({
+(fabric as any).TextContainer.prototype.controls.mr = new fabric.Control({
+	x: 0.5,
+	y: 0,
+	actionHandler: changeWidthWithWrap,
+	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
+});
+
+(fabric as any).TextContainer.prototype.controls.ml = new fabric.Control({
+	x: -0.5,
+	y: 0,
+	actionHandler: changeWidthWithWrap,
+	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
+});
+
+(fabric as any).TextContainer.prototype.controls.tl = new fabric.Control({
 	x: -0.5,
 	y: -0.5,
 	actionHandler: changeHeightWidth,
 	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
 });
 
-(fabric.TextContainer as any).prototype.controls.tr = new fabric.Control({
+(fabric as any).TextContainer.prototype.controls.tr = new fabric.Control({
 	x: 0.5,
 	y: -0.5,
 	actionHandler: changeHeightWidth,
 	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
 });
-(fabric.TextContainer as any).prototype.controls.bl = new fabric.Control({
+
+(fabric as any).TextContainer.prototype.controls.bl = new fabric.Control({
 	x: -0.5,
 	y: 0.5,
 	actionHandler: changeHeightWidth,
 	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
 });
 
-(fabric.TextContainer as any).prototype.controls.br = new fabric.Control({
+(fabric as any).TextContainer.prototype.controls.br = new fabric.Control({
 	x: 0.5,
 	y: 0.5,
 	actionHandler: changeHeightWidth,
 	cursorStyleHandler: fabric.controlsUtils.scaleSkewCursorStyleHandler,
-	// render: noop,
-	// positionHandler: positionHandlerH,
 });

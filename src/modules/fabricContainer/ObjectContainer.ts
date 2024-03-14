@@ -66,6 +66,8 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 			fill: 'transparent',
 			width: options.width,
 			height: options.height,
+			originX: 'center',
+			originY: 'center',
 			cornerRadius: {
 				tl: options.properties?.radius?.tl || 0,
 				tr: options.properties?.radius?.tr || 0,
