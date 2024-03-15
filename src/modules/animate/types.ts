@@ -1,6 +1,8 @@
+import { Canvas, FabricObject } from 'fabric';
+
 export interface AnimationProps {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 	saveArtboardChanges: () => void;
 }
 

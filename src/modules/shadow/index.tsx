@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/rootReducer';
 import { applyBulkEdit } from '../app/actions';
+import { Canvas, FabricObject } from 'fabric';
 
 interface ShadowProps {
-	currentSelectedElements: fabric.Object[];
-	canvas: fabric.Canvas;
+	currentSelectedElements: FabricObject[];
+	canvas: Canvas;
 }
 
 const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
@@ -23,7 +24,7 @@ const Shadow: React.FC<ShadowProps> = ({ currentSelectedElements, canvas }) => {
 	});
 
 	useEffect(() => {
-		const shadow = currentSelectedElements?.[0]?.shadow as fabric.Shadow;
+		const shadow = currentSelectedElements?.[0]?.shadow as any;
 		setShadowValues({
 			offsetX: shadow?.offsetX || 0,
 			offsetY: shadow?.offsetY || 0,

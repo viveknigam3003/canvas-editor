@@ -11,8 +11,8 @@ import TextPanel from '../modules/text/Panel';
 import { Artboard } from '../types';
 
 type PanelProps = {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 	saveArtboardChanges: () => void;
 	activeArtboard: Artboard | null;
 };

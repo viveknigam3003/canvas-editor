@@ -1,12 +1,12 @@
 import { Button, Stack, Text, useMantineTheme } from '@mantine/core';
-import { fabric as Fabric } from 'fabric';
 import React from 'react';
 import SectionTitle from '../../components/SectionTitle';
 import { generateId } from '../../utils';
+import { Canvas, FabricObject, Group } from 'fabric';
 
 interface ClipMaskProps {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 }
 
 const ClipMask: React.FC<ClipMaskProps> = ({ currentSelectedElements, canvas }) => {
@@ -21,7 +21,7 @@ const ClipMask: React.FC<ClipMaskProps> = ({ currentSelectedElements, canvas }) 
 		const contents = selectedObjects.slice(1);
 
 		// Create a group with the mask and the contents
-		const clipGroup = new Fabric.Group([mask, ...contents], {
+		const clipGroup = new Group([mask, ...contents], {
 			subTargetCheck: true,
 			data: {
 				id: generateId(),

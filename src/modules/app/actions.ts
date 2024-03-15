@@ -33,7 +33,7 @@ export const setActiveArtboard = createAction<Artboard>(ApplicationActionType.SE
 
 export const updateActiveArtboard = createAction<Artboard>(ApplicationActionType.UPDATE_ACTIVE_ARTBOARD);
 
-export const updateActiveArtboardLayers = createAction<Array<fabric.Object>>(
+export const updateActiveArtboardLayers = createAction<Array<FabricObject>>(
 	ApplicationActionType.UPDATE_ACTIVE_ARTBOARD_LAYERS,
 );
 
@@ -42,7 +42,7 @@ export const setSelectedArtboards = createAction<Array<string>>(ApplicationActio
 export const updateSelectedArtboards = createAction<Array<string>>(ApplicationActionType.UPDATE_SELECTED_ARTBOARDS);
 
 export const applyBulkEdit = createAction<{
-	element: fabric.Object;
+	element: FabricObject;
 	properties: Record<string, any>;
 }>(ApplicationActionType.APPLY_BULK_EDIT);
 

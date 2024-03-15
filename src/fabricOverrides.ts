@@ -1,7 +1,7 @@
-import { fabric } from 'fabric';
-const originalDrawControls = fabric.Object.prototype.drawControls;
+import { FabricObject } from 'fabric';
+const originalDrawControls = FabricObject.prototype.drawControls;
 
-fabric.Object.prototype.drawControls = function (ctx: CanvasRenderingContext2D) {
+FabricObject.prototype.drawControls = function (ctx: CanvasRenderingContext2D) {
 	const themeColor = '#0499FF';
 	// Set custom styles for controls
 	this.transparentCorners = false;

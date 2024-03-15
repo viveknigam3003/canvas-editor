@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { SmartObject, createReflection, updateReflection } from '../reflection/helpers';
 import { Checkbox } from '@mantine/core';
+import { Textbox } from 'fabric';
 
 interface ReflectionProps {
-	currentSelectedElements: fabric.Object[];
-	canvas: fabric.Canvas;
+	currentSelectedElements: FabricObject[];
+	canvas: Canvas;
 }
 
 const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas }) => {
@@ -20,7 +21,7 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 
 	useEffect(() => {
 		const element = currentSelectedElements?.[0] as SmartObject;
-		const reflection = (currentSelectedElements?.[0] as SmartObject).effects?.reflection as fabric.Textbox;
+		const reflection = (currentSelectedElements?.[0] as SmartObject).effects?.reflection as Textbox;
 		if (reflection && element.type === 'textbox') {
 			element.on('resizing', () => {
 				reflection.width = element.width;
@@ -29,7 +30,7 @@ const Reflection: React.FC<ReflectionProps> = ({ currentSelectedElements, canvas
 			});
 
 			element.on('changed', () => {
-				reflection.text = (element as unknown as fabric.Textbox).text;
+				reflection.text = (element as unknown as Textbox).text;
 				canvas.requestRenderAll();
 				updateReflection(element, canvas);
 			});

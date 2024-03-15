@@ -17,13 +17,14 @@ import ActionNode from './nodes/ActionNode';
 import ConditionNode from './nodes/ConditionNode';
 import { Conditional, PLUGIN_TYPES, When, Workflow } from './types';
 import { Fragment, useState } from 'react';
+import { FabricObject } from 'fabric';
 
 const getRandomNumber = (min: number, max: number) => {
 	return Math.floor(Math.random() * (max - min) + min);
 };
 interface WorkflowComponentProps {
-	canvas: fabric.Canvas | null;
-	currentSelectedElements: fabric.Object[] | null;
+	canvas: Canvas | null;
+	currentSelectedElements: FabricObject[] | null;
 	showPlugins: string;
 }
 const useStyles = createStyles(theme => ({
@@ -185,7 +186,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ showPlugins, canv
 	];
 	const handleButtonClick = async (id: string) => {
 		const workflow = workflows.find(workflow => workflow.id === id);
-		await executor(workflow as any, currentSelectedElements as fabric.Object[], canvas as fabric.Canvas, () => {
+		await executor(workflow as any, currentSelectedElements as FabricObject[], canvas as Canvas, () => {
 			// console.log('e', e);
 		});
 	};
@@ -194,8 +195,8 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ showPlugins, canv
 		if (!currentSelectedFlow.values) return;
 		await executor(
 			currentSelectedFlow.values as Workflow,
-			currentSelectedElements as fabric.Object[],
-			canvas as fabric.Canvas,
+			currentSelectedElements as FabricObject[],
+			canvas as Canvas,
 			e => {
 				console.log('e', e);
 			},
@@ -255,7 +256,7 @@ const WorkflowComponent: React.FC<WorkflowComponentProps> = ({ showPlugins, canv
 		// @ts-ignore
 		const pg = plugins[plugin.type];
 		if (!pg) return;
-		pg(currentSelectedElements as fabric.Object[], {}, canvas as fabric.Canvas, async () => {
+		pg(currentSelectedElements as FabricObject[], {}, canvas as Canvas, async () => {
 			if (plugin.type === PLUGIN_TYPES.AI_COPY_REFRESH) {
 				setAiTextStatus(false);
 			}

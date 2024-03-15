@@ -21,7 +21,6 @@ import {
 	IconPuzzle,
 	IconTrash,
 } from '@tabler/icons-react';
-import { fabric } from 'fabric';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Panel from './components/Panel';
@@ -72,9 +71,11 @@ import { generateId } from './utils';
 import workflows from './data/workflows.json';
 import WorkflowComponent from './modules/workflows';
 import { FabricGuide } from './modules/snapping/fabricGuide';
+import { Canvas, FabricObject, Point, Group as FabricGroup, StaticCanvas } from 'fabric';
 
 store.dispatch(appStart());
 
+export const makeJsonObject = (json: any) => JSON.parse(JSON.stringify(json));
 (window as any).switchVideo = () => {
 	const isVideoEnabled = JSON.parse(localStorage.getItem('video') || 'false');
 	localStorage.setItem('video', JSON.stringify(!isVideoEnabled));
@@ -188,9 +189,9 @@ function App() {
 	const [colorSpace] = useQueryParam('colorSpace', 'srgb');
 	const [autosaveChanges, setAutoSaveChanges] = useState(true);
 	//TODO: Ak maybe use saga here for scalability and take effect on undo/redo?
-	const [currentSelectedElements, setCurrentSelectedElements] = useState<fabric.Object[] | null>(null);
+	const [currentSelectedElements, setCurrentSelectedElements] = useState<FabricObject[] | null>(null);
 	const [isNewArtboardModalOpen, { open: openNewArtboardModal, close: closeNewArtboardModal }] = useDisclosure();
-	const canvasRef = useRef<fabric.Canvas | null>(null);
+	const canvasRef = useRef<Canvas | null>(null);
 	const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 	const [showAll, setShowAll] = useState(false);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -217,7 +218,7 @@ function App() {
 	}, [theme.colorScheme]);
 
 	useEffect(() => {
-		canvasRef.current = new fabric.Canvas('canvas', {
+		canvasRef.current = new Canvas('canvas', {
 			// create a canvas with clientWidth and clientHeight
 			backgroundColor: '#e9ecef',
 			colorSpace: colorSpace as colorSpaceType,
@@ -227,7 +228,7 @@ function App() {
 
 		// Handle element selection TODO: add more element type and handle it
 		canvasRef.current?.on('selection:created', function (event) {
-			setCurrentSelectedElements(event.selected as fabric.Object[]);
+			setCurrentSelectedElements(event.selected as FabricObject[]);
 		});
 		canvasRef.current?.on('selection:updated', function (event) {
 			event?.deselected
@@ -253,7 +254,7 @@ function App() {
 						return arr.filter(item => !event.deselected?.includes(item));
 					}
 				}
-				return event.selected as fabric.Object[];
+				return event.selected as FabricObject[];
 				// Else if the element is in the desected array, remove it
 			});
 		});
@@ -290,15 +291,15 @@ function App() {
 			renderRuler();
 		}
 	}, [showSidebar]);
-	const filterRulerLines = (objects?: fabric.Object[]) => {
+	const filterRulerLines = (objects?: FabricObject[]) => {
 		console.log('objects', objects);
 		if (!objects) {
 			return [];
 		}
 		return objects.filter(item => Object.values(RULER_LINES).includes(item.data?.type));
 	};
-	const onMoveHandler = (options: fabric.IEvent) => {
-		const target = options.target as fabric.Object;
+	const onMoveHandler = (options: IEvent) => {
+		const target = options.target as FabricObject;
 		if (Object.values(RULER_LINES).includes(target.data?.type)) {
 			renderRulerOnMoveMarker(target, canvasRef);
 			return;
@@ -308,7 +309,7 @@ function App() {
 	const onModifiedHandler = () => {
 		updateRulerLineInStorage(
 			activeArtboard?.id as string,
-			filterRulerLines(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects),
+			filterRulerLines(makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS)).objects),
 		);
 		Object.entries(guidesRef.current).forEach(([, value]) => {
 			value?.set({ opacity: 0 });
@@ -428,12 +429,12 @@ function App() {
 		const artboardTopAdjustment = artboardPosition.top;
 		const artboardDimensions = getArtboardDimensions(canvasRef.current, activeArtboardId);
 		// Now we need to create a new canvas and add the artboard to it
-		const offscreenCanvas = new fabric.Canvas('print', {
+		const offscreenCanvas = new StaticCanvas('print', {
 			width: artboardDimensions.width,
 			height: artboardDimensions.height,
 			colorSpace: colorSpace as colorSpaceType,
 		});
-		const stateJSON = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const stateJSON = makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS));
 		const adjustedStateJSONObjects = stateJSON?.objects?.map((item: any) => {
 			return {
 				...item,
@@ -445,7 +446,7 @@ function App() {
 			...stateJSON,
 			objects: filterExportExcludes(adjustedStateJSONObjects),
 		};
-		offscreenCanvas.loadFromJSON(adjustedStateJSON, () => {
+		offscreenCanvas.loadFromJSON(adjustedStateJSON).then(() => {
 			offscreenCanvas.renderAll();
 			const config = {
 				format: 'png',
@@ -466,20 +467,23 @@ function App() {
 	// Take selected options in the selected artboard and when this function is called, group the selected elements
 	const createGroup = () => {
 		const canvas = canvasRef.current;
+		console.log('we', 'createGroup', canvas);
 		if (!canvas) {
 			return;
 		}
 
 		const activeObject = canvas.getActiveObject();
-		if (!activeObject || activeObject.type !== 'activeSelection') {
-			return;
-		}
+		console.log('🚀 ~ createGroup ~ activeObject:', activeObject);
+		// if (!activeObject || activeObject.type !== 'activeSelection') {
+		// 	return;
+		// }
 
-		// Cast activeObject to fabric.ActiveSelection
-		const activeSelection = activeObject as fabric.ActiveSelection;
+		// Cast activeObject to ActiveSelection
+		const activeSelection = activeObject;
 
 		const activeObjects = activeSelection.getObjects();
-		const group = new fabric.Group(activeObjects, {
+		console.log('first', activeObjects);
+		const group = new FabricGroup(activeObjects, {
 			left: activeSelection.left,
 			top: activeSelection.top,
 			data: { id: generateId(), type: 'group' },
@@ -502,12 +506,12 @@ function App() {
 		}
 
 		const activeObject = canvas.getActiveObject();
-		if (!activeObject || activeObject.type !== 'group') {
-			return;
-		}
+		// if (!activeObject || activeObject.type !== 'group') {
+		// 	return;
+		// }
 
-		// Cast activeObject to fabric.Group
-		const group = activeObject as fabric.Group;
+		// Cast activeObject to Group
+		const group = activeObject as Group;
 
 		// Ungroup the objects
 		const items = group._objects;
@@ -525,7 +529,7 @@ function App() {
 			return;
 		}
 
-		const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const json = makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS));
 		const updatedArtboards = artboards.map(item => {
 			if (item.id === activeArtboard.id) {
 				return {
@@ -589,13 +593,7 @@ function App() {
 		}
 
 		const center = canvas.getCenter();
-		canvas.zoomToPoint(
-			{
-				x: center.left,
-				y: center.top,
-			},
-			zoom,
-		);
+		canvas.zoomToPoint(new Point(center.left, center.top), zoom);
 	};
 
 	const renderRuler = () => {
@@ -702,7 +700,7 @@ function App() {
 			return;
 		}
 
-		activeObjects[0].clone((cloned: fabric.Object) => {
+		activeObjects[0].clone((cloned: FabricObject) => {
 			const id = generateId();
 			cloned.set({
 				left: cloned.left! + 20,
@@ -715,7 +713,7 @@ function App() {
 			canvas.renderAll();
 			dispatch(updateActiveArtboardLayers(canvas.getObjects()));
 			saveArtboardChanges();
-		}, FABRIC_JSON_ALLOWED_KEYS);
+		});
 	};
 
 	const getNextArtboardName = (artboards: Artboard[]) => {
@@ -805,11 +803,11 @@ function App() {
 			return;
 		}
 
-		canvasRef.current?.loadFromJSON(json, async () => {
-			zoomToFit();
+		canvasRef.current?.loadFromJSON(json).then(async () => {
+			// zoomToFit();
 
 			// Attach the reference for reflection object back to the parent object
-			(canvas.getObjects() as SmartObject[]).forEach((obj: SmartObject) => {
+			(canvas.getObjects() as SmartObject[]).forEach(async (obj: SmartObject) => {
 				const reflection = canvasRef.current
 					?.getObjects()
 					.find(item => item.data?.type === 'reflection' && item.data.parent === obj.data?.id);
@@ -822,21 +820,24 @@ function App() {
 				if (reflectionOverlay) {
 					obj.effects.reflectionOverlay = reflectionOverlay;
 				}
-			});
 
-			initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard.id as string);
-			if (showRuler) {
-				renderRuler();
-			}
-			// Get the src of the video element and add it to the canvas
-			const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
-			if (videoElements?.length) {
-				for (let i = 0; i < videoElements.length; i++) {
-					await addVideoToCanvas(videoElements[i].data.src, canvasRef.current!);
+				initializeRuler(canvasRef, colorSchemeRef.current, activeArtboard.id as string);
+				if (showRuler) {
+					renderRuler();
 				}
-			}
-			canvas.requestRenderAll();
+				// Get the src of the video element and add it to the canvas
+				const videoElements = canvasRef.current?.getObjects().filter(item => item.data?.type === 'video');
+				if (videoElements?.length) {
+					for (let i = 0; i < videoElements.length; i++) {
+						addVideoToCanvas(videoElements[i].data.src, canvasRef.current!);
+					}
+				}
+				canvas.requestRenderAll();
+			});
 		});
+		return () => {
+			// canvasRef?.current?.dispose();
+		};
 	}, [activeArtboard]);
 
 	useEffect(() => {
@@ -1033,7 +1034,7 @@ function App() {
 				return;
 			}
 
-			console.log('Object modified');
+			console.log('FabricObject modified');
 			timeout = setTimeout(() => {
 				setHasUnsavedChanges(true);
 			}, 2000);
@@ -1114,13 +1115,14 @@ function App() {
 			keyboardShortcuts['Zoom to fit'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
-				zoomToFit();
+				// zoomToFit();
 			},
 		],
 		[
 			keyboardShortcuts['Group elements'],
 			(event: KeyboardEvent) => {
 				event.preventDefault();
+				console.log('grouper');
 				createGroup();
 			},
 		],
@@ -1321,7 +1323,7 @@ function App() {
 													</ActionIcon>
 												</Group>
 											</Group>
-									  ))
+										))
 									: null}
 							</Group>
 						</Stack>
@@ -1362,7 +1364,7 @@ function App() {
 			<NewArtboardModal
 				opened={isNewArtboardModalOpen}
 				onClose={() => {
-					zoomToFit();
+					// zoomToFit();
 					closeNewArtboardModal();
 				}}
 				canvas={canvasRef.current}

@@ -1,8 +1,9 @@
-import { fabric } from 'fabric';
 import { generateId } from '../../utils';
 import { getCanvasVisibleTopLeft } from '../utils/canvasUtils';
 import { FixedArray } from '../../types';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
+import { Canvas, FabricObject, FabricText, Line, Point, Rect } from 'fabric';
+import { makeJsonObject } from '../../App';
 
 export const RULER_COLORS = {
 	DARK: {
@@ -61,7 +62,7 @@ function getAdjustedMarkerTextPosition(num: number) {
 }
 
 // render ruler step lines and markers
-export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.Canvas | null>, colorScheme = 'light') {
+export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<Canvas | null>, colorScheme = 'light') {
 	canvasRef.current
 		?.getObjects()
 		.filter(item =>
@@ -84,7 +85,7 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 	const nearest = Math.round(left / interval) * interval;
 	const canvasWidth = canvasRef.current?.width as number;
 	for (let i = nearest; i < (canvasWidth + -pan[4]) / zoom; i += interval) {
-		const line = new fabric.Line([i, 0, i, 5 / zoom], {
+		const line = new Line([i, 0, i, 5 / zoom], {
 			stroke: colorScheme === 'dark' ? RULER_COLORS.DARK.TEXT_STROKE : RULER_COLORS.LIGHT.TEXT_STROKE,
 			strokeWidth: 1 / zoom,
 			left: i,
@@ -98,7 +99,7 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 				id: generateId(),
 			},
 		});
-		const text = new fabric.Text(`${i}`, {
+		const text = new FabricText(`${i}`, {
 			left: i - getAdjustedMarkerTextPosition(i) / zoom,
 			top: -pan[5] / zoom,
 			fontSize: 10 / zoom,
@@ -120,7 +121,7 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 	const nearestTop = Math.round(top / interval) * interval;
 	const canvasHeight = canvasRef.current?.height as number;
 	for (let i = nearestTop; i < (canvasHeight + -pan[5]) / zoom; i += interval) {
-		const line = new fabric.Line([0, i, 5 / zoom, i], {
+		const line = new Line([0, i, 5 / zoom, i], {
 			stroke: colorScheme === 'dark' ? RULER_COLORS.DARK.TEXT_STROKE : RULER_COLORS.LIGHT.TEXT_STROKE,
 			strokeWidth: 1 / zoom,
 			top: i,
@@ -134,7 +135,7 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 				id: generateId(),
 			},
 		});
-		const text = new fabric.Text(`${i}`, {
+		const text = new FabricText(`${i}`, {
 			top: i + getAdjustedMarkerTextPosition(i) / zoom,
 			left: -pan[4] / zoom,
 			fontSize: 10 / zoom,
@@ -163,17 +164,14 @@ export function renderRulerStepMarkers(canvasRef: React.MutableRefObject<fabric.
 		stroke: colorScheme === 'dark' ? RULER_COLORS.DARK.TEXT_STROKE : RULER_COLORS.LIGHT.RULER_BORDER,
 		fill: colorScheme === 'dark' ? RULER_COLORS.DARK.BACKGROUND : RULER_COLORS.LIGHT.BACKGROUND,
 	});
-	block?.moveTo((canvasRef.current?.getObjects()?.length as number) - 1);
+	// block?.move((canvasRef.current?.getObjects()?.length as number) - 1);
 	block?.setCoords();
 	canvasRef.current?.requestRenderAll();
 }
 
-export function renderRulerAxisBackground(
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
-	colorScheme = 'light',
-) {
+export function renderRulerAxisBackground(canvasRef: React.MutableRefObject<Canvas | null>, colorScheme = 'light') {
 	const zoom = canvasRef.current?.getZoom() as number;
-	const xaxis = new fabric.Rect({
+	const xaxis = new Rect({
 		left: 0,
 		top: 0,
 		fill: colorScheme === 'dark' ? RULER_COLORS.DARK.BACKGROUND : RULER_COLORS.LIGHT.BACKGROUND,
@@ -190,7 +188,7 @@ export function renderRulerAxisBackground(
 			type: RULER_ELEMENTS.X_RULER_BACKGROUND,
 		},
 	});
-	const yaxis = new fabric.Rect({
+	const yaxis = new Rect({
 		left: 0,
 		top: 0,
 		fill: colorScheme === 'dark' ? RULER_COLORS.DARK.BACKGROUND : RULER_COLORS.LIGHT.BACKGROUND,
@@ -207,7 +205,7 @@ export function renderRulerAxisBackground(
 			isSaveExclude: true,
 		},
 	});
-	const block = new fabric.Rect({
+	const block = new Rect({
 		left: 0,
 		top: 0,
 		fill: colorScheme === 'dark' ? RULER_COLORS.DARK.BACKGROUND : RULER_COLORS.LIGHT.BACKGROUND,
@@ -238,8 +236,8 @@ export function renderRulerAxisBackground(
 	canvasRef.current?.requestRenderAll();
 }
 
-export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
-	const allObjects = canvasRef?.current?.getObjects() as fabric.Object[];
+export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<Canvas | null>) {
+	const allObjects = canvasRef?.current?.getObjects() as FabricObject[];
 	const zoom = canvasRef.current?.getZoom() as number;
 	const canvasHeight = canvasRef.current?.height as number;
 	const canvasWidth = canvasRef.current?.width as number;
@@ -261,7 +259,7 @@ export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabri
 	allObjects
 		.filter(x => x?.data?.type === RULER_LINES.Y_RULER_LINE)
 		.forEach(x => {
-			const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
+			const pan = canvasRef.current?.viewportTransform as unknown as Point[];
 			x?.set({
 				strokeWidth: 1 / zoom,
 				left: (-pan[4] + 20) / zoom,
@@ -273,7 +271,7 @@ export function adjustRulerLinesPosition(canvasRef: React.MutableRefObject<fabri
 		});
 }
 
-export function removeRulerOnMoveMarker(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
+export function removeRulerOnMoveMarker(canvasRef: React.MutableRefObject<Canvas | null>) {
 	canvasRef.current
 		?.getObjects()
 		.filter(item => [RULER_ELEMENTS.X_ON_MOVE_MARKER, RULER_ELEMENTS.Y_ON_MOVE_MARKER].includes(item.data?.type))
@@ -282,22 +280,19 @@ export function removeRulerOnMoveMarker(canvasRef: React.MutableRefObject<fabric
 		});
 }
 
-export function findXAxis(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
+export function findXAxis(canvasRef: React.MutableRefObject<Canvas | null>) {
 	return canvasRef.current?.getObjects().find(x => x?.data?.type === RULER_ELEMENTS.X_RULER_BACKGROUND);
 }
 
-export function findYAxis(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
+export function findYAxis(canvasRef: React.MutableRefObject<Canvas | null>) {
 	return canvasRef.current?.getObjects().find(x => x?.data?.type === RULER_ELEMENTS.Y_RULER_BACKGROUND);
 }
 
-export function findBlock(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
+export function findBlock(canvasRef: React.MutableRefObject<Canvas | null>) {
 	return canvasRef.current?.getObjects().find(x => x?.data?.type === RULER_ELEMENTS.BLOCK);
 }
 
-export function adjustRulerBackgroundPosition(
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
-	colorScheme = 'light',
-) {
+export function adjustRulerBackgroundPosition(canvasRef: React.MutableRefObject<Canvas | null>, colorScheme = 'light') {
 	const xaxis = findXAxis(canvasRef);
 	const yaxis = findYAxis(canvasRef);
 	const block = findBlock(canvasRef);
@@ -323,14 +318,14 @@ export function adjustRulerBackgroundPosition(
 		fill: colorScheme === 'dark' ? RULER_COLORS.DARK.BACKGROUND : RULER_COLORS.LIGHT.BACKGROUND,
 		height: canvasHeight / zoom,
 	});
-	xaxis?.moveTo((canvasRef.current?.getObjects()?.length as number) + 1);
-	yaxis?.moveTo((canvasRef.current?.getObjects()?.length as number) + 2);
-	block?.moveTo((canvasRef.current?.getObjects()?.length as number) + 3);
+	// xaxis?.moveObjectTo((canvasRef.current?.getObjects()?.length as number) + 1);
+	// yaxis?.moveObjectTo((canvasRef.current?.getObjects()?.length as number) + 2);
+	// block?.moveObjectTo((canvasRef.current?.getObjects()?.length as number) + 3);
 	xaxis?.setCoords();
 	yaxis?.setCoords();
 }
 
-export function removeRuler(canvasRef: React.MutableRefObject<fabric.Canvas | null>) {
+export function removeRuler(canvasRef: React.MutableRefObject<Canvas | null>) {
 	canvasRef.current
 		?.getObjects()
 		.filter(x => [...Object.values(RULER_LINES), ...Object.values(RULER_ELEMENTS)].includes(x.data?.type))
@@ -340,7 +335,7 @@ export function removeRuler(canvasRef: React.MutableRefObject<fabric.Canvas | nu
 	canvasRef.current?.renderAll();
 }
 
-export function loadRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas | null>, id: string) {
+export function loadRulerLines(canvasRef: React.MutableRefObject<Canvas | null>, id: string) {
 	const rulerLines = readRulerDataFromStorage();
 	const currentArtboardRuler = rulerLines?.[id];
 	if (!currentArtboardRuler) return;
@@ -349,13 +344,13 @@ export function loadRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas |
 	const canvasHeight =
 		zoom > 1 ? (canvasRef.current?.height as number) : (canvasRef.current?.height as number) / zoom;
 	const canvasWidth = zoom > 1 ? (canvasRef.current?.width as number) : (canvasRef.current?.width as number) / zoom;
-	removeDuplicateRulerLines(currentArtboardRuler).forEach((item: fabric.Object) => {
+	removeDuplicateRulerLines(currentArtboardRuler).forEach((item: FabricObject) => {
 		const axis = item?.data?.type === RULER_LINES.X_RULER_LINE ? 'x' : 'y';
 		const points =
 			axis === 'x'
 				? [item.left, (-pan[5] + 20) / zoom, item.left, canvasHeight]
 				: [(-pan[4] + 20) / zoom, item.top, canvasWidth, item.top];
-		const line = new fabric.Line(points as number[], {
+		const line = new Line(points as number[], {
 			stroke: RULER_COLORS.MARKER_LINE.DEFAULT,
 			strokeWidth: 1 / zoom,
 			hasControls: false,
@@ -391,7 +386,7 @@ export function loadRulerLines(canvasRef: React.MutableRefObject<fabric.Canvas |
 }
 
 export function initializeRuler(
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
+	canvasRef: React.MutableRefObject<Canvas | null>,
 	colorScheme = 'light',
 	artboardID: string,
 ) {
@@ -404,25 +399,21 @@ export function initializeRuler(
 }
 
 export function deleteRulerLines(
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
+	canvasRef: React.MutableRefObject<Canvas | null>,
 	currentArtboardID: string,
 	ids: string[] = [],
 ) {
-	const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-	const rulerLines = json?.objects.filter((x: fabric.Object) => Object.values(RULER_LINES).includes(x.data?.type));
+	const json = makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS));
+	const rulerLines = json?.objects.filter((x: FabricObject) => Object.values(RULER_LINES).includes(x.data?.type));
 	const rulerState = readRulerDataFromStorage();
 	const newState = {
 		...rulerState,
-		[currentArtboardID]: rulerLines?.filter((x: fabric.Object) => !ids.includes(x.data?.id)),
+		[currentArtboardID]: rulerLines?.filter((x: FabricObject) => !ids.includes(x.data?.id)),
 	};
 	localStorage.setItem('ruler', JSON.stringify(newState));
 }
 
-export function addNewRulerLine(
-	options: fabric.IEvent,
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
-	id: string,
-) {
+export function addNewRulerLine(options: fabric.IEvent, canvasRef: React.MutableRefObject<Canvas | null>, id: string) {
 	// create vertical line
 	if (
 		[RULER_ELEMENTS.X_RULER_BACKGROUND, RULER_ELEMENTS.X_RULER_MARKER, RULER_ELEMENTS.X_RULER_MARKER_TEXT].includes(
@@ -435,7 +426,7 @@ export function addNewRulerLine(
 			zoom > 1 ? (canvasRef.current?.height as number) : (canvasRef.current?.height as number) / zoom;
 		const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
 		const padding = zoom > 1 ? 10 / zoom : zoom * 10;
-		const line = new fabric.Line([pointer.x, (-pan[5] + 20) / zoom, pointer.x, canvasHeight], {
+		const line = new Line([pointer.x, (-pan[5] + 20) / zoom, pointer.x, canvasHeight], {
 			stroke: RULER_COLORS.MARKER_LINE.DEFAULT,
 			strokeWidth: 1 / zoom,
 			hasControls: false,
@@ -481,7 +472,7 @@ export function addNewRulerLine(
 			zoom > 1 ? (canvasRef.current?.width as number) : (canvasRef.current?.width as number) / zoom;
 		const pan = canvasRef.current?.viewportTransform as unknown as fabric.IPoint[];
 		const padding = zoom > 1 ? 10 / zoom : zoom * 10;
-		const line = new fabric.Line([(-pan[4] + 20) / zoom, pointer.y, canvasWidth, pointer.y], {
+		const line = new Line([(-pan[4] + 20) / zoom, pointer.y, canvasWidth, pointer.y], {
 			stroke: RULER_COLORS.MARKER_LINE.DEFAULT,
 			strokeWidth: 1 / zoom,
 			lockMovementX: true,
@@ -520,25 +511,22 @@ export function addNewRulerLine(
 		options.target?.set({ fill: 'red', stroke: 'red' });
 		renderRulerOnMoveMarker(options.target!, canvasRef);
 	}
-	const json = canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS);
-	const rulerLines = json?.objects.filter((x: fabric.Object) => Object.values(RULER_LINES).includes(x.data?.type));
+	const json = makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS));
+	const rulerLines = json?.objects.filter((x: FabricObject) => Object.values(RULER_LINES).includes(x.data?.type));
 	const rulerState = readRulerDataFromStorage();
 	localStorage.setItem(
 		'ruler',
-		JSON.stringify({ ...rulerState, [id]: removeDuplicateRulerLines(rulerLines as fabric.Object[]) }),
+		JSON.stringify({ ...rulerState, [id]: removeDuplicateRulerLines(rulerLines as FabricObject[]) }),
 	);
 }
 
-export function renderRulerOnMoveMarker(
-	target: fabric.Object,
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>,
-) {
+export function renderRulerOnMoveMarker(target: FabricObject, canvasRef: React.MutableRefObject<Canvas | null>) {
 	if (RULER_LINES.X_RULER_LINE === target.data?.type) {
 		removeRulerOnMoveMarker(canvasRef);
 		const pan = canvasRef.current?.viewportTransform as FixedArray<number, 6>;
 		const zoom = canvasRef.current?.getZoom() as number;
 		canvasRef.current?.add(
-			new fabric.Text(`${Math.round(target.left as number)}`, {
+			new FabricText(`${Math.round(target.left as number)}`, {
 				left: (target.left as number) + 5 / zoom,
 				top: (-pan[5] + 20) / zoom,
 				fill: RULER_COLORS.MARKER_LINE.FOCUSED,
@@ -552,7 +540,7 @@ export function renderRulerOnMoveMarker(
 		const pan = canvasRef.current?.viewportTransform as FixedArray<number, 6>;
 		const zoom = canvasRef.current?.getZoom() as number;
 		canvasRef.current?.add(
-			new fabric.Text(`${Math.round(target.top as number)}`, {
+			new FabricText(`${Math.round(target.top as number)}`, {
 				left: (-pan[4] + 20) / zoom,
 				top: (target.top as number) - 5 / zoom,
 				fill: RULER_COLORS.MARKER_LINE.FOCUSED,
@@ -571,13 +559,13 @@ export function readRulerDataFromStorage() {
 	return rulerState;
 }
 
-export function removeDuplicateRulerLines(rulerLines: fabric.Object[]) {
+export function removeDuplicateRulerLines(rulerLines: FabricObject[]) {
 	const ids = rulerLines.map(x => x.data?.id);
 	const uniqueIds = [...new Set(ids)];
 	return rulerLines.filter(x => uniqueIds.includes(x.data?.id));
 }
 
-export function updateRulerLineInStorage(id: string, rulerLines: fabric.Object[]) {
+export function updateRulerLineInStorage(id: string, rulerLines: FabricObject[]) {
 	const rulerState = readRulerDataFromStorage();
 	localStorage.setItem('ruler', JSON.stringify({ ...rulerState, [id]: removeDuplicateRulerLines(rulerLines) }));
 }

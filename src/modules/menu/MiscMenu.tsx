@@ -1,13 +1,13 @@
 import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArtboard, IconEye } from '@tabler/icons-react';
-import { fabric } from 'fabric';
 import { useEffect, useState } from 'react';
 import { Artboard } from '../../types';
 import { generateId } from '../../utils';
+import { Canvas } from 'fabric';
 
 type MiscMenuProps = {
-	canvasRef: React.RefObject<fabric.Canvas>;
+	canvasRef: React.RefObject<Canvas>;
 	artboards: Artboard[];
 };
 const RENDER_N = 2500;

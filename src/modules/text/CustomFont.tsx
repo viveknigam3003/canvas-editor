@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button, Modal, TextInput, Tabs } from '@mantine/core';
 import FontFaceObserver from 'fontfaceobserver';
+import { FabricText } from 'fabric';
 interface CustomFontProps {
 	onLoad: () => void;
-	currentSelectedElements: fabric.Object[];
-	canvas: fabric.Canvas;
+	currentSelectedElements: FabricObject[];
+	canvas: Canvas;
 }
 
 const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelectedElements }) => {
@@ -46,7 +47,7 @@ const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelected
 			() => {
 				console.log('Font is available');
 				if (currentSelectedElements && currentSelectedElements) {
-					const textElement = currentSelectedElements?.[0] as fabric.Text;
+					const textElement = currentSelectedElements?.[0] as FabricText;
 					textElement.set({ fontFamily: name, data: { ...textElement.data, font: fontFaceRule } });
 					canvas.renderAll();
 				}
@@ -62,7 +63,7 @@ const CustomFont: React.FC<CustomFontProps> = ({ onLoad, canvas, currentSelected
 				() => {
 					console.log('Bold font is available');
 					if (currentSelectedElements && currentSelectedElements) {
-						const textElement = currentSelectedElements?.[0] as fabric.Text;
+						const textElement = currentSelectedElements?.[0] as FabricText;
 						textElement.set({ data: { ...textElement.data, boldFont: boldFontFaceRule } });
 						canvas.renderAll();
 					}

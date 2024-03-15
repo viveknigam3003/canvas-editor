@@ -1,7 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { Button, Group, NumberInput, Popover, Progress, Slider, Stack, Text, createStyles } from '@mantine/core';
-import { fabric } from 'fabric';
 import { useEffect, useRef, useState } from 'react';
 import SectionTitle from '../../../components/SectionTitle';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../../constants';
@@ -9,6 +8,7 @@ import { generateId } from '../../../utils';
 import { addVideoToCanvas } from '../../image/helpers';
 import { interpolatePropertyValue } from '../helpers';
 import { AnimationProps, Keyframe } from '../types';
+import { Canvas } from 'fabric';
 
 const MAX_DURATION = 60 * 1000;
 
@@ -214,14 +214,14 @@ const Animation = ({ currentSelectedElements, saveArtboardChanges, canvas }: Ani
 		console.log('width', width);
 		console.log('height', height);
 
-		const renderCanvas = new fabric.Canvas('render-canvas', {
+		const renderCanvas = new Canvas('render-canvas', {
 			width,
 			height,
 			backgroundColor: '#000',
 		});
 		console.log('renderCanvas', renderCanvas);
 
-		const stateJSON = canvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const stateJSON = canvas.(FABRIC_JSON_ALLOWED_KEYS);
 
 		const adjustKeyframes = (keyframes: Keyframe[]) => {
 			if (!keyframes) {

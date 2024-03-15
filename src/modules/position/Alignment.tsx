@@ -15,8 +15,8 @@ import { alignElementToRect } from './helpers';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
 
 type PanelProps = {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 	activeArtboard: Artboard;
 };
 

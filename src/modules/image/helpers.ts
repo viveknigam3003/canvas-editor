@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import { Canvas, FabricImage, FabricObject, Rect } from 'fabric';
 import { generateId } from '../../utils';
 
 export const getVideoElement = (url: string) => {
@@ -12,7 +12,7 @@ export const getVideoElement = (url: string) => {
 	return videoE;
 };
 
-export const getElementScale = (element: fabric.Object, artboard: fabric.Rect): number => {
+export const getElementScale = (element: FabricObject, artboard: Rect): number => {
 	// Calculate the scale needed to fit the image inside the artboard with 20% padding
 	const artboardWidth = artboard.width;
 	const artboardHeight = artboard.height;
@@ -34,7 +34,7 @@ export const getElementScale = (element: fabric.Object, artboard: fabric.Rect): 
 	return scale;
 };
 
-export const getScaledPosition = (artboard: fabric.Rect): { left: number; top: number } => {
+export const getScaledPosition = (artboard: Rect): { left: number; top: number } => {
 	if (!artboard) {
 		throw new Error('Artboard not found');
 	}
@@ -54,7 +54,7 @@ export const getScaledPosition = (artboard: fabric.Rect): { left: number; top: n
 	};
 };
 
-export const addVideoToCanvas = async (src: string, canvas: fabric.Canvas): Promise<fabric.Image> => {
+export const addVideoToCanvas = async (src: string, canvas: Canvas): Promise<FabricImage> => {
 	return new Promise((resolve, reject) => {
 		console.log('Loading video');
 		const artboard = canvas.getObjects().find(obj => obj.data?.type === 'artboard');
@@ -75,12 +75,12 @@ export const addVideoToCanvas = async (src: string, canvas: fabric.Canvas): Prom
 			if (existingVideoObject) {
 				console.log('Existing video object found');
 				videoE.currentTime = 0.01; // This may be unnecessary unless you're trying to bypass a browser quirk.
-				(existingVideoObject as fabric.Image).setElement(videoE);
-				resolve(existingVideoObject as fabric.Image);
+				(existingVideoObject as FabricImage).setElement(videoE);
+				resolve(existingVideoObject as FabricImage);
 				return;
 			}
 
-			const video = new fabric.Image(videoE, {
+			const video = new FabricImage(videoE, {
 				left,
 				top,
 				height: videoE.videoHeight,

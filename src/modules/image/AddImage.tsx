@@ -1,7 +1,7 @@
 import { Button, FileInput, Modal, Stack, Tabs, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconLinkPlus, IconPhoto, IconSettings, IconShape, IconUpload, IconVideo } from '@tabler/icons-react';
-import { fabric } from 'fabric';
+
 import { useDispatch } from 'react-redux';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import { updateActiveArtboardLayers } from '../../modules/app/actions';
@@ -10,12 +10,14 @@ import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { addVideoToCanvas, getElementScale, getScaledPosition } from './helpers';
 import { getArtboardObject } from '../artboard/helpers';
+import { Canvas, FabricImage, loadSVGFromURL, util } from 'fabric';
+import { makeJsonObject } from '../../App';
 
 type ImageModalProps = {
 	imageModalOpened: boolean;
 	closeImageModal: () => void;
 	activeArtboard?: Artboard | null;
-	canvasRef: React.MutableRefObject<fabric.Canvas | null>;
+	canvasRef: React.MutableRefObject<Canvas | null>;
 	saveArtboardChanges: () => void;
 };
 
@@ -42,50 +44,56 @@ const ImageModal = ({
 	});
 
 	const addImageFromUrl = (url: string) => {
-		fabric.Image.fromURL(
+		FabricImage.fromURL(
 			url,
-			img => {
-				const canvas = canvasRef.current;
-				const artboardId = activeArtboard?.id;
 
-				if (!canvas || !artboardId) {
-					return;
-				}
-
-				const artboard = getArtboardObject(canvas, artboardId);
-
-				const { left, top } = getScaledPosition(artboard);
-				const scale = getElementScale(img, artboard);
-
-				console.log('Scale = ', scale);
-
-				img.set({
-					left,
-					top,
-					scaleX: scale,
-					scaleY: scale,
-					data: {
-						id: generateId(),
-					},
-					name: 'My Image',
-				});
-
-				canvasRef.current?.add(img);
-				canvasRef.current?.setActiveObject(img);
-				imageForm.reset();
-				dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
-				saveArtboardChanges();
-				closeImageModal();
-			},
 			{
 				crossOrigin: 'anonymous',
 			},
-		);
+		).then(img => {
+			console.log('🚀 ~ ).then ~ img:', img);
+
+			const canvas = canvasRef.current;
+			const artboardId = activeArtboard?.id;
+
+			if (!canvas || !artboardId) {
+				return;
+			}
+
+			const artboard = getArtboardObject(canvas, artboardId);
+
+			const { left, top } = getScaledPosition(artboard);
+			const scale = getElementScale(img, artboard);
+
+			console.log('Scale = ', scale);
+
+			img.set({
+				left,
+				top,
+				scaleX: scale,
+				scaleY: scale,
+				data: {
+					id: generateId(),
+				},
+				name: 'My Image',
+			});
+
+			canvasRef.current?.add(img);
+			canvasRef.current?.setActiveObject(img);
+			imageForm.reset();
+			dispatch(
+				updateActiveArtboardLayers(
+					makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS).objects || []),
+				),
+			);
+			saveArtboardChanges();
+			closeImageModal();
+		});
 	};
 
 	const addSvgFromUrl = (url: string) => {
-		fabric.loadSVGFromURL(url, (objects, options) => {
-			const obj = fabric.util.groupSVGElements(objects, options);
+		loadSVGFromURL(url, (objects, options) => {
+			const obj = util.groupSVGElements(objects, options);
 
 			const artboardId = activeArtboard?.id;
 			if (!canvasRef.current || !artboardId) {
@@ -106,7 +114,9 @@ const ImageModal = ({
 			canvasRef.current?.setActiveObject(obj);
 			imageForm.reset();
 			dispatch(
-				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
+				updateActiveArtboardLayers(
+					makeJsonObject(canvasRef.current?.toObject(['data', 'selectable', 'effects']).objects || []),
+				),
 			);
 			saveArtboardChanges();
 			closeImageModal();
@@ -121,7 +131,9 @@ const ImageModal = ({
 			canvasRef.current?.setActiveObject(video);
 			canvasRef.current?.renderAll();
 			dispatch(
-				updateActiveArtboardLayers(canvasRef.current?.toJSON(['data', 'selectable', 'effects']).objects || []),
+				updateActiveArtboardLayers(
+					makeJsonObject(canvasRef.current?.toObject(['data', 'selectable', 'effects']).objects || []),
+				),
 			);
 			saveArtboardChanges();
 			closeImageModal();

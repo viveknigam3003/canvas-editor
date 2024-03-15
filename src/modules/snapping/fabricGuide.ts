@@ -1,5 +1,5 @@
+import { Canvas, FabricObject, Point, util } from 'fabric';
 import { RULER_LINES } from '../ruler';
-import { fabric } from 'fabric';
 
 type VerticalLineCoords = {
 	x: number;
@@ -13,13 +13,13 @@ type HorizontalLineCoords = {
 	x2: number;
 };
 
-// type IgnoreObjTypes<T = keyof fabric.Object> = {
+// type IgnoreObjTypes<T = keyof FabricObject> = {
 // 	key: T;
 // 	value: any;
 // }[];
 
-type ACoordsAppendCenter = NonNullable<fabric.Object['aCoords']> & {
-	c: fabric.Point;
+type ACoordsAppendCenter = NonNullable<FabricObject['aCoords']> & {
+	c: Point;
 };
 
 const Keys = <T extends object>(obj: T): (keyof T)[] => {
@@ -35,12 +35,12 @@ export class FabricGuide {
 
 	private verticalLines: VerticalLineCoords[] = [];
 	private horizontalLines: HorizontalLineCoords[] = [];
-	private activeObj: fabric.Object | undefined;
+	private activeObj: FabricObject | undefined;
 	// private ignoreObjTypes: IgnoreObjTypes = [];
 	// private pickObjTypes: IgnoreObjTypes = [];
 	private dirty = false;
 
-	constructor(private readonly canvas: fabric.Canvas) {
+	constructor(private readonly canvas: Canvas) {
 		const mouseUp = () => {
 			if (this.horizontalLines.length || this.verticalLines.length) {
 				this.clearGuideline();
@@ -68,7 +68,7 @@ export class FabricGuide {
 
 		this.traverseObjects(
 			target,
-			this.canvas.getObjects().filter((obj: fabric.Object) => obj !== target && !obj.data.ignoreSnapping),
+			this.canvas.getObjects().filter((obj: FabricObject) => obj !== target && !obj.data.ignoreSnapping),
 		);
 	}
 
@@ -76,7 +76,7 @@ export class FabricGuide {
 		this.verticalLines.length = this.horizontalLines.length = 0;
 	}
 
-	private getObjDraggingObjCoords(activeObject: fabric.Object): ACoordsAppendCenter {
+	private getObjDraggingObjCoords(activeObject: FabricObject): ACoordsAppendCenter {
 		const coords = this.getCoords(activeObject);
 		const centerPoint = this.calcCenterPointByACoords(coords).subtract(activeObject.getCenterPoint());
 		const newCoords = Keys(coords).map(key => coords[key].subtract(centerPoint));
@@ -114,22 +114,22 @@ export class FabricGuide {
 		return Math.abs(Math.round(value1) - Math.round(value2)) <= this.aligningLineMargin / this.canvas.getZoom();
 	}
 
-	private getCoords(obj: fabric.Object) {
+	private getCoords(obj: FabricObject) {
 		const [tl, tr, br, bl] = obj.getCoords(true);
 		return { tl, tr, br, bl };
 	}
 
-	private calcCenterPointByACoords(coords: NonNullable<fabric.Object['aCoords']>): fabric.Point {
-		return new fabric.Point((coords.tl.x + coords.br.x) / 2, (coords.tl.y + coords.br.y) / 2);
+	private calcCenterPointByACoords(coords: NonNullable<FabricObject['aCoords']>): Point {
+		return new Point((coords.tl.x + coords.br.x) / 2, (coords.tl.y + coords.br.y) / 2);
 	}
 
-	private traverseObjects(activeObject: fabric.Object, canvasObjects: fabric.Object[]) {
+	private traverseObjects(activeObject: FabricObject, canvasObjects: FabricObject[]) {
 		const objCoordsByMovingDistance = this.getObjDraggingObjCoords(activeObject);
 		const snapXPoints: Set<number> = new Set();
 		const snapYPoints: Set<number> = new Set();
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
-		for (let i = canvasObjects.length; i--;) {
+		for (let i = canvasObjects.length; i--; ) {
 			const objCoords = {
 				...this.getCoords(canvasObjects[i]),
 				c: canvasObjects[i].getCenterPoint(),
@@ -222,7 +222,7 @@ export class FabricGuide {
 		snapXPoints,
 		snapYPoints,
 	}: {
-		activeObject: fabric.Object;
+		activeObject: FabricObject;
 
 		draggingObjCoords: ACoordsAppendCenter;
 
@@ -242,7 +242,7 @@ export class FabricGuide {
 			return sortedList[0];
 		};
 
-		const point = new fabric.Point(
+		const point = new Point(
 			sortPoints(snapXPoints, draggingObjCoords.c.x),
 			sortPoints(snapYPoints, draggingObjCoords.c.y),
 		);
@@ -275,8 +275,8 @@ export class FabricGuide {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
 		const ctx = this.canvas.getTopContext();
-		const point1 = fabric.util.transformPoint(new fabric.Point(x1, y1), this.canvas.viewportTransform as number[]);
-		const point2 = fabric.util.transformPoint(new fabric.Point(x2, y2), this.canvas.viewportTransform as number[]);
+		const point1 = util.transformPoint(new Point(x1, y1), this.canvas.viewportTransform);
+		const point2 = util.transformPoint(new Point(x2, y2), this.canvas.viewportTransform);
 
 		// use origin canvas api to draw guideline
 		ctx.save();
@@ -314,12 +314,12 @@ export class FabricGuide {
 
 		const movingCoords = this.getObjDraggingObjCoords(this.activeObj);
 
-		for (let i = this.verticalLines.length; i--;) {
+		for (let i = this.verticalLines.length; i--; ) {
 			this.drawVerticalLine(this.verticalLines[i], movingCoords);
 		}
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
-		for (let i = this.horizontalLines.length; i--;) {
+		for (let i = this.horizontalLines.length; i--; ) {
 			this.drawHorizontalLine(this.horizontalLines[i], movingCoords);
 		}
 	}

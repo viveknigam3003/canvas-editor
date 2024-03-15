@@ -1,6 +1,7 @@
+import { Canvas, FabricObject } from 'fabric';
 import { getArtboardObject } from '../artboard/helpers';
 
-export const getExtremePoints = (object: fabric.Object) => {
+export const getExtremePoints = (object: FabricObject) => {
 	const { aCoords } = object;
 	if (!aCoords) throw new Error('Invalid object while finding extreme points');
 	const { tl, tr, bl, br } = aCoords;
@@ -17,10 +18,10 @@ export const getExtremePoints = (object: fabric.Object) => {
 };
 
 export const alignElementToRect = (
-	currentSelectedElements: fabric.Object[],
+	currentSelectedElements: FabricObject[],
 	activeArtboardId: string,
 	position: string,
-	canvas: fabric.Canvas,
+	canvas: Canvas,
 ) => {
 	const targetRect = getArtboardObject(canvas, activeArtboardId);
 	const targetLeft = targetRect.left!;

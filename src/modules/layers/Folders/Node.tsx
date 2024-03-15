@@ -116,12 +116,12 @@ const Node: React.FC<{
 			return;
 		}
 
-		onClick((node.data as fabric.Object).data.id);
+		onClick((node.data as FabricObject).data.id);
 	};
 
 	const getNodeType = (node: NodeModel) => {
 		if (node.droppable) {
-			if ((node.data as fabric.Object)?.data?.type === 'clipGroup') {
+			if ((node.data as FabricObject)?.data?.type === 'clipGroup') {
 				return 'clipGroup';
 			}
 			if (isOpen) {
@@ -129,7 +129,7 @@ const Node: React.FC<{
 			}
 			return 'folder';
 		}
-		if ((node.data as fabric.Object)?.data?.type === 'video') {
+		if ((node.data as FabricObject)?.data?.type === 'video') {
 			return 'video';
 		}
 		return node.text;
@@ -138,18 +138,18 @@ const Node: React.FC<{
 	const getNodeText = (node: NodeModel) => {
 		switch (node.text) {
 			case 'image':
-				if ((node.data as fabric.Object)?.data?.type === 'video') {
+				if ((node.data as FabricObject)?.data?.type === 'video') {
 					return 'Video';
 				}
 				return 'Image';
 			case 'textbox':
-				if ((node.data as fabric.Object)?.data?.displayText) {
-					return (node.data as fabric.Object)?.data?.displayText;
+				if ((node.data as FabricObject)?.data?.displayText) {
+					return (node.data as FabricObject)?.data?.displayText;
 				}
 
 				return 'Text';
 			case 'group':
-				if ((node.data as fabric.Object)?.data?.type === 'clipGroup') {
+				if ((node.data as FabricObject)?.data?.type === 'clipGroup') {
 					return 'Mask group';
 				}
 

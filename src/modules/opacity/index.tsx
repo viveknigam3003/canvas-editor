@@ -6,8 +6,8 @@ import { RootState } from '../../store/rootReducer';
 import { applyBulkEdit } from '../app/actions';
 
 interface OpacityProps {
-	currentSelectedElements: fabric.Object[];
-	canvas: fabric.Canvas;
+	currentSelectedElements: FabricObject[];
+	canvas: Canvas;
 	saveArtboardChanges: () => void;
 }
 

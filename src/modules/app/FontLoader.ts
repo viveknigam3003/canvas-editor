@@ -1,7 +1,8 @@
+import { Textbox } from 'fabric';
 import { Artboard } from '../../types';
 
 // Function to extract font family names from TextItem
-const extractGoogleFontFamilies = (artboardTexts: fabric.Textbox[]): Set<string> => {
+const extractGoogleFontFamilies = (artboardTexts: Textbox[]): Set<string> => {
 	const googleFontFamilies = new Set<string>();
 
 	artboardTexts.forEach(textItem => {
@@ -56,7 +57,7 @@ async function loadFontWithApi(fontFamily: string): Promise<void> {
 	}
 }
 
-const extractUniqueFonts = (artboardTexts: fabric.Textbox[]) => {
+const extractUniqueFonts = (artboardTexts: Textbox[]) => {
 	const fonts = new Set<string>();
 
 	artboardTexts.forEach(textItem => {

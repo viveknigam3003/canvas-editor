@@ -1,11 +1,11 @@
-import { fabric as Fabric } from 'fabric';
+import { Canvas, FabricObject, Gradient, Rect, util } from 'fabric';
 import { generateId } from '../../utils';
 
-export interface SmartObject extends fabric.Object {
-	effects: { reflection?: fabric.Object | null; reflectionOverlay?: fabric.Rect | null };
+export interface SmartObject extends FabricObject {
+	effects: { reflection?: FabricObject | null; reflectionOverlay?: Rect | null };
 }
 
-export const createReflection = (original: SmartObject, canvas: fabric.Canvas) => {
+export const createReflection = (original: SmartObject, canvas: Canvas) => {
 	// Clone the original object to create the reflection
 	original.clone((cloned: SmartObject) => {
 		const reflection: SmartObject = cloned;
@@ -21,7 +21,7 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 				ignoreSnapping: true,
 			},
 			selectable: false,
-			fill: new Fabric.Gradient({
+			fill: new Gradient({
 				type: 'linear',
 				coords: {
 					x1: 0,
@@ -41,11 +41,11 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 		original.set('effects', { ...original.effects, reflection });
 		// set the z-index of the reflection to be just behind the original
 		const objectIndex = canvas.getObjects().indexOf(original);
-		canvas.moveTo(reflection, objectIndex);
+		// canvas.moveObjectTo(reflection, objectIndex);
 
 		// If the object is an image, then we need to add a rectangle behind it to create the reflection
 		if (original.type === 'image') {
-			const reflectionOverlay = new Fabric.Rect({
+			const reflectionOverlay = new Rect({
 				top: reflection.top!,
 				left: reflection.left!,
 				width: original.getScaledWidth(),
@@ -57,7 +57,7 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 					id: generateId(),
 					ignoreSnapping: true,
 				},
-				fill: new Fabric.Gradient({
+				fill: new Gradient({
 					type: 'linear',
 					coords: {
 						x1: 0,
@@ -76,20 +76,20 @@ export const createReflection = (original: SmartObject, canvas: fabric.Canvas) =
 			canvas.add(reflectionOverlay);
 			original.set('effects', { ...original.effects, reflectionOverlay });
 			const reflectionIndex = canvas.getObjects().indexOf(reflection);
-			canvas.moveTo(reflectionOverlay, reflectionIndex + 1);
+			// canvas.moveObjectTo(reflectionOverlay, reflectionIndex + 1);
 			canvas.requestRenderAll();
 		}
 	});
 };
 
-export const updateReflection = (original: SmartObject, canvas: fabric.Canvas) => {
+export const updateReflection = (original: SmartObject, canvas: Canvas) => {
 	// Set the reflection's position and angle to match the original
 	if (original.effects?.reflection) {
 		const elementTop = original.top!;
 		const elementLeft = original.left!;
 
-		const sin = Math.sin(Fabric.util.degreesToRadians(original.angle!));
-		const cos = Math.cos(Fabric.util.degreesToRadians(original.angle!));
+		const sin = Math.sin(util.degreesToRadians(original.angle!));
+		const cos = Math.cos(util.degreesToRadians(original.angle!));
 
 		const height = original.getScaledHeight();
 		const leftAdjustment = height * sin;
@@ -121,8 +121,8 @@ export const updateReflection = (original: SmartObject, canvas: fabric.Canvas) =
 			});
 		}
 
-		console.log('Reflection', original.effects?.reflection.toJSON(['data']));
-		console.log('Reflection Overlay', original.effects?.reflectionOverlay?.toJSON(['data']));
+		// console.log('Reflection', original.effects?.reflection.toJSON(['data']));
+		// console.log('Reflection Overlay', original.effects?.reflectionOverlay?.toJSON(['data']));
 
 		// Update the canvas display
 		canvas.requestRenderAll();

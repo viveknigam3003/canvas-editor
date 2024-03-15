@@ -1,11 +1,11 @@
 import { Popover, ActionIcon, Grid, Box, createStyles, Tooltip, useMantineTheme } from '@mantine/core';
 import { IconSquare } from '@tabler/icons-react';
-import { fabric } from 'fabric';
 import { shapesData } from './shapesPath';
 import { useState } from 'react';
 import { Artboard } from '../../types';
 import { getArtboardCenter } from '../artboard/helpers';
 import { generateId } from '../../utils';
+import { Canvas, Path } from 'fabric';
 
 const DEFAULT_SHAPE_COLOR = '#C4C4C4';
 
@@ -35,7 +35,7 @@ const useStyles = createStyles(() => ({
 }));
 
 type ShapePopoverProps = {
-	canvasRef: React.RefObject<fabric.Canvas>;
+	canvasRef: React.RefObject<Canvas>;
 	activeArtboard: Artboard | null;
 };
 export default function ShapePopover({ canvasRef, activeArtboard }: ShapePopoverProps) {
@@ -48,7 +48,7 @@ export default function ShapePopover({ canvasRef, activeArtboard }: ShapePopover
 		}
 		const artboard = getArtboardCenter(canvasRef.current, activeArtboard.id);
 		const { x: centerX, y: centerY } = artboard;
-		const path = new fabric.Path(shape.path, {
+		const path = new Path(shape.path, {
 			fill: DEFAULT_SHAPE_COLOR,
 			scaleX: 2,
 			scaleY: 2,
@@ -59,11 +59,11 @@ export default function ShapePopover({ canvasRef, activeArtboard }: ShapePopover
 						strokeLineCap: shape.strokeLineCap,
 						stroke: DEFAULT_SHAPE_COLOR,
 						strokeWidth: shape.strokeWidth,
-				  }
+					}
 				: {}),
 			data: {
 				id: generateId(),
-				type: 'shape',
+				typera: 'shape',
 				displayName: name,
 			},
 		});

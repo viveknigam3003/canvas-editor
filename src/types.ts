@@ -1,3 +1,5 @@
+import { FabricObject, Line } from 'fabric';
+
 export interface Artboard {
 	id: string;
 	name: string;
@@ -14,15 +16,15 @@ export type snappingObjectType = {
 	getScaledHeight: () => number;
 	getScaledWidth: () => number;
 	set(props: { top?: number; left?: number }): void;
-} & fabric.Object;
+} & FabricObject;
 
 export type guidesRefType = {
-	left: null | fabric.Line;
-	top: null | fabric.Line;
-	right: null | fabric.Line;
-	bottom: null | fabric.Line;
-	centerX: null | fabric.Line;
-	centerY: null | fabric.Line;
+	left: null | Line;
+	top: null | Line;
+	right: null | Line;
+	bottom: null | Line;
+	centerX: null | Line;
+	centerY: null | Line;
 };
 
 // utility types

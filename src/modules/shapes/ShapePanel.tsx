@@ -5,8 +5,8 @@ import Reflection from '../reflection';
 import { useEffect, useState } from 'react';
 
 interface PanelProps {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 }
 
 const ShapePanel = ({ canvas, currentSelectedElements }: PanelProps) => {

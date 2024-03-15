@@ -17,7 +17,7 @@ export const capsuleStructure = {
 				width: 0,
 				height: 0,
 			},
-			elements: [], // fabric.Object
+			elements: [], // FabricObject
 			rulers: [],
 		},
 	],

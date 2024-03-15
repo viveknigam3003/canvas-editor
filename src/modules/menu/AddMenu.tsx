@@ -1,7 +1,6 @@
 import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { IconLetterT, IconPhoto } from '@tabler/icons-react';
-import { fabric } from 'fabric';
 import { useDispatch } from 'react-redux';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
 import { Artboard } from '../../types';
@@ -11,10 +10,12 @@ import { getArtboardCenter } from '../artboard/helpers';
 import ImageModal from '../image/AddImage';
 import ShapePopover from '../shapes/ShapePopover';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
+import { Canvas, Rect, Textbox } from 'fabric';
+import { makeJsonObject } from '../../App';
 
 type AddMenuProps = {
 	activeArtboard: Artboard | null;
-	canvasRef: React.RefObject<fabric.Canvas>;
+	canvasRef: React.RefObject<Canvas>;
 	saveArtboardChanges: () => void;
 };
 
@@ -32,7 +33,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		const artboardCenter = getArtboardCenter(canvasRef.current, activeArtboard.id);
 		const { x: centerX, y: centerY } = artboardCenter;
 
-		const text = new fabric.Textbox('', {
+		const text = new Textbox('', {
 			left: centerX,
 			top: centerY,
 			fontFamily: 'Inter',
@@ -47,7 +48,11 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		canvasRef.current?.setActiveObject(text);
 		text.enterEditing();
 		text.selectAll();
-		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
+		dispatch(
+			updateActiveArtboardLayers(
+				makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS).objects || []),
+			),
+		);
 		saveArtboardChanges();
 	};
 
@@ -82,7 +87,7 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		const artboard = getArtboardCenter(canvasRef.current, activeArtboard.id);
 		const { x: centerX, y: centerY } = artboard;
 
-		const rect = new fabric.Rect({
+		const rect = new Rect({
 			left: centerX,
 			top: centerY,
 			fill: '#e3e3e3',
@@ -96,7 +101,11 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		});
 		canvasRef.current?.add(rect);
 		canvasRef.current?.requestRenderAll();
-		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
+		dispatch(
+			updateActiveArtboardLayers(
+				makeJsonObject(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS).objects || []),
+			),
+		);
 		saveArtboardChanges();
 	};
 

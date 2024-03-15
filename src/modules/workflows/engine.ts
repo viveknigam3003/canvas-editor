@@ -1,3 +1,4 @@
+import { Canvas, FabricObject, Textbox } from 'fabric';
 import { Conditional, NodeAction, When, Workflow, Node, PLUGIN_TYPES } from './types';
 
 const WORKFLOW_DELAY = 200;
@@ -52,9 +53,9 @@ const getAIText = () => {
 
 export const plugins = {
 	[PLUGIN_TYPES.SET_FABRIC]: (
-		currentSelectedElements: fabric.Object[],
+		currentSelectedElements: FabricObject[],
 		args: { property: string; value: any },
-		canvas: fabric.Canvas,
+		canvas: Canvas,
 	) => {
 		if (!currentSelectedElements || !canvas) return;
 		canvas.discardActiveObject();
@@ -71,26 +72,26 @@ export const plugins = {
 		}
 		canvas.requestRenderAll();
 	},
-	workflow: (currentSelectedElements: fabric.Object[], args: { id: string }, canvas: fabric.Canvas) => {
+	workflow: (currentSelectedElements: FabricObject[], args: { id: string }, canvas: Canvas) => {
 		if (!currentSelectedElements || !canvas) return;
 		const workflow = getSavedWorkflow().find((workflow: Workflow) => workflow.id === args.id);
 		if (!workflow) return;
 		executor(workflow, currentSelectedElements, canvas);
 	},
-	[PLUGIN_TYPES.COLOR_PLUGIN]: (currentSelectedElements: fabric.Object[], _args: any, canvas: fabric.Canvas) => {
+	[PLUGIN_TYPES.COLOR_PLUGIN]: (currentSelectedElements: FabricObject[], _args: any, canvas: Canvas) => {
 		const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
 		fabricSetPlugin(currentSelectedElements, { property: 'fill', value: getRandomColor() }, canvas);
 		canvas.requestRenderAll();
 	},
 	[PLUGIN_TYPES.AI_COPY_REFRESH]: async (
-		currentSelectedElements: fabric.Object[],
+		currentSelectedElements: FabricObject[],
 		args: any,
-		canvas: fabric.Canvas,
+		canvas: Canvas,
 		callback: (arg: NodeAction) => void = () => {},
 	) => {
 		// const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
 
-		const text = currentSelectedElements[0] as fabric.Textbox;
+		const text = currentSelectedElements[0] as Textbox;
 		if (text && text.type === 'textbox') {
 			try {
 				const newText = getAIText();
@@ -104,13 +105,13 @@ export const plugins = {
 		}
 	},
 	[PLUGIN_TYPES.GLOW_PLUGIN]: async (
-		currentSelectedElements: fabric.Object[],
+		currentSelectedElements: FabricObject[],
 		args: any,
-		canvas: fabric.Canvas,
+		canvas: Canvas,
 		callback: (arg: NodeAction) => void = () => {},
 	) => {
 		const fabricSetPlugin = plugins[PLUGIN_TYPES.SET_FABRIC];
-		currentSelectedElements.forEach(async (element: fabric.Object) => {
+		currentSelectedElements.forEach(async (element: FabricObject) => {
 			fabricSetPlugin([element], { property: 'shadow', value: '0 0 10 #ff4d00f5' }, canvas);
 			fabricSetPlugin([element], { property: 'blur', value: '50' }, canvas);
 			await callback(args);
@@ -120,8 +121,8 @@ export const plugins = {
 
 export async function executor(
 	workflow1: { nodes: Node[] },
-	currentSelectedElements: fabric.Object[],
-	canvas: fabric.Canvas,
+	currentSelectedElements: FabricObject[],
+	canvas: Canvas,
 	callback: (arg: NodeAction) => void = () => {},
 ) {
 	for (let index = 0; index < workflow1.nodes.length; index++) {
@@ -136,14 +137,14 @@ export async function executor(
 			) {
 				const element = currentSelectedElements.find(
 					x => x.type === node.condition.targets?.[0],
-				) as fabric.Object;
+				) as FabricObject;
 				executeFn(node, [element], canvas, callback);
 			} else if (
 				node.condition.conditional === Conditional.CONTAIN &&
 				currentSelectedElements.filter(x => node.condition.targets?.includes(x.type as string)).length > 0
 			) {
-				const elements = currentSelectedElements.filter(
-					x => node.condition.targets?.includes(x.type as string),
+				const elements = currentSelectedElements.filter(x =>
+					node.condition.targets?.includes(x.type as string),
 				);
 				for (let index = 0; index < elements.length; index++) {
 					const element = elements[index];
@@ -159,8 +160,8 @@ export async function executor(
 
 async function executeFn(
 	node: Node,
-	currentSelectedElements: fabric.Object[],
-	canvas: fabric.Canvas,
+	currentSelectedElements: FabricObject[],
+	canvas: Canvas,
 	callback: (arg: NodeAction) => void,
 ) {
 	const aa = node.actions;

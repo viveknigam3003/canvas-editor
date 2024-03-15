@@ -4,8 +4,8 @@ import Shadow from '../shadow';
 import Reflection from '../reflection';
 
 interface PanelProps {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 }
 
 const ImagePanel = ({ canvas, currentSelectedElements }: PanelProps) => {

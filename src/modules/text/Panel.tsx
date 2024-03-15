@@ -9,10 +9,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/rootReducer';
 import { applyBulkEdit } from '../app/actions';
 import { Font } from './types';
+import { FabricText, Textbox } from 'fabric';
 
 interface PanelProps {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 }
 
 const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
@@ -30,7 +31,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	const [fontWeight, setFontWeight] = useState('regular');
 	const [selectedFontColor, setSelectedFontColor] = useState('#000000');
 	useEffect(() => {
-		const textElement = currentSelectedElements?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as FabricText;
 		if (textElement) {
 			const fontFamily = textElement.fontFamily;
 			setValue(fontFamily || '');
@@ -54,7 +55,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 	}, [currentSelectedElements]);
 
 	const toggleBold = () => {
-		const textElement = currentSelectedElements?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as FabricText;
 		if (textElement.fontWeight === 'bold') {
 			textElement.set({ fontWeight: 'normal', fontFamily: textElement?.fontFamily?.replace('_bold', '') });
 			setIsBold(false);
@@ -95,7 +96,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 			.catch(error => console.error(error));
 	}, []);
 	const toggleItalic = () => {
-		const textElement = currentSelectedElements?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as FabricText;
 		if (textElement.fontStyle === 'italic') {
 			textElement.set({ fontStyle: 'normal' });
 			setIsItalic(false);
@@ -126,7 +127,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		canvas.requestRenderAll();
 	};
 	const toggleUndeline = () => {
-		const textElement = currentSelectedElements?.[0] as fabric.Text;
+		const textElement = currentSelectedElements?.[0] as FabricText;
 		if (textElement.underline) {
 			textElement.set({ underline: false });
 			setIsUnderline(false);
@@ -157,7 +158,7 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 		canvas.requestRenderAll();
 	};
 	const toggleSuperscript = () => {
-		const textElement = currentSelectedElements?.[0] as fabric.Textbox;
+		const textElement = currentSelectedElements?.[0] as Textbox;
 		const start = textElement.selectionStart || 0;
 		const end = textElement.selectionEnd || 1;
 
@@ -283,10 +284,10 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 							})
 							.then(() => {
 								// Font is now loaded and can be used
-								(currentSelectedElements?.[0] as fabric.Text)?.set('fontFamily', font.family);
+								(currentSelectedElements?.[0] as FabricText)?.set('fontFamily', font.family);
 
 								if (currentSelectedElements && currentSelectedElements) {
-									const textElement = currentSelectedElements?.[0] as fabric.Text;
+									const textElement = currentSelectedElements?.[0] as FabricText;
 									textElement.set({
 										data: { ...textElement.data, googleFont: `font-family: ${font.family};` },
 									});
@@ -338,10 +339,10 @@ const TextPanel = ({ canvas, currentSelectedElements }: PanelProps) => {
 									})
 									.then(() => {
 										// Font is now loaded and can be used
-										(currentSelectedElements?.[0] as fabric.Text)?.set('fontWeight', e as string);
+										(currentSelectedElements?.[0] as FabricText)?.set('fontWeight', e as string);
 
 										if (currentSelectedElements) {
-											const textElement = currentSelectedElements[0] as fabric.Text;
+											const textElement = currentSelectedElements[0] as FabricText;
 											textElement.set({
 												data: {
 													...textElement.data,

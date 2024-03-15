@@ -16,9 +16,9 @@ import Node from './Folders/Node';
 import Placeholder from './Folders/Placeholder';
 import useTreeOpenHandler from './Folders/useTreeOpenHandler';
 import { convertFabricObjectsToLayers } from './helpers';
-import { fabric } from 'fabric';
 import SectionTitle from '../../components/SectionTitle';
 import { filterLayerPanelExcludes } from '../utils/fabricObjectUtils';
+import { Canvas, Group } from 'fabric';
 
 const reorderArray = (array: NodeModel[], sourceIndex: number, targetIndex: number) => {
 	const newArray = [...array];
@@ -28,7 +28,7 @@ const reorderArray = (array: NodeModel[], sourceIndex: number, targetIndex: numb
 };
 
 type LayerListProp = {
-	canvas: fabric.Canvas | null;
+	canvas: Canvas | null;
 };
 // Component for all layers
 export default function LayerList({ canvas }: LayerListProp) {
@@ -120,7 +120,7 @@ export default function LayerList({ canvas }: LayerListProp) {
 					}
 
 					// Add the textbox to the group
-					(group as fabric.Group).addWithUpdate(textbox);
+					(group as Group).add(textbox);
 
 					// Remove the textbox from the canvas
 					canvas?.remove(textbox);

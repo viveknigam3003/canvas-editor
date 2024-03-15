@@ -19,7 +19,7 @@ export const getBulkEditedArtboards = (
 	return artboards.map(artboard => {
 		// Check if the artboard has objects and find the element
 		if (selectedArtboards.includes(artboard.id) && artboard.state?.objects) {
-			const newObjects = artboard.state.objects.map((obj: fabric.Object) => {
+			const newObjects = artboard.state.objects.map((obj: FabricObject) => {
 				// Update the element that matches the ID
 				if (obj.data && obj.data.id === elementId) {
 					return Object.assign({}, obj, properties);

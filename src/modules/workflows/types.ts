@@ -1,3 +1,5 @@
+import { FabricObject } from 'fabric';
+
 export type ConditionComponent = 'when' | 'conditional' | 'target';
 
 export type Condition = Record<ConditionComponent, When | Conditional | Target | null>;
@@ -25,7 +27,7 @@ export enum Property {
 	y = 'Y',
 }
 
-export const setProperty = (element: fabric.Object, property: Property, value: any) => {
+export const setProperty = (element: FabricObject, property: Property, value: any) => {
 	element.set({
 		[property]: value,
 	});

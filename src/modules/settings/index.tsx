@@ -21,7 +21,7 @@ import SnapDistanceModal from '../snapping/SnapDistanceModal';
 import { filterSaveExcludes } from '../utils/fabricObjectUtils';
 
 interface Props {
-	canvasRef: React.RefObject<fabric.Canvas>;
+	canvasRef: React.RefObject<Canvas>;
 	recreateCanvas: () => void;
 	setShowSidebar: React.Dispatch<React.SetStateAction<boolean>>;
 	autosaveChanges: boolean;
@@ -50,8 +50,9 @@ const SettingsMenu: React.FC<Props> = ({
 	const keyboardShortcuts = getKeyboardShortcuts();
 
 	const debug = () => {
-		console.log('json=', canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS));
+		console.log('json=', JSON.parse(JSON.stringify(canvasRef.current?.toObject(FABRIC_JSON_ALLOWED_KEYS))));
 		console.log('fabric-objects=', filterSaveExcludes(canvasRef.current?.getObjects()));
+		console.log('active-objects=', canvasRef.current?.getActiveObject());
 		notifications.show({
 			icon: <IconBug size={14} />,
 			title: 'Logged state',

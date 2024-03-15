@@ -1,16 +1,16 @@
 import { Divider, Group, NumberInput, Stack } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
-import { fabric } from 'fabric';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SectionTitle from '../../components/SectionTitle';
 import { RootState } from '../../store/rootReducer';
 import { applyBulkEdit } from '../app/actions';
 import { getKeyboardShortcuts } from '../keyboard/helpers';
+import { Canvas, FabricObject } from 'fabric';
 
 interface PositionProps {
-	canvas: fabric.Canvas;
-	currentSelectedElements: fabric.Object[];
+	canvas: Canvas;
+	currentSelectedElements: FabricObject[];
 }
 
 const Position: React.FC<PositionProps> = ({ canvas, currentSelectedElements }) => {

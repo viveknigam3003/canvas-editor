@@ -1,6 +1,6 @@
 import { Button, Group, Modal, NumberInput, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { fabric } from 'fabric';
+import { getHotkeyHandler } from '@mantine/hooks';
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { FABRIC_JSON_ALLOWED_KEYS } from '../../constants';
@@ -8,12 +8,13 @@ import { useModalStyles } from '../../styles/modal';
 import { Artboard } from '../../types';
 import { generateId } from '../../utils';
 import { addArtboard } from '../app/actions';
-import { getHotkeyHandler } from '@mantine/hooks';
+import { Canvas, Rect } from 'fabric';
+import { makeJsonObject } from '../../App';
 
 interface NewArtboardModalProps {
 	opened: boolean;
 	onClose: () => void;
-	canvas: fabric.Canvas | null;
+	canvas: Canvas | null;
 }
 
 const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, canvas }) => {
@@ -45,7 +46,7 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 	});
 
 	const getArtboardRectangle = (artboard: Artboard) => {
-		return new fabric.Rect({
+		return new Rect({
 			left: 0,
 			top: 0,
 			width: artboard.width,
@@ -54,7 +55,7 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 			hoverCursor: 'default',
 			selectable: false,
 			data: {
-				type: 'artboard',
+				typera: 'artboard',
 				id: artboard.id,
 			},
 		});
@@ -78,7 +79,7 @@ const NewArtboardModal: React.FC<NewArtboardModalProps> = ({ opened, onClose, ca
 		const artboardRect = getArtboardRectangle(newArtboard);
 		canvas.add(artboardRect);
 		// Save the state of the canvas
-		const json = canvas.toJSON(FABRIC_JSON_ALLOWED_KEYS);
+		const json = makeJsonObject(canvas.toObject(FABRIC_JSON_ALLOWED_KEYS));
 
 		if (!json) {
 			throw new Error('Could not get canvas json');

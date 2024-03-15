@@ -8,8 +8,7 @@
 		"build": "tsc && vite build",
 		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
 		"preview": "vite preview",
-		"format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
-		"postinstall": "patch-package && script/fabricBuilder.sh"
+		"format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
 	},
 	"dependencies": {
 		"@emotion/react": "^11.11.1",
@@ -27,8 +26,9 @@
 		"axios": "^1.6.1",
 		"deep-diff": "^1.0.2",
 		"diff": "^5.1.0",
-		"fabric": "^5.3.0",
+		"fabric": "^6.0.0-beta19",
 		"fontfaceobserver": "^2.3.0",
+		"jscodeshift": "^0.15.2",
 		"react": "^18.2.0",
 		"react-dnd": "^16.0.1",
 		"react-dom": "^18.2.0",
@@ -39,7 +39,6 @@
 	"devDependencies": {
 		"@types/deep-diff": "^1.0.5",
 		"@types/diff": "^5.0.8",
-		"@types/fabric": "^5.3.6",
 		"@types/react": "^18.2.15",
 		"@types/react-dom": "^18.2.7",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
