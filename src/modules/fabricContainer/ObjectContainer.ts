@@ -80,20 +80,25 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		this.callSuper('initialize', [backgroundRect], options);
 
 		this.set({
-			clipPath: new RoundedRect({
-				left: -this.width / 2,
-				top: -this.height / 2,
-				width: this.width,
-				height: this.height,
-				cornerRadius: {
-					tl: options.properties?.radius?.tl || 0,
-					tr: options.properties?.radius?.tr || 0,
-					bl: options.properties?.radius?.bl || 0,
-					br: options.properties?.radius?.br || 0,
-				},
-			}) as fabric.RoundedRect,
+			clipPath: this._getClipPath(),
+			objectCaching: false,
 		});
 		this.setProperties(options.properties || defaultProperties);
+	},
+	_getClipPath(this: fabric.ObjectContainer) {
+		const clipPath = new RoundedRect({
+			left: -this.width! / 2,
+			top: -this.height! / 2,
+			width: this.width,
+			height: this.height,
+			cornerRadius: {
+				tl: this.properties?.radius?.tl || 0,
+				tr: this.properties?.radius?.tr || 0,
+				bl: this.properties?.radius?.bl || 0,
+				br: this.properties?.radius?.br || 0,
+			},
+		}) as fabric.RoundedRect;
+		return clipPath;
 	},
 
 	setProperties(properties: ObjectContainerOptions['properties']) {
@@ -212,14 +217,14 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		// });
 
 		// NEW PROPOSED WAY
-		object.setPositionByOrigin(new fabric.Point(-this.width / 2, -this.height / 2), 'left', 'top');
+		object?.setPositionByOrigin(new fabric.Point(-this.width / 2, -this.height / 2), 'left', 'top');
 
 		this._setContainerProperty('objectPosition', 'top-left');
 	},
 
 	_setObjectPositionToTopCenter() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: 0,
 			top: -this.height / 2,
 			originX: 'center',
@@ -231,7 +236,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToTopRight() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: this.width! / 2,
 			top: -this.height! / 2,
 			originX: 'right',
@@ -243,7 +248,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToCenterLeft() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: -this.width! / 2,
 			top: 0,
 			originX: 'left',
@@ -255,7 +260,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToCenter() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: 0,
 			top: 0,
 			originX: 'center',
@@ -267,7 +272,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToCenterRight() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: this.width! / 2,
 			top: 0,
 			originX: 'right',
@@ -279,7 +284,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToBottomLeft() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: -this.width! / 2,
 			top: this.height! / 2,
 			originX: 'left',
@@ -291,7 +296,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToBottomCenter() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: 0,
 			top: this.height! / 2,
 			originX: 'center',
@@ -303,7 +308,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	_setObjectPositionToBottomRight() {
 		const object = this.getObject();
-		object.set({
+		object?.set({
 			left: this.width! / 2,
 			top: this.height! / 2,
 			originX: 'right',
@@ -368,7 +373,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		});
 		const background = (this as fabric.ObjectContainer).getBackgroundObject();
 		background.set({ cornerRadius: calculatedRadius });
-		this.clipPath.set({ cornerRadius: calculatedRadius });
+		// this.clipPath.set({ cornerRadius: calculatedRadius });
 	},
 
 	_drawBorder(ctx: CanvasRenderingContext2D, side: 'top' | 'right' | 'bottom' | 'left') {
@@ -622,6 +627,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 	render(ctx: CanvasRenderingContext2D) {
 		this.callSuper('render', ctx);
+
 		// Save the current context
 		ctx.save();
 		this._drawBorder(ctx, 'top');
@@ -634,8 +640,7 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		// 	this.canvas.getActiveObjects().length > 1;
 		// if (!isPartOfSelection) {
 		// }
-		// Restore the context to its original state
-		ctx.restore();
+		ctx.restore(); // Restore the context to its original state
 	},
 });
 

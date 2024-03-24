@@ -49,6 +49,7 @@ declare module 'fabric' {
 			setObjectPosition(position: ObjectPosition): void;
 			setProperties(properties: Properties): void;
 			_setContainerProperty(property: string, value: any): void;
+			_getClipPath(): fabric.RoundedRect;
 		}
 		interface ImageContainer extends ObjectContainer {
 			src: string;

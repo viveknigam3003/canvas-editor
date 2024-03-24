@@ -75,9 +75,10 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 
 		// WITH NEW WAY
-		container.setObjectPosition(layoutPosition);
 		container.getObject().scale(value / 100);
-		container.setObjectPosition(layoutPosition);
+		if (!container.isCropping) {
+			container.setObjectPosition(layoutPosition);
+		}
 
 		canvas.renderAll();
 	};

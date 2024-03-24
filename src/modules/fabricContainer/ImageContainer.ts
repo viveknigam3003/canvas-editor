@@ -39,14 +39,27 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 	onSelected(this: fabric.ImageContainer) {
 		this.canvas?.on('mouse:down', this._onMouseDown);
 	},
+	_enterCropMode(this: fabric.ImageContainer) {
+		if (this.properties.objectFit !== 'crop') return;
+		console.log('Entering crop mode', this.isCropping, this.clipPath);
+		this.set({
+			isCropping: true,
+			lockMovementX: true,
+			lockMovementY: true,
+			clipPath: undefined,
+		});
+		this.canvas?.requestRenderAll();
+	},
 	_leaveCropMode(this: fabric.ImageContainer) {
-		console.log('Leaving crop mode', this.isCropping);
+		if (!this.isCropping) return;
 
-		console.log('Leaving crop mode', this.isCropping);
-
-		this.isCropping = false;
-		this.lockMovementX = false;
-		this.lockMovementY = false;
+		this.set({
+			isCropping: false,
+			lockMovementX: false,
+			lockMovementY: false,
+			clipPath: this._getClipPath(),
+		});
+		this.canvas?.requestRenderAll();
 
 		// Correctly remove event listeners using bound function references
 		const canvas = this.canvas;
@@ -58,14 +71,6 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 		canvas?.off('mouse:up', this._onMouseUp);
 
 		return false;
-	},
-	_enterCropMode(this: fabric.ImageContainer) {
-		console.log('Entering crop mode');
-		if (this.properties.objectFit !== 'crop') return;
-
-		this.isCropping = true;
-		this.lockMovementX = true;
-		this.lockMovementY = true;
 	},
 	_onMouseDown: function (this: fabric.ImageContainer, e: fabric.IEvent<MouseEvent>) {
 		if (!this.isCropping) return;
@@ -95,7 +100,7 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 			this._initialY = e.e.clientY;
 
 			this.dirty = true;
-			this.canvas?.renderAll();
+			this.canvas?.requestRenderAll();
 		}
 	},
 	_onMouseUp: function (this: fabric.ImageContainer, e: fabric.IEvent<MouseEvent>) {
@@ -204,6 +209,9 @@ export const ImageContainer = fabric.util.createClass(ObjectContainer, {
 			src: this.src,
 		});
 	},
+	render(ctx: CanvasRenderingContext2D) {
+		this.callSuper('render', ctx);
+	},
 });
 
 ImageContainer.fromObject = (
@@ -242,6 +250,22 @@ ImageContainer.fromObject = (
 
 fabric.Object._fromObject('ImageContainer', ImageContainer.fromObject);
 
+export const changeHeight: any = (_eventData: any, transform: any, x: number, y: number) => {
+	// @ts-ignore
+	const localPoint = fabric.controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y);
+	const { target } = transform;
+	if ((transform.originY === 'top' && localPoint.y > 0) || (transform.originY === 'bottom' && localPoint.y < 0)) {
+		const strokeWidth = target.strokeWidth ? target.strokeWidth : 0;
+		if (!target.scaleY) return false;
+		const strokePadding = strokeWidth / (target.strokeUniform ? target.scaleY : 1);
+		const oldHeight = target.height;
+		const newHeight = Math.ceil(Math.abs((localPoint.y * 1) / target.scaleY) - strokePadding);
+		target.set('height', Math.max(newHeight, 0));
+		return oldHeight !== target.height;
+	}
+	return false;
+};
+
 const originalMRControl = (fabric as any).ImageContainer.prototype.controls.mr;
 (fabric as any).ImageContainer.prototype.controls.mr = new fabric.Control({
 	...originalMRControl,
@@ -269,7 +293,6 @@ const originalMRControl = (fabric as any).ImageContainer.prototype.controls.mr;
 		const backgroundObject = (target as fabric.ImageContainer).getBackgroundObject();
 		backgroundObject.set({
 			width: target.width,
-			left: -target.width! / 2,
 		});
 		target.clipPath?.set({
 			width: target.width,
@@ -279,22 +302,6 @@ const originalMRControl = (fabric as any).ImageContainer.prototype.controls.mr;
 		return true;
 	},
 });
-
-export const changeHeight: any = (_eventData: any, transform: any, x: number, y: number) => {
-	// @ts-ignore
-	const localPoint = fabric.controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y);
-	const { target } = transform;
-	if ((transform.originY === 'top' && localPoint.y > 0) || (transform.originY === 'bottom' && localPoint.y < 0)) {
-		const strokeWidth = target.strokeWidth ? target.strokeWidth : 0;
-		if (!target.scaleY) return false;
-		const strokePadding = strokeWidth / (target.strokeUniform ? target.scaleY : 1);
-		const oldHeight = target.height;
-		const newHeight = Math.ceil(Math.abs((localPoint.y * 1) / target.scaleY) - strokePadding);
-		target.set('height', Math.max(newHeight, 0));
-		return oldHeight !== target.height;
-	}
-	return false;
-};
 
 const originalMBControl = (fabric as any).ImageContainer.prototype.controls.mb;
 (fabric as any).ImageContainer.prototype.controls.mb = new fabric.Control({
@@ -322,7 +329,6 @@ const originalMBControl = (fabric as any).ImageContainer.prototype.controls.mb;
 		}
 		(target as fabric.ImageContainer).getBackgroundObject().set({
 			height: target.height,
-			top: -target.height! / 2,
 		});
 
 		target.clipPath?.set({
@@ -361,7 +367,6 @@ const originalMLControl = (fabric as any).ImageContainer.prototype.controls.ml;
 
 		(target as fabric.ImageContainer).getBackgroundObject().set({
 			width: target.width,
-			left: -target.width! / 2,
 		});
 		target.clipPath?.set({
 			width: target.width,
@@ -400,7 +405,6 @@ const originalMTControl = (fabric as any).ImageContainer.prototype.controls.mt;
 
 		(target as fabric.ImageContainer).getBackgroundObject().set({
 			height: target.height,
-			top: -target.height! / 2,
 		});
 
 		target.clipPath?.set({
