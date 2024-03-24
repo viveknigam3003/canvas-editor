@@ -28,7 +28,7 @@ export type Border = {
 	dashCap?: string;
 };
 
-export type ObjectFit = 'fill' | 'fit' | 'custom';
+export type ObjectFit = 'fill' | 'fit' | 'crop';
 
 export type Padding = {
 	top: number;

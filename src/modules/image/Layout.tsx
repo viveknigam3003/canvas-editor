@@ -32,7 +32,7 @@ interface Props {
 const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	const [zoomValue, setZoomValue] = React.useState(0);
 	const [layoutPosition, setLayoutPosition] = React.useState<ObjectPosition | null>(null);
-	const [objectFit, setObjectFit] = React.useState<ObjectFit>('custom');
+	const [objectFit, setObjectFit] = React.useState<ObjectFit>('fill');
 	const [border, setBorder] = React.useState({ width: 0, color: '#000' });
 	const [borderRadius, setBorderRadius] = React.useState({ tl: 0, tr: 0, br: 0, bl: 0 });
 	const theme = useMantineTheme();
@@ -42,7 +42,6 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		const scale = container.getObject().scaleX;
 		if (scale) {
-			setZoomValue(scale * 100);
 			const layoutPosition = container.properties.objectPosition;
 			if (layoutPosition) {
 				setLayoutPosition(layoutPosition);
@@ -63,27 +62,32 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 	}, [currentSelectedElements]);
 
 	useEffect(() => {
-		// When scale is not fitScale or fillScale, set custom
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		const scale = container.getObject().scaleX;
-		if (scale !== container.properties.fitScale && scale !== container.properties.fillScale) {
-			setObjectFit('custom');
-			container.setObjectFit('custom');
+		if (objectFit === 'crop') {
+			setZoomValue(scale! * 100);
 		}
-	}, [(currentSelectedElements[0] as fabric.ImageContainer).getObject().scaleX]);
+	}, [objectFit, currentSelectedElements]);
 
 	const updateZoomValue = (value: number) => {
 		setZoomValue(value);
 		// Update the scale of the image inside the group
-		(currentSelectedElements[0] as fabric.ImageContainer).getObject().scale(value / 100);
+		const container = currentSelectedElements[0] as fabric.ImageContainer;
+
+		// WITH NEW WAY
+		container.setObjectPosition(layoutPosition);
+		container.getObject().scale(value / 100);
+		container.setObjectPosition(layoutPosition);
+
 		canvas.renderAll();
 	};
 
 	const fillImageInContainer = () => {
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		container.setObjectFit('fill');
-		setZoomValue(container.properties.fillScale! * 100);
 		setObjectFit('fill');
+		console.log('Scale', container.getObject().scaleX, container.getObject().scaleY);
+
 		canvas.renderAll();
 	};
 
@@ -91,8 +95,9 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		// Fit the image in container maintaining the aspect ratio
 		const container = currentSelectedElements[0] as fabric.ImageContainer;
 		container.setObjectFit('fit');
-		setZoomValue(container.properties.fitScale! * 100);
 		setObjectFit('fit');
+		console.log('Scale', container.getObject().scaleX, container.getObject().scaleY);
+
 		canvas.renderAll();
 	};
 
@@ -128,25 +133,40 @@ const Layout: React.FC<Props> = ({ currentSelectedElements, canvas }) => {
 		canvas.renderAll();
 	};
 
+	const cropImage = () => {
+		const container = currentSelectedElements[0] as fabric.ImageContainer;
+		container.setObjectFit('crop');
+		setObjectFit('crop');
+		console.log('Scale', container.getObject().scaleX, container.getObject().scaleY);
+		canvas.renderAll();
+	};
+
 	return (
 		<Stack>
-			<SectionTitle>Zoom</SectionTitle>
-			<NumberInput
-				min={1}
-				max={100}
-				step={0.1}
-				precision={1}
-				value={zoomValue}
-				onChange={updateZoomValue}
-				stepHoldDelay={100}
-				stepHoldInterval={50}
-			/>
 			<Button onClick={fillImageInContainer} variant={objectFit === 'fill' ? 'filled' : 'outline'}>
-				Fill image in container
+				Fill image
 			</Button>
 			<Button onClick={fitImageInContainer} variant={objectFit === 'fit' ? 'filled' : 'outline'}>
-				Fit in container
+				Fit image
 			</Button>
+			<Button onClick={cropImage} variant={objectFit === 'crop' ? 'filled' : 'outline'}>
+				Crop
+			</Button>
+			{objectFit === 'crop' ? (
+				<>
+					<SectionTitle>Scale</SectionTitle>
+					<NumberInput
+						min={1}
+						max={100}
+						step={0.1}
+						precision={1}
+						value={zoomValue}
+						onChange={updateZoomValue}
+						stepHoldDelay={100}
+						stepHoldInterval={50}
+					/>
+				</>
+			) : null}
 			<SectionTitle>Layout</SectionTitle>
 			<Group>
 				<ActionIcon

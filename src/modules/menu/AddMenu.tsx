@@ -124,9 +124,8 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 			src: src_2,
 			properties: {
 				objectFit: 'fill',
-				fill: '#e3e3e3',
+				fill: 'red',
 				border: {
-					color: 'blue',
 					top: 4,
 					bottom: 4,
 					left: 4,
@@ -170,21 +169,20 @@ export default function AddMenu({ activeArtboard, canvasRef, saveArtboardChanges
 		// 	},
 		// });
 		// canvas.add(rr);
-
 		await container.loadImage();
 		canvas.add(container);
 		// canvas.add(oc);
-		const obj = container.getObject();
+		// const obj = container.getObject();
 		canvas.requestRenderAll();
-		container.on('mousedblclick', () => {
-			console.log('dblclick');
-			canvas.setActiveObject(obj);
-			// canvas.setActiveObject(obj);
-		});
+		// container.on('mousedblclick', () => {
+		// 	console.log('dblclick');
+		// 	canvas.setActiveObject(obj);
+		// 	// canvas.setActiveObject(obj);
+		// });
 
-		obj.on('deselected', function () {
-			console.log('selection cleared');
-		});
+		// obj.on('deselected', function () {
+		// 	console.log('selection cleared');
+		// });
 		dispatch(updateActiveArtboardLayers(canvasRef.current?.toJSON(FABRIC_JSON_ALLOWED_KEYS).objects || []));
 		saveArtboardChanges();
 	};

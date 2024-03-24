@@ -2,6 +2,7 @@ import { fabric } from 'fabric';
 import { IGradientOptions, IPatternOptions } from 'fabric/fabric-impl';
 import { RoundedRect } from './RoundedRectangle';
 import { ObjectPosition, Properties } from './types';
+import { getObjectOrigin, rotatePoint } from './utils';
 
 /**
  * Object container
@@ -76,18 +77,20 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 		this.callSuper('initialize', [backgroundRect], options);
 
-		this.clipPath = new RoundedRect({
-			left: -this.width / 2,
-			top: -this.height / 2,
-			width: this.width,
-			height: this.height,
-			cornerRadius: {
-				tl: options.properties?.radius?.tl || 0,
-				tr: options.properties?.radius?.tr || 0,
-				bl: options.properties?.radius?.bl || 0,
-				br: options.properties?.radius?.br || 0,
-			},
-		}) as fabric.RoundedRect;
+		this.set({
+			clipPath: new RoundedRect({
+				left: -this.width / 2,
+				top: -this.height / 2,
+				width: this.width,
+				height: this.height,
+				cornerRadius: {
+					tl: options.properties?.radius?.tl || 0,
+					tr: options.properties?.radius?.tr || 0,
+					bl: options.properties?.radius?.bl || 0,
+					br: options.properties?.radius?.br || 0,
+				},
+			}) as fabric.RoundedRect,
+		});
 		this.setProperties(options.properties || defaultProperties);
 	},
 
@@ -196,14 +199,19 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 	},
 
 	_setObjectPositionToTopLeft() {
-		const object = this.getObject();
-		object.set({
-			originX: 'left',
-			originY: 'top',
-			left: -this.width / 2,
-			top: -this.height / 2,
-		});
-		this.setCoords();
+		const object = this.getObject() as fabric.Object;
+
+		// OLD WAY
+		// object.set({
+		// 	originX: 'left',
+		// 	originY: 'top',
+		// 	left: -this.width / 2,
+		// 	top: -this.height / 2,
+		// });
+
+		// NEW PROPOSED WAY
+		object.setPositionByOrigin(new fabric.Point(-this.width / 2, -this.height / 2), 'left', 'top');
+
 		this._setContainerProperty('objectPosition', 'top-left');
 	},
 
@@ -385,8 +393,8 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 
 		const K = 1 - 0.5522847498; // Bezier approximation
 
-		// const [originX, originY] = getObjectOrigin(this);
-		const rotateAroundObjectOrigin = (x: number, y: number): [number, number] => [x, y];
+		const [originX, originY] = getObjectOrigin(this);
+		const rotateAroundObjectOrigin = rotatePoint(originX, originY, this.angle);
 
 		const rotateBezierPointsAroundOrigin = (
 			cp1x: number,
@@ -614,17 +622,16 @@ export const ObjectContainer = fabric.util.createClass(fabric.Group, {
 		this.callSuper('render', ctx);
 		// Save the current context
 		ctx.save();
-
+		this._drawBorder(ctx, 'top');
+		this._drawBorder(ctx, 'right');
+		this._drawBorder(ctx, 'bottom');
+		this._drawBorder(ctx, 'left');
 		// Hiding border due to buggy rendering on multiple active objects
-		const isPartOfSelection =
-			this.canvas.getActiveObjects().findIndex((obj: fabric.Object) => obj.data.id === this.data.id) !== -1 &&
-			this.canvas.getActiveObjects().length > 1;
-		if (!isPartOfSelection) {
-			this._drawBorder(ctx, 'top');
-			this._drawBorder(ctx, 'right');
-			this._drawBorder(ctx, 'bottom');
-			this._drawBorder(ctx, 'left');
-		}
+		// const isPartOfSelection =
+		// 	this.canvas.getActiveObjects().findIndex((obj: fabric.Object) => obj.data.id === this.data.id) !== -1 &&
+		// 	this.canvas.getActiveObjects().length > 1;
+		// if (!isPartOfSelection) {
+		// }
 		// Restore the context to its original state
 		ctx.restore();
 	},
@@ -639,4 +646,4 @@ ObjectContainer.fromObject = (object: ObjectContainerOptions, callback: (obj: fa
 (fabric as any).ObjectContainer = ObjectContainer;
 (fabric as any).ObjectContainer.fromObject = ObjectContainer.fromObject;
 
-fabric.Object._fromObject('ObjectContainer', ObjectContainer.fromObject);
+// fabric.Object._fromObject('ObjectContainer', ObjectContainer.fromObject);

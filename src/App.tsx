@@ -220,6 +220,7 @@ function App() {
 			// create a canvas with clientWidth and clientHeight
 			backgroundColor: '#e9ecef',
 			colorSpace: colorSpace as colorSpaceType,
+			preserveObjectStacking: true,
 		});
 		// inject guides to canvas
 		new FabricGuide(canvasRef.current);
