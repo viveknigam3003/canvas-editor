@@ -9,6 +9,8 @@ import { RULER_LINES } from '../modules/ruler';
 import ShapePanel from '../modules/shapes/ShapePanel';
 import TextPanel from '../modules/text/Panel';
 import { Artboard } from '../types';
+import Layout from '../modules/image/Layout';
+import SectionTitle from './SectionTitle';
 
 type PanelProps = {
 	canvas: fabric.Canvas;
@@ -40,6 +42,12 @@ const Panel = ({ canvas, currentSelectedElements, saveArtboardChanges, activeArt
 					<Divider />
 					<Position canvas={canvas} currentSelectedElements={currentSelectedElements} />
 
+					{currentSelectedElements?.[0].type === 'image-container' && (
+						<Stack>
+							<SectionTitle>Element adjustment</SectionTitle>
+							<Layout currentSelectedElements={currentSelectedElements} canvas={canvas} />
+						</Stack>
+					)}
 					{currentSelectedElements?.[0]?.data?.type === 'shape' && (
 						<ShapePanel canvas={canvas} currentSelectedElements={currentSelectedElements} />
 					)}

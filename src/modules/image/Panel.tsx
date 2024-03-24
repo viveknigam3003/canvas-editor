@@ -1,7 +1,7 @@
 import { Divider, Stack } from '@mantine/core';
 import SectionTitle from '../../components/SectionTitle';
-import Shadow from '../shadow';
 import Reflection from '../reflection';
+import Shadow from '../shadow';
 
 interface PanelProps {
 	canvas: fabric.Canvas;
